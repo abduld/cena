@@ -146,9 +146,9 @@ public:
 void parse() {
 	llvm::sys::PrintStackTraceOnErrorSignal();
 
-	llvm::OwningPtr<CompilationDatabase> Compilations(new FixedCompilationDatabase("/", vector<string>()));
+	std::unique_ptr<CompilationDatabase> Compilations(new FixedCompilationDatabase("/", vector<string>()));
 	vector<string> Sources;
-	Sources.push_back("/main.cpp");
+	Sources.push_back("main.cpp");
 
 	ClangTool Tool(*Compilations, Sources);
 	
