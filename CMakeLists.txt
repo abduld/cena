@@ -17,7 +17,7 @@ add_executable(ast
   main.cpp
   )
 
-target_link_libraries(ast ${CLANG_LIBS} ${LLVM_LIBS_CORE} ${LLVM_LDFLAGS})
+target_link_libraries(ast ${CLANG_LIBS} ${LLVM_LIBS_CORE} ${LLVM_LDFLAGS} jansson)
 
 
 ADD_DEFINITIONS("-std=c++11") 

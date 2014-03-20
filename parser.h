@@ -6,6 +6,7 @@
 
 
 void parse();
+int test();
 
 #endif /* __PARSER_H__ */
 
