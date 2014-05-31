@@ -19,23 +19,25 @@
 #include    <ios>
 #include    <type_traits>
 #include    "rapidjson/rapidjson.h"
-#include    "rapidxml/rapidxml.h"
+#include    "rapidxml/rapidxml.hpp"
 
-using namespace std::string;
-using namespace std::is_integral;
-using namespace std::true_type;
-using namespace std::stringstream;
+using std::is_integral;
+using std::true_type;
+using std::string;
+using std::vector;
+using std::is_same;
+using std::stringstream;
+using rapidjson::StringStream;
 
-template <>
 static inline string toString() {
     return "";
 }
 
-template <typename T, typename Ts...>
+template <typename T, typename... Ts>
 static inline string toString(const T& first, const Ts&... rest) {
     stringstream ss;
-    if (is_integral<T>::value) {
-        if (first == true_type) {
+    if (is_same<T, bool>::value) {
+        if (first == true_type::value) {
             ss << "True";
         } else {
             ss << "False";
@@ -43,24 +45,30 @@ static inline string toString(const T& first, const Ts&... rest) {
     } else {
         ss << first;
     }
-    if (sizeof...(rest) == 0) {
-        return ss.str();
+    if (sizeof...(rest) > 0) {
+        ss << toString(rest...);
     }
-    ss << toString(rest);
-    return ss;
+    return ss.str();
 }
 
 class SymbolicAtom;
 class SymbolicStatement;
 
-sturct SymbolicFormBase {
+class SymbolicFormBase {
+protected:
+    string head;
 public:
-	~SBase() {}
-	virtual inline json_t toJSON() = 0;
+	~SymbolicFormBase() {}
+    virtual inline string getHead() = 0;
+	virtual inline StringStream toJSON() = 0;
 	virtual inline string toMLink() = 0;
 	virtual inline string toCString() = 0;
 	virtual inline bool isAtom() { return false; }
 	virtual inline bool isStatement() { return false; }
+};
+
+struct SymbolicReturn : public SymbolicFormBase {
+    
 };
 
 
@@ -69,5 +77,3 @@ public:
 
 
 
-
-#endif

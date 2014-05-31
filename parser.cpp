@@ -15,7 +15,7 @@
 #include "clang/Tooling/Tooling.h"
 #include "clang/Rewrite/Core/Rewriter.h"
 #include "llvm/Support/Signals.h"
-#include "jansson.h"
+#include "SymbolicForm.h"
 
 #include <string>
 #include <vector>
@@ -284,18 +284,7 @@ return Visit##type (concrete_stmt);                        \
         //VISIT(SwitchStmt);
         //VISIT(WhileStmt);
 #undef VISIT
-        
-		printf("Stmt ... \n");
-		if (isa<CompoundStmt>(stmt)) {
-			CompoundStmt * st = cast<CompoundStmt>(stmt);
-			for(CompoundStmt::body_iterator I = st->body_begin(), E = st->body_end();
-				I != E; ++I) {
-				VisitStmt(*I);
-			}
-			return ;
-		} else if (isa<Expr>(stmt)) {
-			//return VisitExpr(cast<Expr>(stmt));
-		}
+
 		return true;
 	}
 
