@@ -33,85 +33,105 @@ Rewriter rewriter;
 #define DEBUG printf("DEBUG :: >>> %d ... \n", __LINE__)
 
 
-class JSONVisitor : public RecursiveASTVisitor<JSONVisitor> {
+// All unary operators.
+#define UNARYOP_LIST()                                                         \
+OPERATOR(PostInc) OPERATOR(PostDec) OPERATOR(PreInc) OPERATOR(PreDec)        \
+OPERATOR(AddrOf) OPERATOR(Deref) OPERATOR(Plus) OPERATOR(Minus)          \
+OPERATOR(Not) OPERATOR(LNot) OPERATOR(Real) OPERATOR(Imag)               \
+OPERATOR(Extension)
+
+// All binary operators (excluding compound assign operators).
+#define BINOP_LIST()                                                           \
+OPERATOR(PtrMemD) OPERATOR(PtrMemI) OPERATOR(Mul) OPERATOR(Div)              \
+OPERATOR(Rem) OPERATOR(Add) OPERATOR(Sub) OPERATOR(Shl) OPERATOR(Shr)    \
+OPERATOR(LT) OPERATOR(GT) OPERATOR(LE) OPERATOR(GE) OPERATOR(EQ)         \
+OPERATOR(NE) OPERATOR(And) OPERATOR(Xor) OPERATOR(Or) OPERATOR(LAnd)     \
+OPERATOR(LOr) OPERATOR(Assign) OPERATOR(Comma)
+
+// All compound assign operators.
+#define CAO_LIST()                                                             \
+OPERATOR(Mul) OPERATOR(Div) OPERATOR(Rem) OPERATOR(Add) OPERATOR(Sub)        \
+OPERATOR(Shl) OPERATOR(Shr) OPERATOR(And) OPERATOR(Or) OPERATOR(Xor)
+
+class MVisitor : public RecursiveASTVisitor<MVisitor> {
 private:
 	clang::ASTContext *astContext; // used for getting additional AST info
 
 public:
-	explicit JSONVisitor(CompilerInstance *CI)
+	explicit MVisitor(CompilerInstance *CI)
 		: astContext(&(CI->getASTContext())) // initialize private members
 	{
 		rewriter.setSourceMgr(astContext->getSourceManager(), astContext->getLangOpts());
 	}
 
 
-	json_t * VisitTypedefDecl(const TypedefDecl * decl) {
+	bool VisitTypedefDecl(const TypedefDecl * decl) {
 		DEBUG;
-		decl->dumpColor();
-		return NULL;
+		decl->dump();
+		return true;
 	}
 
-	json_t * VisitTypeAliasDecl(const TypeAliasDecl * decl) {
+	bool VisitTypeAliasDecl(const TypeAliasDecl * decl) {
 		DEBUG;
-		decl->dumpColor();
-		return NULL;
+		decl->dump();
+		return true;
 	}
 
-	json_t * VisitEnumDecl(const EnumDecl * decl) {
+	bool VisitEnumDecl(const EnumDecl * decl) {
 		DEBUG;
-		decl->dumpColor();
-		return NULL;
+		decl->dump();
+		return true;
 	}
 
-	json_t * VisitEnumConstantDecl(const EnumConstantDecl * decl) {
+	bool VisitEnumConstantDecl(const EnumConstantDecl * decl) {
 		DEBUG;
-		decl->dumpColor();
-		return NULL;
+		decl->dump();
+		return true;
 	}
 
-	json_t * VisitFunctionDecl(const FunctionDecl * decl) {
+	bool VisitFunctionDecl(const FunctionDecl * decl) {
 		DEBUG;
-		decl->dumpColor();
-		return NULL;
+		decl->dump();
+		return true;
 	}
 
-	json_t * VisitFieldDecl(const FieldDecl * decl) {
+	bool VisitFieldDecl(const FieldDecl * decl) {
 		DEBUG;
-		decl->dumpColor();
-		return NULL;
+		decl->dump();
+		return true;
 	}
 
-	json_t * VisitVarDecl(const VarDecl * decl) {
+	bool VisitVarDecl(const VarDecl * decl) {
 		DEBUG;
-		decl->dumpColor();
-		return NULL;
+		decl->dump();
+		return true;
 	}
 
-	json_t * VisitImplicitParamDecl(const ImplicitParamDecl * decl) {
+	bool VisitImplicitParamDecl(const ImplicitParamDecl * decl) {
 		DEBUG;
-		decl->dumpColor();
-		return NULL;
+		decl->dump();
+		return true;
 	}
 
-	json_t * VisitBlockDecl(const BlockDecl * decl) {
+	bool VisitBlockDecl(const BlockDecl * decl) {
 		DEBUG;
-		decl->dumpColor();
-		return NULL;
+		decl->dump();
+		return true;
 	}
 
-	json_t * VisitCapturedDecl(const CapturedDecl * decl) {
+	bool VisitCapturedDecl(const CapturedDecl * decl) {
 		DEBUG;
-		decl->dumpColor();
-		return NULL;
+		decl->dump();
+		return true;
 	}
 
-	json_t * VisitLabelDecl(const LabelDecl * decl) {
+	bool VisitLabelDecl(const LabelDecl * decl) {
 		DEBUG;
-		decl->dumpColor();
-		return NULL;
+		decl->dump();
+		return true;
 	}
 
-	json_t * VisitDecl(Decl * decl) {
+	bool VisitDecl(Decl * decl) {
 		if (isa<FunctionDecl>(decl)) {
 			return VisitFunctionDecl(cast<FunctionDecl>(decl));
 		} else if (isa<TranslationUnitDecl>(decl)) {
@@ -121,24 +141,150 @@ public:
 				TraverseDecl(*I);
 			}
 		}
-		return NULL;
+		return true;
+	}
+    
+	bool VisitDeclStmt(DeclStmt * decl) {
+		DEBUG;
+		decl->dump();
+		return true;
+	}
+    
+	bool VisitIfStmt(IfStmt * ifStmt) {
+		DEBUG;
+        Expr *conditionExpr = ifStmt->getCond();
+        Stmt *thenStmt = ifStmt->getThen();
+        Stmt *elseStmt = ifStmt->getElse();
+        VisitExpr(conditionExpr);
+        VisitStmt(thenStmt);
+        if (elseStmt != NULL) {
+            VisitStmt(elseStmt);
+        }
+		ifStmt->dump();
+		return true;
 	}
 
-    json_t * VisitFunctionDecl(FunctionDecl *f) {
+    bool VisitFunctionDecl(FunctionDecl *f) {
 		if (f->hasBody()) {
             Stmt * body = f->getBody();
             VisitStmt(body);
 		}
-		return NULL;
+		return true;
+    }
+    
+    bool VisitCompoundStmt(CompoundStmt *stmt) {
+		DEBUG;
+		stmt->dump();
+        for (CompoundStmt::const_body_iterator citer = stmt->body_begin();
+             citer != stmt->body_end();
+             ++citer) {
+            VisitStmt(*citer);
+        }
+		return true;
     }
 
-	json_t * VisitExpr(Expr * expr) {
+	bool VisitExpr(Expr * expr) {
 		DEBUG;
-		expr->dumpColor();
-		return NULL;
+		expr->dump();
+#define VISIT(type) do {                                                \
+clang::type* concrete_expr = dyn_cast_or_null<clang::type>(expr); \
+if (concrete_expr != NULL) {                                      \
+return Visit##type (concrete_expr);                        \
+}                                                                 \
+} while(0);
+        
+        //VISIT(AbstractConditionalOperator);
+        //VISIT(AddrLabelExpr);
+        //VISIT(ArraySubscriptExpr);
+        //VISIT(BinaryOperator);
+        //VISIT(BinaryTypeTraitExpr);
+        //VISIT(BlockDeclRefExpr);
+        //VISIT(BlockExpr);
+        //VISIT(CallExpr);
+        //VISIT(CastExpr);
+        //VISIT(CharacterLiteral);
+        //VISIT(ChooseExpr);
+        //VISIT(CompoundLiteralExpr);
+        //VISIT(CXXBindTemporaryExpr);
+        //VISIT(CXXBoolLiteralExpr);
+        //VISIT(CXXConstructExpr);
+        //VISIT(CXXDefaultArgExpr);
+        //VISIT(CXXDeleteExpr);
+        //VISIT(CXXDependentScopeMemberExpr);
+        //VISIT(CXXNewExpr);
+        //VISIT(CXXNoexceptExpr);
+        //VISIT(CXXNullPtrLiteralExpr);
+        //VISIT(CXXPseudoDestructorExpr);
+        //VISIT(CXXScalarValueInitExpr);
+        //VISIT(CXXThisExpr);
+        //VISIT(CXXThrowExpr);
+        //VISIT(CXXTypeidExpr);
+        //VISIT(CXXUnresolvedConstructExpr);
+        //VISIT(CXXUuidofExpr);
+        //VISIT(DeclRefExpr);
+        //VISIT(DependentScopeDeclRefExpr);
+        //VISIT(DesignatedInitExpr);
+        //VISIT(ExprWithCleanups);
+        //VISIT(ExtVectorElementExpr);
+        //VISIT(FloatingLiteral);
+        //VISIT(GNUNullExpr);
+        //VISIT(ImaginaryLiteral);
+        //VISIT(ImplicitValueInitExpr);
+        //VISIT(InitListExpr);
+        //VISIT(IntegerLiteral);
+        //VISIT(MemberExpr);
+        //VISIT(OffsetOfExpr);
+        //VISIT(OpaqueValueExpr);
+        //VISIT(OverloadExpr);
+        //VISIT(PackExpansionExpr);
+        //VISIT(ParenExpr);
+        //VISIT(ParenListExpr);
+        //VISIT(PredefinedExpr);
+        //VISIT(ShuffleVectorExpr);
+        //VISIT(SizeOfPackExpr);
+        //VISIT(StmtExpr);
+        //VISIT(StringLiteral);
+        //VISIT(SubstNonTypeTemplateParmPackExpr);
+        //VISIT(UnaryExprOrTypeTraitExpr);
+        //VISIT(UnaryOperator);
+        //VISIT(UnaryTypeTraitExpr);
+        //VISIT(VAArgExpr);
+#undef VISIT
+    
+		return true;
 	}
 
-	json_t * VisitStmt(Stmt * stmt) {
+	bool VisitStmt(Stmt * stmt) {
+#define VISIT(type) do {                                                \
+clang::type* concrete_stmt = dyn_cast_or_null<clang::type>(stmt); \
+if (concrete_stmt != NULL) {                                      \
+return Visit##type (concrete_stmt);                        \
+}                                                                 \
+} while(0);
+        DEBUG;
+		stmt->dump();
+        
+        //VISIT(AsmStmt);
+        //VISIT(BreakStmt);
+        VISIT(CompoundStmt);
+        //VISIT(ContinueStmt);
+        //VISIT(CXXCatchStmt);
+        //VISIT(CXXTryStmt);
+        VISIT(DeclStmt);
+        //VISIT(DoStmt);
+        //VISIT(ForStmt);
+        //VISIT(GotoStmt);
+        VISIT(IfStmt);
+        //VISIT(IndirectGotoStmt);
+        //VISIT(LabelStmt);
+        //VISIT(NullStmt);
+        //VISIT(ReturnStmt);
+        //VISIT(CaseStmt);
+        //VISIT(DefaultStmt);
+        //VISIT(SwitchStmt);
+        //VISIT(WhileStmt);
+#undef VISIT
+        
 		printf("Stmt ... \n");
 		if (isa<CompoundStmt>(stmt)) {
 			CompoundStmt * st = cast<CompoundStmt>(stmt);
@@ -146,12 +292,11 @@ public:
 				I != E; ++I) {
 				VisitStmt(*I);
 			}
-			return NULL;
+			return ;
 		} else if (isa<Expr>(stmt)) {
-			return VisitExpr(cast<Expr>(stmt));
+			//return VisitExpr(cast<Expr>(stmt));
 		}
-		stmt->dumpColor();
-		return NULL;
+		return true;
 	}
 
 };
@@ -159,18 +304,19 @@ public:
 
 class JSONASTConsumer : public ASTConsumer {
 private:
-	JSONVisitor *visitor;
+	MVisitor *visitor;
 public:
 	explicit JSONASTConsumer(CompilerInstance *CI)
-		: visitor(new JSONVisitor(CI))
+		: visitor(new MVisitor(CI))
 	{ }
 
+    /*
 	virtual void HandleTranslationUnit(ASTContext &Ctx) {
 		visitor->TraverseDecl(Ctx.getTranslationUnitDecl());
 	}
+     */
 
-	// override this to call our JSONVisitor on each top-level Decl
-	/*
+	// override this to call our MVisitor on each top-level Decl
 	virtual bool HandleTopLevelDecl(DeclGroupRef DG) {
 		// a DeclGroupRef may have multiple Decls, so we iterate through each one
 		for (DeclGroupRef::iterator i = DG.begin(), e = DG.end(); i != e; i++) {
@@ -179,7 +325,6 @@ public:
 		}
 		return true;
 	}
-	*/
 };
 
 class JSONFrontendAction : public ASTFrontendAction {
@@ -198,19 +343,27 @@ void parse() {
 
 	std::unique_ptr<CompilationDatabase> Compilations(new FixedCompilationDatabase("/", vector<string>()));
 	vector<string> Sources;
-	Sources.push_back("test.cpp");
+	//Sources.push_back("test.cpp");
 
-	ClangTool Tool(*Compilations, Sources);
+	//ClangTool Tool(*Compilations, Sources);
 	
 	//Tool.mapVirtualFile("/a.cc", "int x = 3; void do_math(int *x) {*x += 5;}");
 
-	vector<ASTUnit *> ASTs;
-	Tool.buildASTs(ASTs);
+	//vector<std::unique_ptr<ASTUnit>> ASTs;
+	//Tool.buildASTs(ASTs);
+    
+    //Tool.run(newFrontendActionFactory<JSONFrontendAction>().get());
 
-	int result = Tool.run(newFrontendActionFactory<JSONFrontendAction>());
-
+    
+    vector<string> args;
+    args.push_back("-std=c99");
+    
+    runToolOnCodeWithArgs(newFrontendActionFactory<JSONFrontendAction>()->create(),
+                  "int main() { return 1; }",
+                          args
+                  );
 	// print out the rewritten source code ("rewriter" is a global var.)
 	// rewriter.getEditBuffer(rewriter.getSourceMgr().getMainFileID()).write(errs());
 
-	llvm::DeleteContainerPointers(ASTs);
+	//llvm::DeleteContainerPointers(ASTs);
 }

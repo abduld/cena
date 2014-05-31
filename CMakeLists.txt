@@ -1,15 +1,14 @@
 cmake_minimum_required(VERSION 2.8)
 
-set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules)
+set( CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/modules ${CMAKE_MODULE_PATH} )
+
 
 Find_Package(LLVM REQUIRED)
-link_directories( ${LLVM_LIB_DIR} )
-
-
 Find_Package(Clang REQUIRED)
-include_directories(${CLANG_INCLUDE_DIRS})
 
-set(LLVM_LINK_COMPONENTS support)
+
+
+
 set(LLVM_USED_LIBS clangTooling clangBasic clangAST clangASTMatchers clangBasic clangTooling)
 
 add_executable(ast
@@ -17,7 +16,15 @@ add_executable(ast
   main.cpp
   )
 
-target_link_libraries(ast ${CLANG_LIBS} ${LLVM_LIBS_CORE} ${LLVM_LDFLAGS} jansson)
+include_directories(${CLANG_INCLUDE_DIRS})
+link_directories(${LLVM_LIBRARY_DIRS})
+include_directories(${PROJECT_SOURCE_DIR}/external)
+add_definitions(${LLVM_CFLAGS})
+
+
+message(STATUS "Adding external includes ${PROJECT_SOURCE_DIR}/external")
+
+target_link_libraries(ast ${CLANG_LIBS} ${LLVM_MODULE_LIBS} ${LLVM_LDFLAGS} jansson)
 
 
 ADD_DEFINITIONS("-std=c++11") 
@@ -27,3 +34,5 @@ if (APPLE)
     SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}  -stdlib=libc++ ")
     SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS}  -stdlib=libc++" )
 endif()
+
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-rtti")
