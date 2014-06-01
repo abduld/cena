@@ -18,6 +18,7 @@
 #include	<cstring>
 #include    <ios>
 #include    <type_traits>
+#include    <cstdint>
 #include    "rapidjson/rapidjson.h"
 #include    "rapidxml/rapidxml.hpp"
 
@@ -29,27 +30,56 @@ using std::is_same;
 using std::stringstream;
 using rapidjson::StringStream;
 
+
+inline void build_string (std::ostream& o) { }
+template<class First, class... Rest> inline void build_string (std::ostream& o, const First& first, const Rest&... rest)
+{
+    if (is_same<First, bool>::value) {
+        if (first == true_type::value) {
+            o << "True";
+        } else {
+            o << "False";
+        }
+    } else {
+        o << first;
+    }
+    build_string(o, rest...);
+}
+template<class... T> std::string concat_string (const T&... value)
+{
+    std::ostringstream      o;
+    build_string(o, value...);
+    return o.str();
+}
+
 static inline string toString() {
     return "";
 }
 
 template <typename T, typename... Ts>
 static inline string toString(const T& first, const Ts&... rest) {
-    stringstream ss;
-    if (is_same<T, bool>::value) {
-        if (first == true_type::value) {
-            ss << "True";
-        } else {
-            ss << "False";
-        }
-    } else {
-        ss << first;
-    }
-    if (sizeof...(rest) > 0) {
-        ss << toString(rest...);
-    }
-    return ss.str();
+    return concat_string(first, rest...);
 }
+
+
+class MInteger64 {
+private:
+    int64_t val;
+    static constexpr char _head[] = "Integer";
+public:
+    MInteger64(const int64_t _val) : val(_val) {}
+};
+
+class Expr {
+    
+	~SymbolicFormBase() {}
+    virtual inline string getHead() = 0;
+	virtual inline StringStream toJSON() = 0;
+	virtual inline string toMLink() = 0;
+	virtual inline string toCString() = 0;
+	virtual inline bool isAtom() { return false; }
+	virtual inline bool isStatement() { return false; }
+};
 
 class SymbolicAtom;
 class SymbolicStatement;
