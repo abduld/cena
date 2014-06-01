@@ -182,6 +182,19 @@ public:
         }
 		return true;
     }
+    
+    bool VisitIntegerLiteral(IntegerLiteral *L) {
+		DEBUG;
+		L->dump();
+        if (L->getType()->isUnsignedIntegerType()) {
+            std::clog << "TODO;;;" << std::endl;
+        } else if (L->getValue().getNumWords() == 1) {
+            std::clog << " Signed " << L->getValue().getSExtValue() << std::endl;
+        } else {
+            std::clog << "TODO;;;" << std::endl;
+        }
+		return true;
+    }
 
 	bool VisitExpr(Expr * expr) {
 		DEBUG;
@@ -231,7 +244,7 @@ return Visit##type (concrete_expr);                        \
         //VISIT(ImaginaryLiteral);
         //VISIT(ImplicitValueInitExpr);
         //VISIT(InitListExpr);
-        //VISIT(IntegerLiteral);
+        VISIT(IntegerLiteral);
         //VISIT(MemberExpr);
         //VISIT(OffsetOfExpr);
         //VISIT(OpaqueValueExpr);

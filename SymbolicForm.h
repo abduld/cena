@@ -128,7 +128,7 @@ template<> struct is_floating_point<MReal32> : public true_type {};
 template<> struct is_floating_point<MReal64> : public true_type {};
 
 struct MExpr;
-
+/*
 struct MSymbol {
 private:
     const string head;
@@ -150,6 +150,7 @@ public:
     T getValue() const { return val; }
     size_t getByteCount() const { return sizeof(T); }
 };
+ */
 
 #endif /* __SYMBOLIC_FORM_H__ */
 
