@@ -89,12 +89,6 @@ public:
 		return true;
 	}
 
-	bool VisitFunctionDecl(const FunctionDecl * decl) {
-		DEBUG;
-		decl->dump();
-		return true;
-	}
-
 	bool VisitFieldDecl(const FieldDecl * decl) {
 		DEBUG;
 		decl->dump();
@@ -130,19 +124,6 @@ public:
 		decl->dump();
 		return true;
 	}
-
-	bool VisitDecl(Decl * decl) {
-		if (isa<FunctionDecl>(decl)) {
-			return VisitFunctionDecl(cast<FunctionDecl>(decl));
-		} else if (isa<TranslationUnitDecl>(decl)) {
-			TranslationUnitDecl * tud = cast<TranslationUnitDecl>(decl);
-			for(TranslationUnitDecl::decl_iterator I = tud->decls_begin(), E = tud->decls_end();
-				I != E; ++I) {
-				TraverseDecl(*I);
-			}
-		}
-		return true;
-	}
     
 	bool VisitDeclStmt(DeclStmt * decl) {
 		DEBUG;
@@ -165,6 +146,7 @@ public:
 	}
 
     bool VisitFunctionDecl(FunctionDecl *f) {
+        DEBUG;
 		if (f->hasBody()) {
             Stmt * body = f->getBody();
             VisitStmt(body);
@@ -172,9 +154,16 @@ public:
 		return true;
     }
     
-    bool VisitCompoundStmt(CompoundStmt *stmt) {
+    bool VisitReturnStmt(ReturnStmt *stmt) {
 		DEBUG;
 		stmt->dump();
+        
+		return true;
+    }
+    
+    bool VisitCompoundStmt(CompoundStmt *stmt) {
+		DEBUG;
+		//stmt->dump();
         for (CompoundStmt::const_body_iterator citer = stmt->body_begin();
              citer != stmt->body_end();
              ++citer) {
@@ -195,7 +184,8 @@ public:
         }
 		return true;
     }
-
+    
+#if 0
 	bool VisitExpr(Expr * expr) {
 		DEBUG;
 		expr->dump();
@@ -275,7 +265,6 @@ return Visit##type (concrete_stmt);                        \
 }                                                                 \
 } while(0);
         DEBUG;
-		stmt->dump();
         
         //VISIT(AsmStmt);
         //VISIT(BreakStmt);
@@ -291,7 +280,7 @@ return Visit##type (concrete_stmt);                        \
         //VISIT(IndirectGotoStmt);
         //VISIT(LabelStmt);
         //VISIT(NullStmt);
-        //VISIT(ReturnStmt);
+        VISIT(ReturnStmt);
         //VISIT(CaseStmt);
         //VISIT(DefaultStmt);
         //VISIT(SwitchStmt);
@@ -300,7 +289,7 @@ return Visit##type (concrete_stmt);                        \
 
 		return true;
 	}
-
+#endif
 };
 
 
@@ -358,10 +347,10 @@ void parse() {
 
     
     vector<string> args;
-    args.push_back("-std=c99");
+    args.push_back("-std=c++11");
     
     runToolOnCodeWithArgs(newFrontendActionFactory<JSONFrontendAction>()->create(),
-                  "int main() { return 1; }",
+                  "int g = 3; int main() { return 1; }",
                           args
                   );
 	// print out the rewritten source code ("rewriter" is a global var.)
