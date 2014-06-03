@@ -62,6 +62,9 @@ public:
     SymbolicExpr(MVisitor* owner);
     SymbolicExpr(MVisitor* owner, const SymbolicLiteral & lit);
     SymbolicExpr(MVisitor* owner, const SymbolicExpr & exp);
+    virtual ~SymbolicExpr() {
+        //DEBUG;
+    };
     void push();
     void pop();
     SymbolicExpr * operator<<=(const bool & val) {
@@ -176,6 +179,13 @@ typedef std::vector<SymbolicExpr> SymbolicExprs;
 class SymbolicStmt {
 public:
     SymbolicStmt(MVisitor* owner, string head);
+    SymbolicStmt(MVisitor* owner, const SymbolicStmt * stmt) : owner_(owner) {
+        head_ = stmt->getHead();
+        vals_ = stmt->getArgs();
+    }
+    ~SymbolicStmt() {
+        DEBUG;
+    };
     void push();
     void pop();
     SymbolicStmt * operator<<=(const SymbolicExpr & val) {
@@ -205,7 +215,7 @@ public:
         return ToString(getHead(), "[", o.str(), "]");
     }
 protected:
-    const string head_;
+    string head_;
     SymbolicExprs vals_;
     SymbolicStmt * parent_;
     MVisitor* owner_;
@@ -219,12 +229,20 @@ Symbolic##name##Stmt(MVisitor * visitor) : SymbolicStmt(visitor, std::string(#he
 }
 
 DeclareSymbolicStmt(Assign, CAssign);
+DeclareSymbolicStmt(Return, CReturn);
+DeclareSymbolicStmt(Function, CFunction);
 
 typedef std::vector<SymbolicStmt> SymbolicStmts;
 
 class SymbolicBlock {
 public:
     SymbolicBlock(MVisitor* owner);
+    SymbolicBlock(MVisitor* owner, const SymbolicBlock * blk) : owner_(owner) {
+        stmts_ = blk->getStatements();
+    };
+    ~SymbolicBlock() {
+        DEBUG;
+    };
     void push();
     void pop();
     SymbolicBlock & operator<<=(const SymbolicStmt & s) {
@@ -242,14 +260,26 @@ public:
         operator<<=(v);
     }
     
+    SymbolicStmts getStatements() const {
+        return stmts_;
+    }
 protected:
     SymbolicBlock * parent_;
     SymbolicStmts stmts_;
     MVisitor* owner_;
 };
 
-class SymbolicFor : SymbolicBlock {
-    SymbolicFor(MVisitor *owner, SymbolicExpr start, SymbolicExpr end, SymbolicExpr step) :
+class SymbolicFunctionBlock : public SymbolicBlock {
+public:
+    SymbolicFunctionBlock(MVisitor *owner) :
+    SymbolicBlock(owner) {}
+    
+private:
+};
+
+class SymbolicForBlock : public SymbolicBlock {
+public:
+    SymbolicForBlock(MVisitor *owner, SymbolicExpr start, SymbolicExpr end, SymbolicExpr step) :
         SymbolicBlock(owner), start_(start), end_(end), step_(step) {}
     
 private:
@@ -260,6 +290,9 @@ private:
 class SymbolicProgram {
 public:
     SymbolicProgram(MVisitor* owner);
+    ~SymbolicProgram() {
+        DEBUG;
+    };
     void push();
     void pop();
     SymbolicProgram & operator<<(const SymbolicStmt & s) {
@@ -302,19 +335,20 @@ public:
     
     SymbolicExpr * EnterExpr(SymbolicExpr * expr) {
         SymbolicExpr * parent = expr_;
-        expr_ = expr;
+        expr_ = new SymbolicExpr(this, *expr);
         return parent;
     }
     
     void LeaveExpr(SymbolicExpr * parent) {
         //stmt_->push_back(*expr_);
+        delete expr_;
         expr_ = parent;
     }
     
     SymbolicStmt * EnterStmt(SymbolicStmt * stmt) {
         DEBUG;
         SymbolicStmt * parent = stmt_;
-        stmt_ = stmt;
+        stmt_ = new SymbolicStmt(this, stmt);
         return parent;
     }
     
@@ -329,18 +363,20 @@ public:
             block_->push_back(*stmt_);
         }
         std::cout << stmt_->toString() << endl;
+        //delete stmt_;
         stmt_ = parent;
     }
     
     SymbolicBlock * EnterBlock(SymbolicBlock * block) {
         DEBUG;
         SymbolicBlock * parent = block_;
-        block_ = block;
+        block_ = new SymbolicBlock(this, block);
         return parent;
     }
     
     void LeaveBlock(SymbolicBlock * parent) {
         prog_->push_back(*block_);
+        delete(block_);
         block_ = parent;
     }
     
@@ -550,7 +586,14 @@ public:
     
     bool VisitFunctionDecl(FunctionDecl *D) {
         DEBUG;
+        POP_STMT;
         D->dump();
+        if (D->hasBody()) {
+            SymbolicFunctionStmt stmt(this);
+        } else {
+            SymbolicFunctionBlock blk(this);
+            blk.push();
+        }
         return true;
 	}
     
@@ -571,9 +614,9 @@ public:
 		POP_STMT;
         DEBUG;
 		SymbolicAssignStmt stmt = SymbolicAssignStmt(this);
-        stmt.push();
         stmt <<= toSymbolicExpr(D->getType());
         stmt <<= SymbolicExpr(this, SymbolicLiteral(D->getNameAsString()));
+        stmt.push();
 		return true;
 	}
     
@@ -782,10 +825,6 @@ public:
     /*******************************************************************************************************/
     /*******************************************************************************************************/
     
-    bool VisitStmt(Stmt * stmt) {
-        DEBUG;
-        return true;
-    }
     
 	bool VisitDeclStmt(DeclStmt * decl) {
 		DEBUG;
@@ -807,10 +846,12 @@ public:
 		return true;
 	}
     
-    bool VisitReturnStmt(ReturnStmt *stmt) {
+    bool VisitReturnStmt(ReturnStmt *S) {
 		DEBUG;
-		stmt->dump();
-        
+        SymbolicReturnStmt stmt(this);
+        if (S->getRetValue()) {
+            stmt.push();
+        }
 		return true;
     }
     
@@ -821,6 +862,7 @@ public:
              citer != stmt->body_end();
              ++citer) {
             VisitStmt(*citer);
+            POP_STMT;
         }
 		return true;
     }
@@ -922,7 +964,7 @@ public:
         if (E->getType()->isUnsignedIntegerType()) {
             std::clog << "TODO;;;" << std::endl;
         } else if (E->getValue().getNumWords() == 1) {
-            *stmt_ <<= SymbolicExpr(this, SymbolicLiteral(E->getValue().getSExtValue()));
+            *stmt_ <<= SymbolicExpr(this, toSymbolicLiteral(E->getValue()));
         } else {
             std::clog << "TODO;;;" << std::endl;
         }
