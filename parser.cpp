@@ -60,6 +60,8 @@ typedef std::vector<SymbolicLiteral> SymbolicLiterals;
 class SymbolicExpr {
 public:
     SymbolicExpr(MVisitor* owner);
+    SymbolicExpr(MVisitor* owner, const SymbolicLiteral & lit);
+    SymbolicExpr(MVisitor* owner, const SymbolicExpr & exp);
     void pop();
     SymbolicExpr * operator<<=(const bool & val) {
         vals_.push_back(SymbolicLiteral(val));
@@ -135,15 +137,20 @@ protected:
 class Symbolic##name##Expr : public SymbolicExpr { \
 public:\
     Symbolic##name##Expr(MVisitor * visitor) : SymbolicExpr(visitor) {}\
+    Symbolic##name##Expr(MVisitor * visitor, const SymbolicLiteral & lit) : SymbolicExpr(visitor, lit) {}\
+    Symbolic##name##Expr(MVisitor * visitor, const SymbolicExpr & exp) : SymbolicExpr(visitor, exp) {}\
 virtual string getHead() const {\
     return #head;\
 }\
 }
 
+DeclareSymbolicExpr(Qualifier, CQualifier);
+DeclareSymbolicExpr(Type, CType);
 DeclareSymbolicExpr(Pointer, CPointer);
 DeclareSymbolicExpr(String, CString);
 DeclareSymbolicExpr(Operator, COperator);
 DeclareSymbolicExpr(Array, CArray);
+DeclareSymbolicExpr(ArraySize, CArraySize);
 DeclareSymbolicExpr(Cast, CCast);
 DeclareSymbolicExpr(None, Skip);
 
@@ -383,10 +390,17 @@ public:
         }
     }
     
+    SymbolicLiteral toSymbolicLiteral(const Expr * e) {
+        clang::LangOptions LO;
+        std::string str;
+        raw_string_ostream ros(str);
+        e->printPretty(ros, nullptr, astContext->getLangOpts());
+        return SymbolicLiteral(str);
+    }
     
     SymbolicExpr toSymbolicExpr(Qualifiers quals) {
         
-        SymbolicExpr qualExp = SymbolicExpr(this);
+        SymbolicQualifierExpr qualExp = SymbolicQualifierExpr(this);
         
         if (quals.hasConst()) {
             qualExp <<= "const";
@@ -417,21 +431,18 @@ public:
     }
     
     SymbolicExpr toSymbolicExpr(const Expr * e) {
-        clang::LangOptions LO;
-        std::string str;
-        raw_string_ostream ros(str);
-        e->printPretty(ros, nullptr, astContext->getLangOpts());
         SymbolicExpr expr = SymbolicExpr(this);
-        expr <<= str;
+        expr <<= toSymbolicLiteral(e);
         return expr;
     }
     
     SymbolicExpr toSymbolicExpr(const Type * ty) {
         if (const ConstantArrayType* arryT =
             dyn_cast<const ConstantArrayType>(ty)) {
-            SymbolicLiteral len = toSymbolicLiteral(arryT->getSize());
-            SymbolicExpr typ = toSymbolicExpr(arryT->getElementType());
-            SymbolicExpr arry = SymbolicArrayExpr(this);
+            SymbolicLiteral len(toSymbolicLiteral(arryT->getSize()));
+            SymbolicTypeExpr typ(this);
+            typ <<= toSymbolicExpr(arryT->getElementType());
+            SymbolicArrayExpr arry(this);
             arry <<= typ;
             arry <<= len;
             return arry;
@@ -439,8 +450,6 @@ public:
                    dyn_cast<const VariableArrayType>(ty)) {
             SymbolicExpr typ = toSymbolicExpr(arryT->getElementType());
             SymbolicExpr arry = SymbolicArrayExpr(this);
-            Expr * ee = arryT->getSizeExpr();
-            SymbolicExpr body = toSymbolicExpr(ee);
             arry <<= typ;
             if (arryT->getIndexTypeQualifiers().hasQualifiers()) {
                 arry <<= toSymbolicExpr(arryT->getIndexTypeQualifiers());
@@ -450,7 +459,8 @@ public:
             } else if (arryT->getSizeModifier() == VariableArrayType::Star) {
                 arry <<= "*";
             }
-            arry <<= body;
+            
+            arry <<= SymbolicArraySizeExpr(this, toSymbolicLiteral(arryT->getSizeExpr()));
             return arry;
         }
         /*
@@ -498,7 +508,7 @@ public:
         */
         else if (const BuiltinType* bty = dyn_cast<const BuiltinType>(ty)) {
             SymbolicLiteral lit = bty->getName(PrintingPolicy(astContext->getLangOpts()));
-            SymbolicExpr exp(this);
+            SymbolicTypeExpr exp(this);
             exp <<= lit;
             return exp;
         }
@@ -1037,9 +1047,19 @@ SymbolicProgram * prog_;
 };
 
 
-SymbolicExpr::SymbolicExpr(MVisitor* owner) : len_(0) {
+SymbolicExpr::SymbolicExpr(MVisitor* owner) : len_(0), owner_(owner) {
     parent_ = owner_->EnterExpr(this);
 }
+
+SymbolicExpr::SymbolicExpr(MVisitor* owner, const SymbolicLiteral & lit) : len_(0), owner_(owner) {
+    parent_ = owner_->EnterExpr(this);
+    operator<<=(lit);
+};
+
+SymbolicExpr::SymbolicExpr(MVisitor* owner, const SymbolicExpr & exp) : len_(0), owner_(owner) {
+    parent_ = owner_->EnterExpr(this);
+    operator<<=(exp);
+};
 
 void SymbolicExpr::pop() {
     owner_->LeaveExpr(parent_);
