@@ -29,17 +29,17 @@ using rapidjson::StringStream;
 
 
 inline void build_string (std::ostream& o) { }
-template<class First, class... Rest> inline void build_string (std::ostream& o, const First& first, const Rest&... rest)
+template<class T>
+inline void build_string(std::ostream & o, const T & val) {
+    o << val;
+}
+template<>
+inline void build_string(std::ostream & o, const bool & val) {
+    o << std::boolalpha << val;
+}
+template<class First, class... Rest> inline void build_string (std::ostream& o, const First & first, const Rest&... rest)
 {
-    if (is_same<First, bool>::value) {
-        if (first == true_type::value) {
-            o << "True";
-        } else {
-            o << "False";
-        }
-    } else {
-        o << first;
-    }
+    build_string(o, first);
     build_string(o, rest...);
 }
 template<class... T> std::string concat_string (const T&... value)
@@ -49,12 +49,12 @@ template<class... T> std::string concat_string (const T&... value)
     return o.str();
 }
 
-static inline string toString() {
+static inline string ToString() {
     return "";
 }
 
 template <typename T, typename... Ts>
-static inline string toString(const T& first, const Ts&... rest) {
+static inline string ToString(const T& first, const Ts&... rest) {
     return concat_string(first, rest...);
 }
 

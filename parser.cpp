@@ -4,6 +4,7 @@
 
 #include "clang/Driver/Options.h"
 #include "clang/AST/AST.h"
+#include "clang/AST/PrettyPrinter.h"
 #include "clang/Frontend/ASTUnit.h"
 #include "clang/AST/ASTContext.h"
 #include "clang/AST/ASTConsumer.h"
@@ -13,7 +14,7 @@
 #include "clang/Frontend/CompilerInstance.h"
 #include "clang/Tooling/CommonOptionsParser.h"
 #include "clang/Tooling/Tooling.h"
-#include "clang/Rewrite/Core/Rewriter.h"
+#include "clang/Basic/LangOptions.h"
 #include "llvm/Support/Signals.h"
 #include <boost/variant.hpp>
 #include "SymbolicForm.h"
@@ -27,11 +28,7 @@ using namespace clang;
 using namespace clang::driver;
 using namespace clang::tooling;
 
-
-Rewriter rewriter;
-
-
-#define DEBUG printf("DEBUG :: >>> %d ... \n", __LINE__)
+#define DEBUG printf("DEBUG :: >>> %s %d ... \n", __PRETTY_FUNCTION__, __LINE__)
 
 
 // All unary operators.
@@ -62,63 +59,205 @@ typedef std::vector<SymbolicLiteral> SymbolicLiterals;
 
 class SymbolicExpr {
 public:
-    SymbolicExpr(MVisitor* owner, const SymbolicLiteral & val);
-    SymbolicExpr(MVisitor* owner, const SymbolicLiterals & val);
-    ~SymbolicExpr();
-    boost::variant<SymbolicLiteral, SymbolicLiterals> getValue() const { return val_; };
-    SymbolicExpr * operator<<(SymbolicLiteral & val) {
-        val_.push_back(val);
+    SymbolicExpr(MVisitor* owner);
+    void pop();
+    SymbolicExpr * operator<<=(const bool & val) {
+        vals_.push_back(SymbolicLiteral(val));
         len_++;
         return this;
     }
-    SymbolicExpr * operator<<(SymbolicLiterals & vals) {
+    SymbolicExpr & operator<<=(const int64_t & val) {
+        vals_.push_back(SymbolicLiteral(val));
+        len_++;
+        return *this;
+    }
+    SymbolicExpr & operator<<=(const double & val) {
+        vals_.push_back(SymbolicLiteral(val));
+        len_++;
+        return *this;
+    }
+    SymbolicExpr & operator<<=(const char * val) {
+        vals_.push_back(SymbolicLiteral(string(val)));
+        len_++;
+        return *this;
+    }
+    SymbolicExpr & operator<<=(const string & val) {
+        vals_.push_back(SymbolicLiteral(val));
+        len_++;
+        return *this;
+    }
+    SymbolicExpr & operator<<=(const SymbolicLiteral & val) {
+        vals_.push_back(val);
+        len_++;
+        return *this;
+    }
+    SymbolicExpr & operator<<=(const SymbolicLiterals & vals) {
         for (auto iter = vals.begin(); iter != vals.end(); iter++) {
-            val_.push_back(*iter);
+            vals_.push_back(*iter);
         }
         len_ += vals.size();
-        return this;
+        return *this;
     }
-private:
+    SymbolicExpr & operator<<=(const SymbolicExpr & e) {
+        SymbolicLiterals vals = e.getValues();
+        for (auto iter = vals.begin(); iter != vals.end(); iter++) {
+            vals_.push_back(*iter);
+        }
+        len_ += vals.size();
+        return *this;
+    }
+    template <typename T>
+    void push_back(const T & v) {
+        this << v;
+    }
+    SymbolicLiterals getValues() const {
+        return vals_;
+    }
+    string toString() const {
+        std::ostringstream o;
+        for (auto iter = vals_.begin(); iter != vals_.end(); iter++) {
+            o << *iter;
+            o << ",";
+        }
+        return ToString(getHead(), "[", o.str(), "]");
+    }
+    virtual string getHead() const {
+        return "Expr";
+    }
+protected:
     int len_;
-    std::vector<SymbolicLiteral> val_;
+    SymbolicLiterals vals_;
     SymbolicExpr * parent_;
     MVisitor* owner_;
 };
+
+#define DeclareSymbolicExpr(name, head) \
+class Symbolic##name##Expr : public SymbolicExpr { \
+public:\
+    Symbolic##name##Expr(MVisitor * visitor) : SymbolicExpr(visitor) {}\
+virtual string getHead() const {\
+    return #head;\
+}\
+}
+
+DeclareSymbolicExpr(Pointer, CPointer);
+DeclareSymbolicExpr(String, CString);
+DeclareSymbolicExpr(Operator, COperator);
+DeclareSymbolicExpr(Array, CArray);
+DeclareSymbolicExpr(Cast, CCast);
+DeclareSymbolicExpr(None, Skip);
 
 typedef std::vector<SymbolicExpr> SymbolicExprs;
 
 class SymbolicStmt {
 public:
     SymbolicStmt(MVisitor* owner, string head);
-    ~SymbolicStmt();
+    void pop();
+    SymbolicStmt * operator<<=(const SymbolicExpr & val) {
+        vals_.push_back(val);
+        return this;
+    }
+    SymbolicStmt * operator<<=(const SymbolicExprs & vals) {
+        for (auto iter = vals.begin(); iter != vals.end(); iter++) {
+            vals_.push_back(*iter);
+        }
+        return this;
+    }
+    template <typename T>
+    void push_back(const T & v) {
+        operator<<=(v);
+    }
     string getHead() const { return head_; }
-    SymbolicExprs getArgs() const { return args_; }
-    
-private:
+    SymbolicExprs getArgs() const { return vals_; }
+    string toString() const {
+        std::ostringstream o;
+        for (auto iter = vals_.begin(); iter != vals_.end(); iter++) {
+            o << iter->toString();
+            o << ",";
+        }
+        return ToString(getHead(), "[", o.str(), "]");
+    }
+protected:
     const string head_;
-    SymbolicExprs args_;
+    SymbolicExprs vals_;
     SymbolicStmt * parent_;
     MVisitor* owner_;
 };
+
+#define DeclareSymbolicStmt(name, head) \
+class Symbolic##name##Stmt : public SymbolicStmt { \
+public:\
+Symbolic##name##Stmt(MVisitor * visitor) : SymbolicStmt(visitor, std::string(#head)) {\
+}\
+}
+
+DeclareSymbolicStmt(Assign, CAssign);
 
 typedef std::vector<SymbolicStmt> SymbolicStmts;
 
 class SymbolicBlock {
 public:
     SymbolicBlock(MVisitor* owner);
-    ~SymbolicBlock();
-    void operator<<(const SymbolicStmt & s) {
+    void pop();
+    SymbolicBlock & operator<<=(const SymbolicStmt & s) {
         stmts_.push_back(s);
+        return *this;
+    }
+    SymbolicBlock & operator<<=(const SymbolicStmts & ss) {
+        for (auto iter = ss.begin(); iter != ss.end(); iter++) {
+            stmts_.push_back(*iter);
+        }
+        return *this;
+    }
+    template <typename T>
+    void push_back(const T & v) {
+        operator<<=(v);
     }
     
-private:
+protected:
     SymbolicBlock * parent_;
     SymbolicStmts stmts_;
     MVisitor* owner_;
 };
 
-template<typename T> struct is_vector                           : public false_type {};
-template<>           struct is_vector<SymbolicStmts>           : public true_type {};
+class SymbolicFor : SymbolicBlock {
+    SymbolicFor(MVisitor *owner, SymbolicExpr start, SymbolicExpr end, SymbolicExpr step) :
+        SymbolicBlock(owner), start_(start), end_(end), step_(step) {}
+    
+private:
+    SymbolicExpr start_, end_, step_;
+};
+
+
+class SymbolicProgram {
+public:
+    SymbolicProgram(MVisitor* owner);
+    void pop();
+    SymbolicProgram & operator<<(const SymbolicStmt & s) {
+        prog_.push_back(s);
+        return *this;
+    }
+    SymbolicProgram & operator<<(const SymbolicBlock & blk) {
+        prog_.push_back(blk);
+        return *this;
+    }
+    template <typename T>
+    void push_back(const T & v) {
+        this->operator<<(v);
+    }
+private:
+    std::vector<boost::variant<SymbolicBlock, SymbolicStmt > > prog_;
+    MVisitor* owner_;
+};
+
+template<typename T> struct is_literal                           : public false_type {};
+template<>           struct is_literal<SymbolicLiteral>           : public true_type {};
+
+template<typename T> struct is_iteratable                           : public false_type {};
+template<>           struct is_iteratable<SymbolicLiterals>           : public true_type {};
+template<>           struct is_iteratable<SymbolicExpr>           : public true_type {};
+template<>           struct is_iteratable<SymbolicStmts>           : public true_type {};
+template<>           struct is_iteratable<SymbolicBlock>           : public true_type {};
 
 template<typename T> struct is_stmt                           : public false_type {};
 template<>           struct is_stmt<SymbolicStmt>           : public true_type {};
@@ -127,41 +266,55 @@ template<>           struct is_stmt<SymbolicStmt>           : public true_type {
 class MVisitor : public RecursiveASTVisitor<MVisitor> {
 public:
 	explicit MVisitor(CompilerInstance *CI)
-    : astContext(&(CI->getASTContext())), block_(NULL) // initialize private members
+    : astContext(&(CI->getASTContext())), block_(NULL), stmt_(NULL), expr_(NULL) // initialize private members
 	{
-		rewriter.setSourceMgr(astContext->getSourceManager(), astContext->getLangOpts());
+        prog_ = new SymbolicProgram(this);
 	}
     
-    SymbolicExpr* EnterExpr(SymbolicExpr* expr) {
-        SymbolicExpr* parent = expr_;
+    SymbolicExpr * EnterExpr(SymbolicExpr * expr) {
+        SymbolicExpr * parent = expr_;
         expr_ = expr;
         return parent;
     }
     
-    void LeaveExpr(SymbolicExpr* expr) {
-        expr_ = expr;
+    void LeaveExpr(SymbolicExpr * parent) {
+        //stmt_->push_back(*expr_);
+        expr_ = parent;
     }
     
-    SymbolicStmt* EnterStmt(SymbolicStmt* stmt) {
-        SymbolicStmt* parent = stmt_;
+    SymbolicStmt * EnterStmt(SymbolicStmt * stmt) {
+        SymbolicStmt * parent = stmt_;
         stmt_ = stmt;
         return parent;
     }
     
-    void LeaveStmt(SymbolicStmt* stmt) {
-        stmt_ = stmt;
+    void LeaveStmt(SymbolicStmt * parent) {
+        if (block_ == NULL) {
+            prog_->push_back(*stmt_);
+        } else {
+            block_->push_back(*stmt_);
+        }
+        stmt_ = parent;
     }
     
-    SymbolicBlock* EnterBlock(SymbolicBlock* block) {
-        SymbolicBlock* parent = block_;
+    SymbolicBlock * EnterBlock(SymbolicBlock * block) {
+        SymbolicBlock * parent = block_;
         block_ = block;
         return parent;
     }
     
-    void LeaveBlock(SymbolicBlock* block) {
-        block_ = block;
+    void LeaveBlock(SymbolicBlock * parent) {
+        prog_->push_back(*block_);
+        block_ = parent;
     }
-
+    
+    
+    /*******************************************************************************************************/
+    /*******************************************************************************************************/
+    /*******************************************************************************************************/
+    /*******************************************************************************************************/
+    /*******************************************************************************************************/
+    
     bool VisitTranslationUnitDecl(TranslationUnitDecl *D) {
 		DEBUG;
 		D->dump();
@@ -222,9 +375,154 @@ public:
 		return true;
 	}
     
+    SymbolicLiteral toSymbolicLiteral(APInt ii) {
+        if (ii.getBitWidth() <= 64) {
+            return SymbolicLiteral(ii.getSExtValue());
+        } else {
+            return SymbolicLiteral(ii.toString(10, ii.isSignBit()));
+        }
+    }
+    
+    
+    SymbolicExpr toSymbolicExpr(Qualifiers quals) {
+        
+        SymbolicExpr qualExp = SymbolicExpr(this);
+        
+        if (quals.hasConst()) {
+            qualExp <<= "const";
+        }
+        if (quals.hasVolatile()) {
+            qualExp <<= "volatile";
+        }
+        if (quals.hasRestrict()) {
+            qualExp <<= "restrict";
+        }
+        if (quals.hasAddressSpace()) {
+            unsigned addressSpace = quals.getAddressSpace();
+            switch (addressSpace) {
+                case LangAS::opencl_global:
+                    qualExp <<= "__global";
+                    break ;
+                case LangAS::opencl_local:
+                    qualExp <<= "__local";
+                    break ;
+                case LangAS::opencl_constant:
+                    qualExp <<= "__constant";
+                    break ;
+                default:
+                    qualExp <<= ToString("__attribute__((address_space(", addressSpace, ")))");
+            }
+        }
+        return qualExp;
+    }
+    
+    SymbolicExpr toSymbolicExpr(const Expr * e) {
+        clang::LangOptions LO;
+        std::string str;
+        raw_string_ostream ros(str);
+        e->printPretty(ros, nullptr, astContext->getLangOpts());
+        SymbolicExpr expr = SymbolicExpr(this);
+        expr <<= str;
+        return expr;
+    }
+    
+    SymbolicExpr toSymbolicExpr(const Type * ty) {
+        if (const ConstantArrayType* arryT =
+            dyn_cast<const ConstantArrayType>(ty)) {
+            SymbolicLiteral len = toSymbolicLiteral(arryT->getSize());
+            SymbolicExpr typ = toSymbolicExpr(arryT->getElementType());
+            SymbolicExpr arry = SymbolicArrayExpr(this);
+            arry <<= typ;
+            arry <<= len;
+            return arry;
+        } else if (const VariableArrayType* arryT =
+                   dyn_cast<const VariableArrayType>(ty)) {
+            SymbolicExpr typ = toSymbolicExpr(arryT->getElementType());
+            SymbolicExpr arry = SymbolicArrayExpr(this);
+            Expr * ee = arryT->getSizeExpr();
+            SymbolicExpr body = toSymbolicExpr(ee);
+            arry <<= typ;
+            if (arryT->getIndexTypeQualifiers().hasQualifiers()) {
+                arry <<= toSymbolicExpr(arryT->getIndexTypeQualifiers());
+            }
+            if (arryT->getSizeModifier() == VariableArrayType::Static) {
+                arry <<= "static";
+            } else if (arryT->getSizeModifier() == VariableArrayType::Star) {
+                arry <<= "*";
+            }
+            arry <<= body;
+            return arry;
+        }
+        /*
+        } else if (const IncompleteArrayType* arryT =
+                   dyn_cast<const IncompleteArrayType>(ty)) {
+            SymbolicExpr arry = CArray(this);
+            SymbolicExpr typ = toSymbolicExpr(arryT->getElementType());
+            arry << qualExp;
+            arry << typ;
+            return arry;
+        } else if (const PointerType* pty = dyn_cast<const PointerType>(ty)) {
+            const QualType pointee_ty = pty->getPointeeType();
+            std::string name_ptr =  "* " + name;
+            result = printDecl(pointee_ty, name_ptr, array_dim);
+        } else if (const ElaboratedType* ety =
+                   dyn_cast<const ElaboratedType>(ty)) {
+            if (const RecordType* rty =
+                dyn_cast<const RecordType>(ety->getNamedType().getTypePtr())) {
+                TagDecl* tdecl = rty->getDecl();
+                std::string def =
+                rty->getDecl()->getName().str() + std::string(" ") + name;
+                if (tdecl->isStruct()) result = "struct " + def;
+                else if (tdecl->isUnion())  result = "union " + def;
+                else {
+                    assert(false &&
+                           "PromoteDecl: only struct/union are allowed as record type.");
+                }
+            } else {
+                assert(false && "PromoteDecl: unsupported elaborated type.");
+            }
+        } else if (const BuiltinType* bty = dyn_cast<const BuiltinType>(ty)) {
+            clang::LangOptions LO;
+            result = bty->getName(PrintingPolicy(LO)) + std::string(" ") + name;
+        } else if (const TypedefType* tty = dyn_cast<const TypedefType>(ty)) {
+            result = tty->getDecl()->getName().str() + std::string(" ") + name;
+        } else if (const ParenType* pty = dyn_cast<const ParenType>(ty)) {
+            QualType inner_ty = pty->getInnerType();
+            std::string name_ptr =  "(" + name;
+            result = printDecl(inner_ty, name_ptr, array_dim);
+            result = result + ")";
+        } else {
+            llvm::errs() << "Error: " << ty->getTypeClassName() << '\n';
+            assert(false && "PromoteDecl: unsupported type is found.");
+        }
+        */
+        else if (const BuiltinType* bty = dyn_cast<const BuiltinType>(ty)) {
+            SymbolicLiteral lit = bty->getName(PrintingPolicy(astContext->getLangOpts()));
+            SymbolicExpr exp(this);
+            exp <<= lit;
+            return exp;
+        }
+        return SymbolicNoneExpr(this);
+    }
+    
+    SymbolicExpr toSymbolicExpr(QualType typ) {
+        SymbolicExpr exp = SymbolicExpr(this);
+        
+        Qualifiers quals = typ.getLocalQualifiers();
+        const Type * ty = typ.getTypePtr();
+        
+        exp <<= toSymbolicExpr(quals);
+        exp <<= toSymbolicExpr(ty);
+        
+        return exp;
+    }
+    
     bool VisitVarDecl(VarDecl *D) {
 		DEBUG;
-		D->dump();
+		SymbolicAssignStmt stmt = SymbolicAssignStmt(this);
+        stmt <<= toSymbolicExpr(D->getType());
+        
+        std::cout << stmt.toString() << std::endl;
 		return true;
 	}
     
@@ -427,6 +725,17 @@ public:
 		return true;
 	}
     
+    /*******************************************************************************************************/
+    /*******************************************************************************************************/
+    /*******************************************************************************************************/
+    /*******************************************************************************************************/
+    /*******************************************************************************************************/
+    
+    bool VisitStmt(Stmt * stmt) {
+        DEBUG;
+        return true;
+    }
+    
 	bool VisitDeclStmt(DeclStmt * decl) {
 		DEBUG;
 		decl->dump();
@@ -549,18 +858,102 @@ public:
         return true;
     }
     
-    bool VisitIntegerLiteral(IntegerLiteral *L) {
+    
+    /*******************************************************************************************************/
+    /*******************************************************************************************************/
+    /*******************************************************************************************************/
+    /*******************************************************************************************************/
+    /*******************************************************************************************************/
+    
+    bool VisitIntegerLiteral(IntegerLiteral *E) {
 		DEBUG;
-		L->dump();
-        if (L->getType()->isUnsignedIntegerType()) {
+		E->dump();
+        if (E->getType()->isUnsignedIntegerType()) {
             std::clog << "TODO;;;" << std::endl;
-        } else if (L->getValue().getNumWords() == 1) {
-            std::clog << " Signed " << L->getValue().getSExtValue() << std::endl;
+        } else if (E->getValue().getNumWords() == 1) {
+            std::clog << " Signed " << E->getValue().getSExtValue() << std::endl;
         } else {
             std::clog << "TODO;;;" << std::endl;
         }
 		return true;
     }
+    
+    bool VisitAbstractConditionalOperator(AbstractConditionalOperator * E) {
+        DEBUG;
+        E->dump();
+        return true;
+    }
+    
+    bool VisitAddrLabelExpr(AddrLabelExpr * E) {
+        DEBUG;
+        E->dump();
+        return true;
+    }
+    
+    bool VisitBinaryOperator(BinaryOperator * E) {
+        DEBUG;
+        E->dump();
+        return true;
+    }
+    
+    //VISIT(BinaryTypeTraitExpr);
+    //VISIT(BlockDeclRefExpr);
+    //VISIT(BlockExpr);
+    //VISIT(CallExpr);
+    //VISIT(CastExpr);
+    //VISIT(CharacterLiteral);
+    //VISIT(ChooseExpr);
+    //VISIT(CompoundLiteralExpr);
+    //VISIT(CXXBindTemporaryExpr);
+    //VISIT(CXXBoolLiteralExpr);
+    //VISIT(CXXConstructExpr);
+    //VISIT(CXXDefaultArgExpr);
+    //VISIT(CXXDeleteExpr);
+    //VISIT(CXXDependentScopeMemberExpr);
+    //VISIT(CXXNewExpr);
+    //VISIT(CXXNoexceptExpr);
+    //VISIT(CXXNullPtrLiteralExpr);
+    //VISIT(CXXPseudoDestructorExpr);
+    //VISIT(CXXScalarValueInitExpr);
+    //VISIT(CXXThisExpr);
+    //VISIT(CXXThrowExpr);
+    //VISIT(CXXTypeidExpr);
+    //VISIT(CXXUnresolvedConstructExpr);
+    //VISIT(CXXUuidofExpr);
+    //VISIT(DeclRefExpr);
+    //VISIT(DependentScopeDeclRefExpr);
+    //VISIT(DesignatedInitExpr);
+    //VISIT(ExprWithCleanups);
+    //VISIT(ExtVectorElementExpr);
+    //VISIT(FloatingLiteral);
+    //VISIT(GNUNullExpr);
+    //VISIT(ImaginaryLiteral);
+    //VISIT(ImplicitValueInitExpr);
+    //VISIT(InitListExpr);
+    //VISIT(IntegerLiteral);
+    //VISIT(MemberExpr);
+    //VISIT(OffsetOfExpr);
+    //VISIT(OpaqueValueExpr);
+    //VISIT(OverloadExpr);
+    //VISIT(PackExpansionExpr);
+    //VISIT(ParenExpr);
+    //VISIT(ParenListExpr);
+    //VISIT(PredefinedExpr);
+    //VISIT(ShuffleVectorExpr);
+    //VISIT(SizeOfPackExpr);
+    //VISIT(StmtExpr);
+    //VISIT(StringLiteral);
+    //VISIT(SubstNonTypeTemplateParmPackExpr);
+    //VISIT(UnaryExprOrTypeTraitExpr);
+    //VISIT(UnaryOperator);
+    //VISIT(UnaryTypeTraitExpr);
+    //VISIT(VAArgExpr);
+    
+    /*******************************************************************************************************/
+    /*******************************************************************************************************/
+    /*******************************************************************************************************/
+    /*******************************************************************************************************/
+    /*******************************************************************************************************/
     
 #if 0
 	bool VisitExpr(Expr * expr) {
@@ -640,18 +1033,15 @@ clang::ASTContext *astContext; // used for getting additional AST info
 SymbolicBlock * block_;
 SymbolicStmt * stmt_;
 SymbolicExpr * expr_;
+SymbolicProgram * prog_;
 };
 
 
-SymbolicExpr::SymbolicExpr(MVisitor* owner, const SymbolicLiteral & val) : len_(1) {
-    val_.push_back(val);
-    parent_ = owner_->EnterExpr(this);
-}
-SymbolicExpr::SymbolicExpr(MVisitor* owner, const SymbolicLiterals & val) : len_(val.size()), val_(val) {
+SymbolicExpr::SymbolicExpr(MVisitor* owner) : len_(0) {
     parent_ = owner_->EnterExpr(this);
 }
 
-SymbolicExpr::~SymbolicExpr() {
+void SymbolicExpr::pop() {
     owner_->LeaveExpr(parent_);
 }
 
@@ -659,7 +1049,7 @@ SymbolicStmt::SymbolicStmt(MVisitor* owner, string head) : head_(head), owner_(o
     parent_ = owner_->EnterStmt(this);
 }
 
-SymbolicStmt::~SymbolicStmt() {
+void SymbolicStmt::pop() {
     owner_->LeaveStmt(parent_);
 }
 
@@ -667,8 +1057,15 @@ SymbolicBlock::SymbolicBlock(MVisitor* owner) : owner_(owner) {
     parent_ = owner_->EnterBlock(this);
 }
 
-SymbolicBlock::~SymbolicBlock() {
+void SymbolicBlock::pop() {
     owner_->LeaveBlock(parent_);
+}
+
+SymbolicProgram::SymbolicProgram(MVisitor *owner) : owner_(owner) {
+}
+
+void SymbolicProgram::pop() {
+    
 }
 
 class JSONASTConsumer : public ASTConsumer {
