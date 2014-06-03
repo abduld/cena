@@ -55,8 +55,6 @@ OPERATOR(Mul) OPERATOR(Div) OPERATOR(Rem) OPERATOR(Add) OPERATOR(Sub)        \
 OPERATOR(Shl) OPERATOR(Shr) OPERATOR(And) OPERATOR(Or) OPERATOR(Xor)
 
 class MVisitor;
-class SymbolicStmt;
-
 
 typedef boost::variant<bool, int64_t, double, string> SymbolicLiteral;
 
@@ -89,8 +87,6 @@ private:
 
 typedef std::vector<SymbolicExpr> SymbolicExprs;
 
-typedef std::vector<SymbolicStmt> SymbolicStmts;
-
 class SymbolicStmt {
 public:
     SymbolicStmt(MVisitor* owner, string head);
@@ -105,12 +101,13 @@ private:
     MVisitor* owner_;
 };
 
+typedef std::vector<SymbolicStmt> SymbolicStmts;
 
 class SymbolicBlock {
 public:
     SymbolicBlock(MVisitor* owner);
     ~SymbolicBlock();
-    void operator<<(SymbolicStmt s) {
+    void operator<<(const SymbolicStmt & s) {
         stmts_.push_back(s);
     }
     
