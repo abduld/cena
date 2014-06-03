@@ -15,6 +15,7 @@
 #include "clang/Tooling/Tooling.h"
 #include "clang/Rewrite/Core/Rewriter.h"
 #include "llvm/Support/Signals.h"
+#include <boost/variant.hpp>
 #include "SymbolicForm.h"
 
 #include <string>
@@ -53,41 +54,345 @@ OPERATOR(LOr) OPERATOR(Assign) OPERATOR(Comma)
 OPERATOR(Mul) OPERATOR(Div) OPERATOR(Rem) OPERATOR(Add) OPERATOR(Sub)        \
 OPERATOR(Shl) OPERATOR(Shr) OPERATOR(And) OPERATOR(Or) OPERATOR(Xor)
 
-class MVisitor : public RecursiveASTVisitor<MVisitor> {
-private:
-	clang::ASTContext *astContext; // used for getting additional AST info
+class MVisitor;
+class SymbolicStmt;
 
+
+typedef boost::variant<bool, int64_t, double, string> SymbolicLiteral;
+
+typedef std::vector<SymbolicLiteral> SymbolicLiterals;
+
+class SymbolicExpr {
+public:
+    SymbolicExpr(MVisitor* owner, const SymbolicLiteral & val);
+    SymbolicExpr(MVisitor* owner, const SymbolicLiterals & val);
+    ~SymbolicExpr();
+    boost::variant<SymbolicLiteral, SymbolicLiterals> getValue() const { return val_; };
+    SymbolicExpr * operator<<(SymbolicLiteral & val) {
+        val_.push_back(val);
+        len_++;
+        return this;
+    }
+    SymbolicExpr * operator<<(SymbolicLiterals & vals) {
+        for (auto iter = vals.begin(); iter != vals.end(); iter++) {
+            val_.push_back(*iter);
+        }
+        len_ += vals.size();
+        return this;
+    }
+private:
+    int len_;
+    std::vector<SymbolicLiteral> val_;
+    SymbolicExpr * parent_;
+    MVisitor* owner_;
+};
+
+typedef std::vector<SymbolicExpr> SymbolicExprs;
+
+typedef std::vector<SymbolicStmt> SymbolicStmts;
+
+class SymbolicStmt {
+public:
+    SymbolicStmt(MVisitor* owner, string head);
+    ~SymbolicStmt();
+    string getHead() const { return head_; }
+    SymbolicExprs getArgs() const { return args_; }
+    
+private:
+    const string head_;
+    SymbolicExprs args_;
+    SymbolicStmt * parent_;
+    MVisitor* owner_;
+};
+
+
+class SymbolicBlock {
+public:
+    SymbolicBlock(MVisitor* owner);
+    ~SymbolicBlock();
+    void operator<<(SymbolicStmt s) {
+        stmts_.push_back(s);
+    }
+    
+private:
+    SymbolicBlock * parent_;
+    SymbolicStmts stmts_;
+    MVisitor* owner_;
+};
+
+template<typename T> struct is_vector                           : public false_type {};
+template<>           struct is_vector<SymbolicStmts>           : public true_type {};
+
+template<typename T> struct is_stmt                           : public false_type {};
+template<>           struct is_stmt<SymbolicStmt>           : public true_type {};
+
+
+class MVisitor : public RecursiveASTVisitor<MVisitor> {
 public:
 	explicit MVisitor(CompilerInstance *CI)
-		: astContext(&(CI->getASTContext())) // initialize private members
+    : astContext(&(CI->getASTContext())), block_(NULL) // initialize private members
 	{
 		rewriter.setSourceMgr(astContext->getSourceManager(), astContext->getLangOpts());
 	}
+    
+    SymbolicExpr* EnterExpr(SymbolicExpr* expr) {
+        SymbolicExpr* parent = expr_;
+        expr_ = expr;
+        return parent;
+    }
+    
+    void LeaveExpr(SymbolicExpr* expr) {
+        expr_ = expr;
+    }
+    
+    SymbolicStmt* EnterStmt(SymbolicStmt* stmt) {
+        SymbolicStmt* parent = stmt_;
+        stmt_ = stmt;
+        return parent;
+    }
+    
+    void LeaveStmt(SymbolicStmt* stmt) {
+        stmt_ = stmt;
+    }
+    
+    SymbolicBlock* EnterBlock(SymbolicBlock* block) {
+        SymbolicBlock* parent = block_;
+        block_ = block;
+        return parent;
+    }
+    
+    void LeaveBlock(SymbolicBlock* block) {
+        block_ = block;
+    }
 
-
-	bool VisitTypedefDecl(const TypedefDecl * decl) {
+    bool VisitTranslationUnitDecl(TranslationUnitDecl *D) {
 		DEBUG;
-		decl->dump();
+		D->dump();
+		return true;
+	}
+    
+    bool VisitTypedefDecl(TypedefDecl *D) {
+		DEBUG;
+		D->dump();
+		return true;
+	}
+    
+    bool VisitTypeAliasDecl(TypeAliasDecl *D) {
+		DEBUG;
+		D->dump();
+		return true;
+	}
+    
+    bool VisitEnumDecl(EnumDecl *D) {
+		DEBUG;
+		D->dump();
+		return true;
+	}
+    
+    bool VisitRecordDecl(RecordDecl *D) {
+		DEBUG;
+		D->dump();
+		return true;
+	}
+    
+    bool VisitEnumConstantDecl(EnumConstantDecl *D) {
+		DEBUG;
+		D->dump();
+		return true;
+	}
+    
+    bool VisitEmptyDecl(EmptyDecl *D) {
+		DEBUG;
+		D->dump();
+		return true;
+	}
+    
+    bool VisitFunctionDecl(FunctionDecl *D) {
+        DEBUG;
+        D->dump();
+        return true;
+	}
+    
+    bool VisitFriendDecl(FriendDecl *D) {
+		DEBUG;
+		D->dump();
+		return true;
+	}
+    
+    bool VisitFieldDecl(FieldDecl *D) {
+		DEBUG;
+		D->dump();
+		return true;
+	}
+    
+    bool VisitVarDecl(VarDecl *D) {
+		DEBUG;
+		D->dump();
+		return true;
+	}
+    
+    bool VisitLabelDecl(LabelDecl *D) {
+		DEBUG;
+		D->dump();
+		return true;
+	}
+    
+    bool VisitParmVarDecl(ParmVarDecl *D) {
+		DEBUG;
+		D->dump();
+		return true;
+	}
+    
+    bool VisitFileScopeAsmDecl(FileScopeAsmDecl *D) {
+		DEBUG;
+		D->dump();
+		return true;
+	}
+    
+    bool VisitImportDecl(ImportDecl *D) {
+		DEBUG;
+		D->dump();
+		return true;
+	}
+    
+    bool VisitStaticAssertDecl(StaticAssertDecl *D) {
+		DEBUG;
+		D->dump();
+		return true;
+	}
+    
+    bool VisitNamespaceDecl(NamespaceDecl *D) {
+		DEBUG;
+		D->dump();
+		return true;
+	}
+    
+    bool VisitUsingDirectiveDecl(UsingDirectiveDecl *D) {
+		DEBUG;
+		D->dump();
+		return true;
+	}
+    
+    bool VisitNamespaceAliasDecl(NamespaceAliasDecl *D) {
+		DEBUG;
+		D->dump();
+		return true;
+	}
+    
+    bool VisitCXXRecordDecl(CXXRecordDecl *D) {
+		DEBUG;
+		D->dump();
+		return true;
+	}
+    
+    bool VisitLinkageSpecDecl(LinkageSpecDecl *D) {
+		DEBUG;
+		D->dump();
+		return true;
+	}
+    
+    bool VisitTemplateDecl(const TemplateDecl *D) {
+		DEBUG;
+		D->dump();
+		return true;
+	}
+    
+    bool VisitFunctionTemplateDecl(FunctionTemplateDecl *D) {
+		DEBUG;
+		D->dump();
+		return true;
+	}
+    
+    bool VisitClassTemplateDecl(ClassTemplateDecl *D) {
+		DEBUG;
+		D->dump();
+		return true;
+	}
+    
+    bool VisitObjCMethodDecl(ObjCMethodDecl *D) {
+		DEBUG;
+		D->dump();
+		return true;
+	}
+    
+    bool VisitObjCImplementationDecl(ObjCImplementationDecl *D) {
+		DEBUG;
+		D->dump();
+		return true;
+	}
+    
+    bool VisitObjCInterfaceDecl(ObjCInterfaceDecl *D) {
+		DEBUG;
+		D->dump();
+		return true;
+	}
+    
+    bool VisitObjCProtocolDecl(ObjCProtocolDecl *D) {
+		DEBUG;
+		D->dump();
+		return true;
+	}
+    
+    bool VisitObjCCategoryImplDecl(ObjCCategoryImplDecl *D) {
+		DEBUG;
+		D->dump();
+		return true;
+	}
+    
+    bool VisitObjCCategoryDecl(ObjCCategoryDecl *D) {
+		DEBUG;
+		D->dump();
+		return true;
+	}
+    
+    bool VisitObjCCompatibleAliasDecl(ObjCCompatibleAliasDecl *D) {
+		DEBUG;
+		D->dump();
+		return true;
+	}
+    
+    bool VisitObjCPropertyDecl(ObjCPropertyDecl *D) {
+		DEBUG;
+		D->dump();
+		return true;
+	}
+    
+    bool VisitObjCPropertyImplDecl(ObjCPropertyImplDecl *D) {
+		DEBUG;
+		D->dump();
+		return true;
+	}
+    
+    bool VisitUnresolvedUsingTypenameDecl(UnresolvedUsingTypenameDecl *D) {
+		DEBUG;
+		D->dump();
+		return true;
+	}
+    
+    bool VisitUnresolvedUsingValueDecl(UnresolvedUsingValueDecl *D) {
+		DEBUG;
+		D->dump();
+		return true;
+	}
+    
+    bool VisitUsingDecl(UsingDecl *D) {
+		DEBUG;
+		D->dump();
+		return true;
+	}
+    
+    bool VisitUsingShadowDecl(UsingShadowDecl *D) {
+		DEBUG;
+		D->dump();
+		return true;
+	}
+    
+    bool VisitOMPThreadPrivateDecl(OMPThreadPrivateDecl *D) {
+		DEBUG;
+		D->dump();
 		return true;
 	}
 
-	bool VisitTypeAliasDecl(const TypeAliasDecl * decl) {
-		DEBUG;
-		decl->dump();
-		return true;
-	}
-
-	bool VisitEnumDecl(const EnumDecl * decl) {
-		DEBUG;
-		decl->dump();
-		return true;
-	}
-
-	bool VisitEnumConstantDecl(const EnumConstantDecl * decl) {
-		DEBUG;
-		decl->dump();
-		return true;
-	}
 
 	bool VisitFieldDecl(const FieldDecl * decl) {
 		DEBUG;
@@ -144,15 +449,6 @@ public:
 		ifStmt->dump();
 		return true;
 	}
-
-    bool VisitFunctionDecl(FunctionDecl *f) {
-        DEBUG;
-		if (f->hasBody()) {
-            Stmt * body = f->getBody();
-            VisitStmt(body);
-		}
-		return true;
-    }
     
     bool VisitReturnStmt(ReturnStmt *stmt) {
 		DEBUG;
@@ -170,6 +466,90 @@ public:
             VisitStmt(*citer);
         }
 		return true;
+    }
+    
+    bool VisitForStmt(ForStmt * stmt) {
+        DEBUG;
+        stmt->dump();
+        return true;
+    }
+    
+    bool VisitAsmStmt(AsmStmt * stmt) {
+        DEBUG;
+        stmt->dump();
+        return true;
+    }
+    
+    bool VisitBreakStmt(BreakStmt * stmt) {
+        DEBUG;
+        stmt->dump();
+        return true;
+    }
+    
+    bool VisitContinueStmt(ContinueStmt * stmt) {
+        DEBUG;
+        stmt->dump();
+        return true;
+    }
+    
+    bool VisitCXXCatchStmt(CXXCatchStmt * stmt) {
+        DEBUG;
+        stmt->dump();
+        return true;
+    }
+    
+    bool VisitCXXTryStmt(CXXTryStmt * stmt) {
+        DEBUG;
+        stmt->dump();
+        return true;
+    }
+    
+    bool VisitDoStmt(DoStmt * stmt) {
+        DEBUG;
+        stmt->dump();
+        return true;
+    }
+    
+    bool VisitGotoStmt(GotoStmt * stmt) {
+        DEBUG;
+        stmt->dump();
+        return true;
+    }
+    
+    bool VisitIndirectGotoStmt(IndirectGotoStmt * stmt) {
+        DEBUG;
+        stmt->dump();
+        return true;
+    }
+    
+    bool VisitLabelStmt(LabelStmt * stmt) {
+        DEBUG;
+        stmt->dump();
+        return true;
+    }
+    
+    bool VisitNullStmt(NullStmt * stmt) {
+        DEBUG;
+        stmt->dump();
+        return true;
+    }
+    
+    bool VisitDefaultStmt(DefaultStmt * stmt) {
+        DEBUG;
+        stmt->dump();
+        return true;
+    }
+    
+    bool VisitSwitchStmt(SwitchStmt * stmt) {
+        DEBUG;
+        stmt->dump();
+        return true;
+    }
+    
+    bool VisitWhileStmt(WhileStmt * stmt) {
+        DEBUG;
+        stmt->dump();
+        return true;
     }
     
     bool VisitIntegerLiteral(IntegerLiteral *L) {
@@ -256,42 +636,43 @@ return Visit##type (concrete_expr);                        \
     
 		return true;
 	}
-
-	bool VisitStmt(Stmt * stmt) {
-#define VISIT(type) do {                                                \
-clang::type* concrete_stmt = dyn_cast_or_null<clang::type>(stmt); \
-if (concrete_stmt != NULL) {                                      \
-return Visit##type (concrete_stmt);                        \
-}                                                                 \
-} while(0);
-        DEBUG;
-        
-        //VISIT(AsmStmt);
-        //VISIT(BreakStmt);
-        VISIT(CompoundStmt);
-        //VISIT(ContinueStmt);
-        //VISIT(CXXCatchStmt);
-        //VISIT(CXXTryStmt);
-        VISIT(DeclStmt);
-        //VISIT(DoStmt);
-        //VISIT(ForStmt);
-        //VISIT(GotoStmt);
-        VISIT(IfStmt);
-        //VISIT(IndirectGotoStmt);
-        //VISIT(LabelStmt);
-        //VISIT(NullStmt);
-        VISIT(ReturnStmt);
-        //VISIT(CaseStmt);
-        //VISIT(DefaultStmt);
-        //VISIT(SwitchStmt);
-        //VISIT(WhileStmt);
-#undef VISIT
-
-		return true;
-	}
 #endif
+
+private:
+clang::ASTContext *astContext; // used for getting additional AST info
+SymbolicBlock * block_;
+SymbolicStmt * stmt_;
+SymbolicExpr * expr_;
 };
 
+
+SymbolicExpr::SymbolicExpr(MVisitor* owner, const SymbolicLiteral & val) : len_(1) {
+    val_.push_back(val);
+    parent_ = owner_->EnterExpr(this);
+}
+SymbolicExpr::SymbolicExpr(MVisitor* owner, const SymbolicLiterals & val) : len_(val.size()), val_(val) {
+    parent_ = owner_->EnterExpr(this);
+}
+
+SymbolicExpr::~SymbolicExpr() {
+    owner_->LeaveExpr(parent_);
+}
+
+SymbolicStmt::SymbolicStmt(MVisitor* owner, string head) : head_(head), owner_(owner) {
+    parent_ = owner_->EnterStmt(this);
+}
+
+SymbolicStmt::~SymbolicStmt() {
+    owner_->LeaveStmt(parent_);
+}
+
+SymbolicBlock::SymbolicBlock(MVisitor* owner) : owner_(owner) {
+    parent_ = owner_->EnterBlock(this);
+}
+
+SymbolicBlock::~SymbolicBlock() {
+    owner_->LeaveBlock(parent_);
+}
 
 class JSONASTConsumer : public ASTConsumer {
 private:
@@ -333,7 +714,7 @@ void parse() {
 
 
 	std::unique_ptr<CompilationDatabase> Compilations(new FixedCompilationDatabase("/", vector<string>()));
-	vector<string> Sources;
+    std::vector<string> Sources;
 	//Sources.push_back("test.cpp");
 
 	//ClangTool Tool(*Compilations, Sources);
@@ -346,7 +727,7 @@ void parse() {
     //Tool.run(newFrontendActionFactory<JSONFrontendAction>().get());
 
     
-    vector<string> args;
+    std::vector<string> args;
     args.push_back("-std=c++11");
     
     runToolOnCodeWithArgs(newFrontendActionFactory<JSONFrontendAction>()->create(),
