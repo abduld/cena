@@ -587,12 +587,15 @@ public:
     bool VisitFunctionDecl(FunctionDecl *D) {
         DEBUG;
         POP_STMT;
-        D->dump();
+        //D->dump();
         if (D->hasBody()) {
-            SymbolicFunctionStmt stmt(this);
-        } else {
             SymbolicFunctionBlock blk(this);
+            
             blk.push();
+            TraverseStmt(D->getBody());
+        } else {
+            SymbolicFunctionStmt stmt(this);
+            stmt.push();
         }
         return true;
 	}
@@ -838,9 +841,9 @@ public:
         Stmt *thenStmt = ifStmt->getThen();
         Stmt *elseStmt = ifStmt->getElse();
         VisitExpr(conditionExpr);
-        VisitStmt(thenStmt);
+        TraverseStmt(thenStmt);
         if (elseStmt != NULL) {
-            VisitStmt(elseStmt);
+            TraverseStmt(elseStmt);
         }
 		ifStmt->dump();
 		return true;
@@ -849,19 +852,17 @@ public:
     bool VisitReturnStmt(ReturnStmt *S) {
 		DEBUG;
         SymbolicReturnStmt stmt(this);
-        if (S->getRetValue()) {
-            stmt.push();
-        }
+        stmt.push();
 		return true;
     }
     
     bool VisitCompoundStmt(CompoundStmt *stmt) {
-		DEBUG;
-		//stmt->dump();
         for (CompoundStmt::const_body_iterator citer = stmt->body_begin();
              citer != stmt->body_end();
              ++citer) {
-            VisitStmt(*citer);
+            DEBUG;
+            (*citer)->dump();
+            TraverseStmt(*citer);
             POP_STMT;
         }
 		return true;
