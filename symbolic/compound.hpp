@@ -9,16 +9,26 @@ public:
   virtual ~Compound() {
     // DEBUG;
   };
-  void push();
-  void pop();
   Compound *operator<<=(const bool &val) {
     shared_ptr<Boolean> var(new Boolean(val));
     vals_.push_back(var);
     len_++;
     return this;
   }
+  Compound &operator<<=(const int &val) {
+    shared_ptr<Integer> var(new Integer(val));
+    vals_.push_back(var);
+    len_++;
+    return *this;
+  }
   Compound &operator<<=(const int64_t &val) {
     shared_ptr<Integer> var(new Integer(val));
+    vals_.push_back(var);
+    len_++;
+    return *this;
+  }
+  Compound &operator<<=(const float &val) {
+    shared_ptr<Real> var(new Real(val));
     vals_.push_back(var);
     len_++;
     return *this;
@@ -49,11 +59,18 @@ public:
     len_ += vals.size();
     return *this;
   }
-  template <typename T> void push_back(T *v) {
-    vals_.push_back(v);
+  void push_back(Node *v) {
+    shared_ptr<Node> var(v);
+    vals_.push_back(var);
     len_++;
     return;
   }
+  void push_back(shared_ptr<Node> var) {
+    vals_.push_back(var);
+    len_++;
+    return;
+  }
+  string getHead() { return head_; }
   vector<shared_ptr<Node> > getValues() { return vals_; }
 
 protected:

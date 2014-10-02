@@ -64,7 +64,7 @@ class String : public Atom<string> {
 public:
   String() : Atom<string>() {}
   String(string v) : Atom<string>(v) {}
-  String(const char * v) : Atom<string>(string(v)) {}
+  String(const char *v) : Atom<string>(string(v)) {}
   string getHead() { return head_; }
   string toString() { return getConstant(); }
 
