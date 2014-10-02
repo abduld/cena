@@ -13,7 +13,7 @@ protected:
     vec.push_back(v);
     return vec;
   }
-  bool isAtom() { return true; }
+  bool isAtom() const { return true; }
   T getConstant() const { return val_; }
 
 private:

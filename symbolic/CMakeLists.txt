@@ -5,10 +5,9 @@ Project (SymbolicAST)
 cmake_minimum_required(VERSION 2.5 FATAL_ERROR)
 Set(CMAKE_BUILD_TYPE Debug)
 
+Set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 Set(CMAKE_VERBOSE_MAKEFILE ON)
 
-
-Set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 Set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/../cmake/modules)
 
 include(EnableCXX11)
@@ -22,8 +21,8 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
   add_definitions(-fno-exceptions)
   add_definitions(-Wall)
-  add_definitions(-Wfatal-errors)
 endif()
+add_definitions(-Wfatal-errors)
 
 set(GTEST_SOURCES
     "../external/gtest/gtest-all.cc"
@@ -42,11 +41,11 @@ get_filename_component(CurrentDirectory "${CMAKE_CURRENT_LIST_FILE}" PATH)
 MESSAGE( STATUS "Current directory = ${CurrentDirectory}")
 
 file(GLOB THESE_TEST_FILES
-    ${CurrentDirectory}/*_test.cpp 
+    ${CurrentDirectory}/*_test.cpp
 )
 
 file(GLOB THESE_HPP_FILES
-    ${CurrentDirectory}/*.hpp 
+    ${CurrentDirectory}/*.hpp
 )
 
 set_source_files_properties(
