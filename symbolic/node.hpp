@@ -14,6 +14,10 @@ public:
   ~Node() {}
   virtual string toString() { return "unknown"; }
   virtual string getHead() { return "unknown"; }
+  virtual bool isCompound() { return false; }
+  virtual bool isStatement() { return false; }
+  virtual bool isAtom() { return false; }
+  virtual bool isBlock() { return false; }
   virtual vector<shared_ptr<Node> > getValues() {
     return vector<shared_ptr<Node> >();
   }

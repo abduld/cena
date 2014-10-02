@@ -9,6 +9,7 @@ public:
   virtual ~Compound() {
     // DEBUG;
   };
+  bool isCompound() { return true; }
   Compound *operator<<=(const bool &val) {
     shared_ptr<Boolean> var(new Boolean(val));
     vals_.push_back(var);
