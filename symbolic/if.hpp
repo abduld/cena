@@ -5,18 +5,18 @@
 
 class If : public Compound {
   If() : Compound() {}
-  If(Node &cond, Node &thenPart) : Compound() {
-    push(cond);
-    push(thenPart);
+  If( const shared_ptr<Node> & cond, const shared_ptr<Node> & thenPart) : Compound() {
+      push_back(cond);
+      push_back(thenPart);
   }
-  If(Node &cond, Node &thenPart, Node &elsePart) : Compound() {
-    push(cond);
-    push(thenPart);
-    push(elsePart);
+  If( const shared_ptr<Node> & cond, const shared_ptr<Node> & thenPart, const shared_ptr<Node> & elsePart) : Compound() {
+      push_back(cond);
+      push_back(thenPart);
+      push_back(elsepart);
   }
   string getHead() const { return head_; }
 
 private:
-  string head_ = "if";
+  string head_ = "If";
 };
-#endif /* __CIF_H__ */
+#endif /* __IF_H__ */

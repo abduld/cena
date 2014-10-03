@@ -19,7 +19,8 @@ public:
   virtual bool isAtom() const { return false; }
   virtual bool isBlock() const { return false; }
   virtual vector<shared_ptr<Node> > getValues() {
-    return vector<shared_ptr<Node> >();
+      vector<shared_ptr<Node> > vec;
+    return vec;
   }
   void setParent(shared_ptr<Node> parent) { parent_ = parent; }
 

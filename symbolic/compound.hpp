@@ -66,7 +66,7 @@ public:
     len_++;
     return;
   }
-  void push_back(shared_ptr<Node> var) {
+  void push_back(const shared_ptr<Node> & var) {
     vals_.push_back(var);
     len_++;
     return;
@@ -74,7 +74,10 @@ public:
     shared_ptr<Node> getPart(int idx) {
         return vals_[idx];
     }
-    void setPart(int idx, shared_ptr<Node> var) {
+    void setPart(int idx, const shared_ptr<Node> & var) {
+        while (vals_.size() <= idx) {
+            vals_.push_back(shared_ptr<Node>());
+        }
         vals_[idx] = var;
         return;
     }

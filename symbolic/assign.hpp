@@ -11,25 +11,25 @@ public:
         push_back(lhs);
         push_back(rhs);
     }
-    Assign(shared_ptr<Node> lhs, shared_ptr<Node> rhs) : Compound() {
+    Assign(const shared_ptr<Node> & lhs, const shared_ptr<Node> & rhs) : Compound() {
         push_back(lhs);
         push_back(rhs);
     }
     ~Assign() {
 
     }
-    void setLHS(shared_ptr<Node> lhs) {
+    void setLHS(const shared_ptr<Node> &lhs) {
         setPart(0, lhs);
     }
 
-    void setRHS(shared_ptr<Node> rhs) {
+    void setRHS(const shared_ptr<Node> & rhs) {
         setPart(1, rhs);
     }
     shared_ptr<Node> getLHS() {
-        getPart(0);
+        return getPart(0);
     }
     shared_ptr<Node> setRHS() {
-        getPart(1);
+        return getPart(1);
     }
     string getHead() {
         return head_;
