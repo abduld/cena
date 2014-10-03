@@ -5,9 +5,10 @@
 
 class While : public Compound {
   While() : Compound() {}
-  While( const shared_ptr<Node> & cond, const shared_ptr<Node> & body) : Compound() {
-      push_back(cond);
-      push_back(body);
+  While(const shared_ptr<Node> &cond, const shared_ptr<Node> &body)
+      : Compound() {
+    push_back(cond);
+    push_back(body);
   }
   string getHead() const { return head_; }
 

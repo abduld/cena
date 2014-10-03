@@ -7,7 +7,7 @@ class Compound : public Node {
 public:
   Compound() : Node() { vals_ = vector<shared_ptr<Node> >(); }
   virtual ~Compound() {
-      vals_.clear();
+    vals_.clear();
   };
   bool isCompound() const { return true; }
   Compound *operator<<=(const bool &val) {
@@ -66,21 +66,25 @@ public:
     len_++;
     return;
   }
-  void push_back(const shared_ptr<Node> & var) {
+  void push_back(const shared_ptr<Node> &var) {
     vals_.push_back(var);
     len_++;
     return;
   }
-    shared_ptr<Node> getPart(int idx) {
-        return vals_[idx];
+  void push_back(const vector<shared_ptr<Node> > &var) {
+    for (auto iter : var) {
+      push_back(iter);
     }
-    void setPart(int idx, const shared_ptr<Node> & var) {
-        while (vals_.size() <= idx) {
-            vals_.push_back(shared_ptr<Node>());
-        }
-        vals_[idx] = var;
-        return;
+    return;
+  }
+  shared_ptr<Node> getPart(int idx) { return vals_[idx]; }
+  void setPart(int idx, const shared_ptr<Node> &var) {
+    if (vals_.size() <= idx) {
+      vals_.resize(idx + 1);
     }
+    vals_[idx] = var;
+    return;
+  }
   string getHead() { return head_; }
   vector<shared_ptr<Node> > getValues() { return vals_; }
 

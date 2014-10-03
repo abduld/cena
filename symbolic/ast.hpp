@@ -9,17 +9,23 @@
 #include <iterator>
 #include <string>
 #include <vector>
+#include <algorithm>
+#include <functional>
 #include "stdio.h"
 #include "stdlib.h"
 
 using std::shared_ptr;
 using std::string;
 using std::vector;
+using std::ostringstream;
+using std::transform;
 
 #define DEBUG printf("DEBUG :: >>> %s %d ... \n", __PRETTY_FUNCTION__, __LINE__)
 
 #include "node.hpp"
+#include "utilities.hpp"
 #include "atom.hpp"
+#include "type.hpp"
 #include "identifier.hpp"
 #include "compound.hpp"
 #include "statement.hpp"
@@ -44,7 +50,6 @@ using std::vector;
 #include "sizeof.hpp"
 #include "switch.hpp"
 #include "true.hpp"
-#include "type.hpp"
 #include "typedef.hpp"
 #include "while.hpp"
 

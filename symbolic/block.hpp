@@ -4,18 +4,12 @@
 
 class Block : public Compound {
 public:
-    Block() : Compound () {
+  Block() : Compound() {}
+  ~Block() {}
+  string getHead() { return head_; }
 
-    }
-    ~Block() {
-
-    }
-    string getHead() {
-        return head_;
-    }
 private:
-    string head_ = "Block";
-
+  string head_ = "Block";
 };
 
 #endif /* __BLOCK_H__ */
