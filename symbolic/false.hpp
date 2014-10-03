@@ -2,9 +2,9 @@
 #ifndef __FALSE_H__
 #define __FALSE_H__
 
-class False : public Compound {
+class False : public Node {
 public:
-  False() : Compound() {}
+  False() : Node() {}
   ~False() {}
   string getHead() { return head_; }
 

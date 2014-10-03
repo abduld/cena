@@ -2,9 +2,9 @@
 #ifndef __TRUE_H__
 #define __TRUE_H__
 
-class True : public Compound {
+class True : public Node {
 public:
-  True() : Compound() {}
+  True() : Node() {}
   ~True() {}
   string getHead() { return head_; }
 
