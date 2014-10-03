@@ -16,6 +16,7 @@ public:
   size_t getId() const { return id_; }
   virtual void toCCode(ostringstream &o) { o << "unknown"; }
   virtual void toString(ostringstream &o) { o << "unknown"; }
+  virtual void toJSON(ostringstream &o) { o << "{\"type\": \"unknown\"}"; }
   virtual string toCCode() {
     ostringstream o;
     toCCode(o);
@@ -24,6 +25,11 @@ public:
   virtual string toString() {
     ostringstream o;
     toString(o);
+    return o.str();
+  }
+  virtual string toJSON() {
+    ostringstream o;
+    toJSON(o);
     return o.str();
   }
   virtual string getHead() { return "unknown"; }

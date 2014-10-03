@@ -15,6 +15,18 @@ public:
   }
   bool isAtom() const { return true; }
   T getConstant() const { return val_; }
+  virtual void toCCode(ostringstream &o) { o << getConstant(); }
+  virtual void toString(ostringstream &o) { toCCode(o); }
+  string toCCode() {
+    ostringstream o;
+    toCCode(o);
+    return o.str();
+  }
+  string toString() {
+    ostringstream o;
+    toString(o);
+    return o.str();
+  }
 
 private:
   T val_;
@@ -26,17 +38,6 @@ public:
   Boolean(bool v) : Atom<bool>(v) {}
   string getHead() { return head_; }
   void toCCode(ostringstream &o) { o << (getConstant() ? "true" : "false"); }
-  void toString(ostringstream &o) { toCCode(o); }
-  string toCCode() {
-    ostringstream o;
-    toCCode(o);
-    return o.str();
-  }
-  string toString() {
-    ostringstream o;
-    toString(o);
-    return o.str();
-  }
 
 private:
   string head_ = "Boolean";
@@ -47,18 +48,6 @@ public:
   Integer() : Atom<int64_t>() {}
   Integer(int64_t v) : Atom<int64_t>(v) {}
   string getHead() { return head_; }
-  void toCCode(ostringstream &o) { o << getConstant(); }
-  void toString(ostringstream &o) { toCCode(o); }
-  string toCCode() {
-    ostringstream o;
-    toCCode(o);
-    return o.str();
-  }
-  string toString() {
-    ostringstream o;
-    toString(o);
-    return o.str();
-  }
 
 private:
   string head_ = "Integer";
@@ -69,19 +58,6 @@ public:
   Real() : Atom<double>() {}
   Real(double v) : Atom<double>(v) {}
   string getHead() { return head_; }
-  void toCCode(ostringstream &o) { o << getConstant(); }
-  void toString(ostringstream &o) { toCCode(o); }
-  string toCCode() {
-    ostringstream o;
-    toCCode(o);
-    return o.str();
-  }
-  string toString() {
-    ostringstream o;
-    toString(o);
-    return o.str();
-  }
-
 private:
   string head_ = "Real";
 };
@@ -92,18 +68,6 @@ public:
   String(string v) : Atom<string>(v) {}
   String(const char *v) : Atom<string>(string(v)) {}
   string getHead() { return head_; }
-  void toCCode(ostringstream &o) { o << getConstant(); }
-  void toString(ostringstream &o) { toCCode(o); }
-  string toCCode() {
-    ostringstream o;
-    toCCode(o);
-    return o.str();
-  }
-  string toString() {
-    ostringstream o;
-    toString(o);
-    return o.str();
-  }
 
 private:
   string head_ = "String";
