@@ -2,9 +2,9 @@
 #ifndef __BLOCK_H__
 #define __BLOCK_H__
 
-class Block : public Compound {
+class Block : public CompoundNode {
 public:
-  Block() : Compound() {}
+  Block() : CompoundNode() {}
   ~Block() {}
   string getHead() { return head_; }
 

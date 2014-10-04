@@ -3,16 +3,16 @@
 #ifndef __IF_H__
 #define __IF_H__
 
-class If : public Compound {
-  If() : Compound() {}
+class If : public CompoundNode {
+  If() : CompoundNode() {}
   If(const shared_ptr<Node> &cond, const shared_ptr<Node> &thenPart)
-      : Compound() {
+      : CompoundNode() {
     push_back(cond);
     push_back(thenPart);
   }
   If(const shared_ptr<Node> &cond, const shared_ptr<Node> &thenPart,
      const shared_ptr<Node> &elsePart)
-      : Compound() {
+      : CompoundNode() {
     push_back(cond);
     push_back(thenPart);
     push_back(elsePart);

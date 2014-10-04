@@ -16,8 +16,7 @@
 #include "clang/Tooling/Tooling.h"
 #include "clang/Basic/LangOptions.h"
 #include "llvm/Support/Signals.h"
-#include <boost/variant.hpp>
-#include "SymbolicForm.h"
+#include "symbolic/ast.hpp"
 
 #include <string>
 #include <vector>
@@ -25,381 +24,55 @@
 using namespace std;
 using namespace llvm;
 using namespace clang;
+using namespace clang::comments;
 using namespace clang::driver;
 using namespace clang::tooling;
 
 #define DEBUG printf("DEBUG :: >>> %s %d ... \n", __PRETTY_FUNCTION__, __LINE__)
 
-
 // All unary operators.
 #define UNARYOP_LIST()                                                         \
-OPERATOR(PostInc) OPERATOR(PostDec) OPERATOR(PreInc) OPERATOR(PreDec)        \
-OPERATOR(AddrOf) OPERATOR(Deref) OPERATOR(Plus) OPERATOR(Minus)          \
-OPERATOR(Not) OPERATOR(LNot) OPERATOR(Real) OPERATOR(Imag)               \
+  \
+OPERATOR(PostInc) OPERATOR(PostDec) OPERATOR(PreInc) OPERATOR(PreDec) \
+OPERATOR(AddrOf) OPERATOR(Deref) OPERATOR(Plus) OPERATOR(Minus) \
+OPERATOR(Not) OPERATOR(LNot) OPERATOR(Real) OPERATOR(Imag) \
 OPERATOR(Extension)
 
 // All binary operators (excluding compound assign operators).
 #define BINOP_LIST()                                                           \
-OPERATOR(PtrMemD) OPERATOR(PtrMemI) OPERATOR(Mul) OPERATOR(Div)              \
-OPERATOR(Rem) OPERATOR(Add) OPERATOR(Sub) OPERATOR(Shl) OPERATOR(Shr)    \
-OPERATOR(LT) OPERATOR(GT) OPERATOR(LE) OPERATOR(GE) OPERATOR(EQ)         \
-OPERATOR(NE) OPERATOR(And) OPERATOR(Xor) OPERATOR(Or) OPERATOR(LAnd)     \
+  \
+OPERATOR(PtrMemD) OPERATOR(PtrMemI) OPERATOR(Mul) OPERATOR(Div) \
+OPERATOR(Rem) OPERATOR(Add) OPERATOR(Sub) OPERATOR(Shl) OPERATOR(Shr) \
+OPERATOR(LT) OPERATOR(GT) OPERATOR(LE) OPERATOR(GE) OPERATOR(EQ) \
+OPERATOR(NE) OPERATOR(And) OPERATOR(Xor) OPERATOR(Or) OPERATOR(LAnd) \
 OPERATOR(LOr) OPERATOR(Assign) OPERATOR(Comma)
 
 // All compound assign operators.
 #define CAO_LIST()                                                             \
-OPERATOR(Mul) OPERATOR(Div) OPERATOR(Rem) OPERATOR(Add) OPERATOR(Sub)        \
+  \
+OPERATOR(Mul) OPERATOR(Div) OPERATOR(Rem) OPERATOR(Add) OPERATOR(Sub) \
 OPERATOR(Shl) OPERATOR(Shr) OPERATOR(And) OPERATOR(Or) OPERATOR(Xor)
 
-class MVisitor;
-
-typedef boost::variant<bool, int64_t, double, string> SymbolicLiteral;
-
-typedef std::vector<SymbolicLiteral> SymbolicLiterals;
-
-class SymbolicExpr {
+class SVisitor : public RecursiveASTVisitor<SVisitor> {
 public:
-    SymbolicExpr(MVisitor* owner);
-    SymbolicExpr(MVisitor* owner, const SymbolicLiteral & lit);
-    SymbolicExpr(MVisitor* owner, const SymbolicExpr & exp);
-    virtual ~SymbolicExpr() {
-        //DEBUG;
-    };
-    void push();
-    void pop();
-    SymbolicExpr * operator<<=(const bool & val) {
-        vals_.push_back(SymbolicLiteral(val));
-        len_++;
-        return this;
-    }
-    SymbolicExpr & operator<<=(const int64_t & val) {
-        vals_.push_back(SymbolicLiteral(val));
-        len_++;
-        return *this;
-    }
-    SymbolicExpr & operator<<=(const double & val) {
-        vals_.push_back(SymbolicLiteral(val));
-        len_++;
-        return *this;
-    }
-    SymbolicExpr & operator<<=(const char * val) {
-        vals_.push_back(SymbolicLiteral(string(val)));
-        len_++;
-        return *this;
-    }
-    SymbolicExpr & operator<<=(const string & val) {
-        vals_.push_back(SymbolicLiteral(val));
-        len_++;
-        return *this;
-    }
-    SymbolicExpr & operator<<=(const SymbolicLiteral & val) {
-        vals_.push_back(val);
-        len_++;
-        return *this;
-    }
-    SymbolicExpr & operator<<=(const SymbolicLiterals & vals) {
-        for (auto iter = vals.begin(); iter != vals.end(); iter++) {
-            vals_.push_back(*iter);
-        }
-        len_ += vals.size();
-        return *this;
-    }
-    SymbolicExpr & operator<<=(const SymbolicExpr & e) {
-        vals_.push_back(e);
-        len_++;
-        return *this;
-    }
-    template <typename T>
-    void push_back(const T & v) {
-        this << v;
-    }
-    string toString() const {
-        std::ostringstream o;
-        for (auto iter = vals_.begin(); iter != vals_.end(); iter++) {
-            o << *iter;
-            if ((iter + 1) != vals_.end()) {
-                o << ",";
-            }
-        }
-        return ToString(getHead(), "[", o.str(), "]");
-    }
-    virtual string getHead() const {
-        return head_;
-    }
-    std::vector<boost::variant<SymbolicLiteral, SymbolicExpr> > getValues() const {
-        return vals_;
-    }
-protected:
-    int len_;
-    string head_ = "Expr";
-    std::vector<boost::variant<SymbolicLiteral, SymbolicExpr> > vals_;
-    SymbolicExpr * parent_;
-    MVisitor* owner_;
-};
+  explicit SVisitor(CompilerInstance *CI) : astContext(&(CI->getASTContext())), SM(CI->getASTContext().getSourceManager()), Traits(CI->getASTContext().getCommentCommandTraits()) {
+    prog_ = shared_ptr<ProgramNode>(new ProgramNode());
+    curr_ = prog_;
+  }
 
-std::ostream& operator<< (std::ostream& o, const SymbolicExpr & exp) {
-    o << exp.getHead();
-    o << "[" ;
-    auto vals = exp.getValues();
-    for (auto iter = vals.begin(); iter != vals.end(); iter++) {
-        o << *iter;
-        if ((iter +1) != vals.end()) {
-            o << ", ";
-        }
-    }
-    o << "]";
-    return o;
-}
-
-#define DeclareSymbolicExpr(name, head) \
-class Symbolic##name##Expr : public SymbolicExpr { \
-public:\
-    Symbolic##name##Expr(MVisitor * visitor) : SymbolicExpr(visitor) {head_ = std::string(#head); }\
-    Symbolic##name##Expr(MVisitor * visitor, const SymbolicLiteral & lit) : SymbolicExpr(visitor, lit) { head_ = std::string(#head); }\
-    Symbolic##name##Expr(MVisitor * visitor, const SymbolicExpr & exp) : SymbolicExpr(visitor, exp) {head_ = std::string(#head); }\
-virtual string getHead() const {\
-    return #head;\
-}\
-}
-
-DeclareSymbolicExpr(List, List);
-DeclareSymbolicExpr(Sequence, Sequence);
-DeclareSymbolicExpr(Qualifier, CQualifier);
-DeclareSymbolicExpr(Type, CType);
-DeclareSymbolicExpr(Pointer, CPointer);
-DeclareSymbolicExpr(String, CString);
-DeclareSymbolicExpr(Operator, COperator);
-DeclareSymbolicExpr(Array, CArray);
-DeclareSymbolicExpr(ArraySize, CArraySize);
-DeclareSymbolicExpr(Cast, CCast);
-DeclareSymbolicExpr(None, Skip);
-
-typedef std::vector<SymbolicExpr> SymbolicExprs;
-
-class SymbolicStmt {
-public:
-    SymbolicStmt(MVisitor* owner, string head);
-    SymbolicStmt(MVisitor* owner, const SymbolicStmt * stmt) : owner_(owner) {
-        head_ = stmt->getHead();
-        vals_ = stmt->getArgs();
-    }
-    ~SymbolicStmt() {
-        DEBUG;
-    };
-    void push();
-    void pop();
-    SymbolicStmt * operator<<=(const SymbolicExpr & val) {
-        vals_.push_back(val);
-        return this;
-    }
-    SymbolicStmt * operator<<=(const SymbolicExprs & vals) {
-        for (auto iter = vals.begin(); iter != vals.end(); iter++) {
-            vals_.push_back(*iter);
-        }
-        return this;
-    }
-    template <typename T>
-    void push_back(const T & v) {
-        operator<<=(v);
-    }
-    string getHead() const { return head_; }
-    SymbolicExprs getArgs() const { return vals_; }
-    string toString() const {
-        std::ostringstream o;
-        for (auto iter = vals_.begin(); iter != vals_.end(); iter++) {
-            o << iter->toString();
-            if ((iter+1) != vals_.end()) {
-                o << ",";
-            }
-        }
-        return ToString(getHead(), "[", o.str(), "]");
-    }
-protected:
-    string head_;
-    SymbolicExprs vals_;
-    SymbolicStmt * parent_;
-    MVisitor* owner_;
-};
-
-#define DeclareSymbolicStmt(name, head) \
-class Symbolic##name##Stmt : public SymbolicStmt { \
-public:\
-Symbolic##name##Stmt(MVisitor * visitor) : SymbolicStmt(visitor, std::string(#head)) {\
-}\
-}
-
-DeclareSymbolicStmt(Assign, CAssign);
-DeclareSymbolicStmt(Return, CReturn);
-DeclareSymbolicStmt(Function, CFunction);
-
-typedef std::vector<SymbolicStmt> SymbolicStmts;
-
-class SymbolicBlock {
-public:
-    SymbolicBlock(MVisitor* owner);
-    SymbolicBlock(MVisitor* owner, const SymbolicBlock * blk) : owner_(owner) {
-        stmts_ = blk->getStatements();
-    };
-    ~SymbolicBlock() {
-        DEBUG;
-    };
-    void push();
-    void pop();
-    SymbolicBlock & operator<<=(const SymbolicStmt & s) {
-        stmts_.push_back(s);
-        return *this;
-    }
-    SymbolicBlock & operator<<=(const SymbolicStmts & ss) {
-        for (auto iter = ss.begin(); iter != ss.end(); iter++) {
-            stmts_.push_back(*iter);
-        }
-        return *this;
-    }
-    template <typename T>
-    void push_back(const T & v) {
-        operator<<=(v);
-    }
-    
-    SymbolicStmts getStatements() const {
-        return stmts_;
-    }
-protected:
-    SymbolicBlock * parent_;
-    SymbolicStmts stmts_;
-    MVisitor* owner_;
-};
-
-class SymbolicFunctionBlock : public SymbolicBlock {
-public:
-    SymbolicFunctionBlock(MVisitor *owner) :
-    SymbolicBlock(owner) {}
-    
-private:
-};
-
-class SymbolicForBlock : public SymbolicBlock {
-public:
-    SymbolicForBlock(MVisitor *owner, SymbolicExpr start, SymbolicExpr end, SymbolicExpr step) :
-        SymbolicBlock(owner), start_(start), end_(end), step_(step) {}
-    
-private:
-    SymbolicExpr start_, end_, step_;
-};
+  shared_ptr<ProgramNode> getProgram() {
+    return prog_;
+  }
 
 
-class SymbolicProgram {
-public:
-    SymbolicProgram(MVisitor* owner);
-    ~SymbolicProgram() {
-        DEBUG;
-    };
-    void push();
-    void pop();
-    SymbolicProgram & operator<<(const SymbolicStmt & s) {
-        prog_.push_back(s);
-        return *this;
-    }
-    SymbolicProgram & operator<<(const SymbolicBlock & blk) {
-        prog_.push_back(blk);
-        return *this;
-    }
-    template <typename T>
-    void push_back(const T & v) {
-        this->operator<<(v);
-    }
-private:
-    std::vector<boost::variant<SymbolicBlock, SymbolicStmt > > prog_;
-    MVisitor* owner_;
-};
-
-template<typename T> struct is_literal                           : public false_type {};
-template<>           struct is_literal<SymbolicLiteral>           : public true_type {};
-
-template<typename T> struct is_iteratable                           : public false_type {};
-template<>           struct is_iteratable<SymbolicLiterals>           : public true_type {};
-template<>           struct is_iteratable<SymbolicExpr>           : public true_type {};
-template<>           struct is_iteratable<SymbolicStmts>           : public true_type {};
-template<>           struct is_iteratable<SymbolicBlock>           : public true_type {};
-
-template<typename T> struct is_stmt                           : public false_type {};
-template<>           struct is_stmt<SymbolicStmt>           : public true_type {};
-
-
-class MVisitor : public RecursiveASTVisitor<MVisitor> {
-public:
-	explicit MVisitor(CompilerInstance *CI)
-    : astContext(&(CI->getASTContext())), block_(NULL), stmt_(NULL), expr_(NULL) // initialize private members
-	{
-        prog_ = new SymbolicProgram(this);
-	}
-    
-    SymbolicExpr * EnterExpr(SymbolicExpr * expr) {
-        SymbolicExpr * parent = expr_;
-        expr_ = new SymbolicExpr(this, *expr);
-        return parent;
-    }
-    
-    void LeaveExpr(SymbolicExpr * parent) {
-        //stmt_->push_back(*expr_);
-        delete expr_;
-        expr_ = parent;
-    }
-    
-    SymbolicStmt * EnterStmt(SymbolicStmt * stmt) {
-        DEBUG;
-        SymbolicStmt * parent = stmt_;
-        stmt_ = new SymbolicStmt(this, stmt);
-        return parent;
-    }
-    
-    void LeaveStmt(SymbolicStmt * parent) {
-        DEBUG;
-        if (stmt_ == NULL) {
-            return ;
-        }
-        if (block_ == NULL) {
-            prog_->push_back(*stmt_);
-        } else {
-            block_->push_back(*stmt_);
-        }
-        std::cout << stmt_->toString() << endl;
-        //delete stmt_;
-        stmt_ = parent;
-    }
-    
-    SymbolicBlock * EnterBlock(SymbolicBlock * block) {
-        DEBUG;
-        SymbolicBlock * parent = block_;
-        block_ = new SymbolicBlock(this, block);
-        return parent;
-    }
-    
-    void LeaveBlock(SymbolicBlock * parent) {
-        prog_->push_back(*block_);
-        delete(block_);
-        block_ = parent;
-    }
-    
-    
-    /*******************************************************************************************************/
-    /*******************************************************************************************************/
-    /*******************************************************************************************************/
-    /*******************************************************************************************************/
-    /*******************************************************************************************************/
-    /*******************************************************************************************************/
-    /*******************************************************************************************************/
-    /*******************************************************************************************************/
-    /*******************************************************************************************************/
-    /*******************************************************************************************************/
-    
-    SymbolicLiteral toSymbolicLiteral(APInt ii) {
+    shared_ptr<Node> toNode(APInt ii) {
         if (ii.getBitWidth() <= 64) {
-            return SymbolicLiteral(ii.getSExtValue());
+            return shared_ptr<IntegerNode>(new IntegerNode(ii.getSExtValue()));
         } else {
-            return SymbolicLiteral(ii.toString(10, ii.isSignBit()));
+            return shared_ptr<StringNode>(new StringNode(ii.toString(10, ii.isSignBit())));
         }
     }
-    
+    #if 0
     SymbolicLiteral toSymbolicLiteral(const Expr * e) {
         clang::LangOptions LO;
         std::string str;
@@ -525,541 +198,542 @@ public:
         return SymbolicNoneExpr(this);
     }
     
-    SymbolicExpr toSymbolicExpr(QualType typ) {
-        SymbolicListExpr exp(this);
+    shared_ptr<Node> toNode(QualType typ) {
+        shared_ptr<Type> typ(new Type());
         
-        exp <<= toSymbolicExpr(typ.getLocalQualifiers());
-        exp <<= toSymbolicExpr(typ.getTypePtr());
+        typ <<= toNode(typ.getLocalQualifiers());
+        typ <<= toNode(typ.getTypePtr());
         
-        return exp;
+        return typ;
     }
-    
-#define POP_STMT if (stmt_) { stmt_->pop(); }
-#define POP_BLOCK if (block_) { block_->pop(); }
-    /*******************************************************************************************************/
-    /*******************************************************************************************************/
-    /*******************************************************************************************************/
-    /*******************************************************************************************************/
-    /*******************************************************************************************************/
-    
-    bool VisitTranslationUnitDecl(TranslationUnitDecl *D) {
-		DEBUG;
-		D->dump();
-		return true;
-	}
-    
-    bool VisitTypedefDecl(TypedefDecl *D) {
-		DEBUG;
-		D->dump();
-		return true;
-	}
-    
-    bool VisitTypeAliasDecl(TypeAliasDecl *D) {
-		DEBUG;
-		D->dump();
-		return true;
-	}
-    
-    bool VisitEnumDecl(EnumDecl *D) {
-		DEBUG;
-		D->dump();
-		return true;
-	}
-    
-    bool VisitRecordDecl(RecordDecl *D) {
-		DEBUG;
-		D->dump();
-		return true;
-	}
-    
-    bool VisitEnumConstantDecl(EnumConstantDecl *D) {
-		DEBUG;
-		D->dump();
-		return true;
-	}
-    
-    bool VisitEmptyDecl(EmptyDecl *D) {
-		DEBUG;
-		D->dump();
-		return true;
-	}
-    
-    bool VisitFunctionDecl(FunctionDecl *D) {
-        DEBUG;
-        POP_STMT;
-        //D->dump();
-        if (D->hasBody()) {
-            SymbolicFunctionBlock blk(this);
-            
-            blk.push();
-            TraverseStmt(D->getBody());
-        } else {
-            SymbolicFunctionStmt stmt(this);
-            stmt.push();
-        }
-        return true;
-	}
-    
-    bool VisitFriendDecl(FriendDecl *D) {
-		DEBUG;
-		D->dump();
-		return true;
-	}
-    
-    bool VisitFieldDecl(FieldDecl *D) {
-		DEBUG;
-		D->dump();
-		return true;
-	}
-    
-    
-    bool VisitVarDecl(VarDecl *D) {
-		POP_STMT;
-        DEBUG;
-		SymbolicAssignStmt stmt = SymbolicAssignStmt(this);
-        stmt <<= toSymbolicExpr(D->getType());
-        stmt <<= SymbolicExpr(this, SymbolicLiteral(D->getNameAsString()));
-        stmt.push();
-		return true;
-	}
-    
-    bool VisitLabelDecl(LabelDecl *D) {
-		DEBUG;
-		D->dump();
-		return true;
-	}
-    
-    bool VisitParmVarDecl(ParmVarDecl *D) {
-		DEBUG;
-		D->dump();
-		return true;
-	}
-    
-    bool VisitFileScopeAsmDecl(FileScopeAsmDecl *D) {
-		DEBUG;
-		D->dump();
-		return true;
-	}
-    
-    bool VisitImportDecl(ImportDecl *D) {
-		DEBUG;
-		D->dump();
-		return true;
-	}
-    
-    bool VisitStaticAssertDecl(StaticAssertDecl *D) {
-		DEBUG;
-		D->dump();
-		return true;
-	}
-    
-    bool VisitNamespaceDecl(NamespaceDecl *D) {
-		DEBUG;
-		D->dump();
-		return true;
-	}
-    
-    bool VisitUsingDirectiveDecl(UsingDirectiveDecl *D) {
-		DEBUG;
-		D->dump();
-		return true;
-	}
-    
-    bool VisitNamespaceAliasDecl(NamespaceAliasDecl *D) {
-		DEBUG;
-		D->dump();
-		return true;
-	}
-    
-    bool VisitCXXRecordDecl(CXXRecordDecl *D) {
-		DEBUG;
-		D->dump();
-		return true;
-	}
-    
-    bool VisitLinkageSpecDecl(LinkageSpecDecl *D) {
-		DEBUG;
-		D->dump();
-		return true;
-	}
-    
-    bool VisitTemplateDecl(const TemplateDecl *D) {
-		DEBUG;
-		D->dump();
-		return true;
-	}
-    
-    bool VisitFunctionTemplateDecl(FunctionTemplateDecl *D) {
-		DEBUG;
-		D->dump();
-		return true;
-	}
-    
-    bool VisitClassTemplateDecl(ClassTemplateDecl *D) {
-		DEBUG;
-		D->dump();
-		return true;
-	}
-    
-    bool VisitObjCMethodDecl(ObjCMethodDecl *D) {
-		DEBUG;
-		D->dump();
-		return true;
-	}
-    
-    bool VisitObjCImplementationDecl(ObjCImplementationDecl *D) {
-		DEBUG;
-		D->dump();
-		return true;
-	}
-    
-    bool VisitObjCInterfaceDecl(ObjCInterfaceDecl *D) {
-		DEBUG;
-		D->dump();
-		return true;
-	}
-    
-    bool VisitObjCProtocolDecl(ObjCProtocolDecl *D) {
-		DEBUG;
-		D->dump();
-		return true;
-	}
-    
-    bool VisitObjCCategoryImplDecl(ObjCCategoryImplDecl *D) {
-		DEBUG;
-		D->dump();
-		return true;
-	}
-    
-    bool VisitObjCCategoryDecl(ObjCCategoryDecl *D) {
-		DEBUG;
-		D->dump();
-		return true;
-	}
-    
-    bool VisitObjCCompatibleAliasDecl(ObjCCompatibleAliasDecl *D) {
-		DEBUG;
-		D->dump();
-		return true;
-	}
-    
-    bool VisitObjCPropertyDecl(ObjCPropertyDecl *D) {
-		DEBUG;
-		D->dump();
-		return true;
-	}
-    
-    bool VisitObjCPropertyImplDecl(ObjCPropertyImplDecl *D) {
-		DEBUG;
-		D->dump();
-		return true;
-	}
-    
-    bool VisitUnresolvedUsingTypenameDecl(UnresolvedUsingTypenameDecl *D) {
-		DEBUG;
-		D->dump();
-		return true;
-	}
-    
-    bool VisitUnresolvedUsingValueDecl(UnresolvedUsingValueDecl *D) {
-		DEBUG;
-		D->dump();
-		return true;
-	}
-    
-    bool VisitUsingDecl(UsingDecl *D) {
-		DEBUG;
-		D->dump();
-		return true;
-	}
-    
-    bool VisitUsingShadowDecl(UsingShadowDecl *D) {
-		DEBUG;
-		D->dump();
-		return true;
-	}
-    
-    bool VisitOMPThreadPrivateDecl(OMPThreadPrivateDecl *D) {
-		DEBUG;
-		D->dump();
-		return true;
-	}
+    #endif
+  /*******************************************************************************************************/
+  /*******************************************************************************************************/
+  /*******************************************************************************************************/
+  /*******************************************************************************************************/
+  /*******************************************************************************************************/
 
+  bool VisitTranslationUnitDecl(TranslationUnitDecl *D) {
+    DEBUG;
+    D->dump();
+    return true;
+  }
 
-	bool VisitFieldDecl(const FieldDecl * decl) {
-		DEBUG;
-		decl->dump();
-		return true;
-	}
+  bool VisitTypedefDecl(TypedefDecl *D) {
+    DEBUG;
+    D->dump();
+    return true;
+  }
 
-	bool VisitVarDecl(const VarDecl * decl) {
-		DEBUG;
-		decl->dump();
-		return true;
-	}
+  bool VisitTypeAliasDecl(TypeAliasDecl *D) {
+    DEBUG;
+    D->dump();
+    return true;
+  }
 
-	bool VisitImplicitParamDecl(const ImplicitParamDecl * decl) {
-		DEBUG;
-		decl->dump();
-		return true;
-	}
+  bool VisitEnumDecl(EnumDecl *D) {
+    DEBUG;
+    D->dump();
+    return true;
+  }
 
-	bool VisitBlockDecl(const BlockDecl * decl) {
-		DEBUG;
-		decl->dump();
-		return true;
-	}
+  bool VisitRecordDecl(RecordDecl *D) {
+    DEBUG;
+    D->dump();
+    return true;
+  }
 
-	bool VisitCapturedDecl(const CapturedDecl * decl) {
-		DEBUG;
-		decl->dump();
-		return true;
-	}
+  bool VisitEnumConstantDecl(EnumConstantDecl *D) {
+    DEBUG;
+    D->dump();
+    return true;
+  }
 
-	bool VisitLabelDecl(const LabelDecl * decl) {
-		DEBUG;
-		decl->dump();
-		return true;
-	}
-    
-    /*******************************************************************************************************/
-    /*******************************************************************************************************/
-    /*******************************************************************************************************/
-    /*******************************************************************************************************/
-    /*******************************************************************************************************/
-    
-    
-	bool VisitDeclStmt(DeclStmt * decl) {
-		DEBUG;
-        decl->viewAST();
-		return true;
-	}
-    
-	bool VisitIfStmt(IfStmt * ifStmt) {
-		DEBUG;
-        Expr *conditionExpr = ifStmt->getCond();
-        Stmt *thenStmt = ifStmt->getThen();
-        Stmt *elseStmt = ifStmt->getElse();
-        VisitExpr(conditionExpr);
-        TraverseStmt(thenStmt);
-        if (elseStmt != NULL) {
-            TraverseStmt(elseStmt);
-        }
-		ifStmt->dump();
-		return true;
-	}
-    
-    bool VisitReturnStmt(ReturnStmt *S) {
-		DEBUG;
-        SymbolicReturnStmt stmt(this);
-        stmt.push();
-		return true;
-    }
-    
-    bool VisitCompoundStmt(CompoundStmt *stmt) {
-        for (CompoundStmt::const_body_iterator citer = stmt->body_begin();
-             citer != stmt->body_end();
-             ++citer) {
+  bool VisitEmptyDecl(EmptyDecl *D) {
+    DEBUG;
+    D->dump();
+    return true;
+  }
+
+  bool VisitFunctionDecl(FunctionDecl *D) {
+    DEBUG;
+    D->dump();
+    return true;
+  }
+
+  bool VisitFriendDecl(FriendDecl *D) {
+    DEBUG;
+    D->dump();
+    return true;
+  }
+
+  bool VisitFieldDecl(FieldDecl *D) {
+    DEBUG;
+    D->dump();
+    return true;
+  }
+
+  bool VisitVarDecl(VarDecl *D) {
+    DEBUG;
+    //D->dump();
+    *prog_ <<= shared_ptr<StringNode>(new StringNode("test"));
+    std::cout << prog_->getHead().c_str() << std::endl;
+    return true;
+  }
+
+  bool VisitLabelDecl(LabelDecl *D) {
+    DEBUG;
+    D->dump();
+    return true;
+  }
+
+  bool VisitParmVarDecl(ParmVarDecl *D) {
+    DEBUG;
+    D->dump();
+    return true;
+  }
+
+  bool VisitFileScopeAsmDecl(FileScopeAsmDecl *D) {
+    DEBUG;
+    D->dump();
+    return true;
+  }
+
+  bool VisitImportDecl(ImportDecl *D) {
+    DEBUG;
+    D->dump();
+    return true;
+  }
+
+  bool VisitStaticAssertDecl(StaticAssertDecl *D) {
+    DEBUG;
+    D->dump();
+    return true;
+  }
+
+  bool VisitNamespaceDecl(NamespaceDecl *D) {
+    DEBUG;
+    D->dump();
+    return true;
+  }
+
+  bool VisitUsingDirectiveDecl(UsingDirectiveDecl *D) {
+    DEBUG;
+    D->dump();
+    return true;
+  }
+
+  bool VisitNamespaceAliasDecl(NamespaceAliasDecl *D) {
+    DEBUG;
+    D->dump();
+    return true;
+  }
+
+  bool VisitCXXRecordDecl(CXXRecordDecl *D) {
+    DEBUG;
+    D->dump();
+    return true;
+  }
+
+  bool VisitLinkageSpecDecl(LinkageSpecDecl *D) {
+    DEBUG;
+    D->dump();
+    return true;
+  }
+
+  bool VisitTemplateDecl(const TemplateDecl *D) {
+    DEBUG;
+    D->dump();
+    return true;
+  }
+
+  bool VisitFunctionTemplateDecl(FunctionTemplateDecl *D) {
+    DEBUG;
+    D->dump();
+    return true;
+  }
+
+  bool VisitClassTemplateDecl(ClassTemplateDecl *D) {
+    DEBUG;
+    D->dump();
+    return true;
+  }
+
+  bool VisitObjCMethodDecl(ObjCMethodDecl *D) {
+    DEBUG;
+    D->dump();
+    return true;
+  }
+
+  bool VisitObjCImplementationDecl(ObjCImplementationDecl *D) {
+    DEBUG;
+    D->dump();
+    return true;
+  }
+
+  bool VisitObjCInterfaceDecl(ObjCInterfaceDecl *D) {
+    DEBUG;
+    D->dump();
+    return true;
+  }
+
+  bool VisitObjCProtocolDecl(ObjCProtocolDecl *D) {
+    DEBUG;
+    D->dump();
+    return true;
+  }
+
+  bool VisitObjCCategoryImplDecl(ObjCCategoryImplDecl *D) {
+    DEBUG;
+    D->dump();
+    return true;
+  }
+
+  bool VisitObjCCategoryDecl(ObjCCategoryDecl *D) {
+    DEBUG;
+    D->dump();
+    return true;
+  }
+
+  bool VisitObjCCompatibleAliasDecl(ObjCCompatibleAliasDecl *D) {
+    DEBUG;
+    D->dump();
+    return true;
+  }
+
+  bool VisitObjCPropertyDecl(ObjCPropertyDecl *D) {
+    DEBUG;
+    D->dump();
+    return true;
+  }
+
+  bool VisitObjCPropertyImplDecl(ObjCPropertyImplDecl *D) {
+    DEBUG;
+    D->dump();
+    return true;
+  }
+
+  bool VisitUnresolvedUsingTypenameDecl(UnresolvedUsingTypenameDecl *D) {
+    DEBUG;
+    D->dump();
+    return true;
+  }
+
+  bool VisitUnresolvedUsingValueDecl(UnresolvedUsingValueDecl *D) {
+    DEBUG;
+    D->dump();
+    return true;
+  }
+
+  bool VisitUsingDecl(UsingDecl *D) {
+    DEBUG;
+    D->dump();
+    return true;
+  }
+
+  bool VisitUsingShadowDecl(UsingShadowDecl *D) {
+    DEBUG;
+    D->dump();
+    return true;
+  }
+
+  bool VisitOMPThreadPrivateDecl(OMPThreadPrivateDecl *D) {
+    DEBUG;
+    D->dump();
+    return true;
+  }
+
+  bool VisitFieldDecl(const FieldDecl *decl) {
+    DEBUG;
+    decl->dump();
+    return true;
+  }
+
+  bool VisitVarDecl(const VarDecl *decl) {
+    //DEBUG;
+    //decl->dump();
+    return true;
+  }
+
+  bool VisitImplicitParamDecl(const ImplicitParamDecl *decl) {
+    DEBUG;
+    decl->dump();
+    return true;
+  }
+
+  bool VisitBlockDecl(const BlockDecl *decl) {
+    DEBUG;
+    decl->dump();
+    return true;
+  }
+
+  bool VisitCapturedDecl(const CapturedDecl *decl) {
+    DEBUG;
+    decl->dump();
+    return true;
+  }
+
+  bool VisitLabelDecl(const LabelDecl *decl) {
+    DEBUG;
+    decl->dump();
+    return true;
+  }
+
+  /*******************************************************************************************************/
+  /*******************************************************************************************************/
+  /*******************************************************************************************************/
+  /*******************************************************************************************************/
+  /*******************************************************************************************************/
+
+  bool VisitDeclStmt(DeclStmt *decl) {
+    DEBUG;
+    decl->viewAST();
+    return true;
+  }
+
+    virtual bool TraverseVarDecl(VarDecl *decl){
+        
             DEBUG;
-            (*citer)->dump();
-            TraverseStmt(*citer);
-            POP_STMT;
+            decl->dump();
+        return true;
+    }  
+
+    virtual bool TraverseDeclStmt(DeclStmt *decl){
+        
+        for(auto init = decl->decl_begin(), end = decl->decl_end(); init!=end ; ++init) {
+            TraverseDecl(*init);
+            DEBUG;
+    (*init)->dump();
         }
-		return true;
-    }
-    
-    bool VisitForStmt(ForStmt * stmt) {
-        DEBUG;
-        stmt->dump();
         return true;
+    }  
+
+  bool VisitIfStmt(IfStmt *ifStmt) {
+    DEBUG;
+    Expr *conditionExpr = ifStmt->getCond();
+    Stmt *thenStmt = ifStmt->getThen();
+    Stmt *elseStmt = ifStmt->getElse();
+    VisitExpr(conditionExpr);
+    TraverseStmt(thenStmt);
+    if (elseStmt != NULL) {
+      TraverseStmt(elseStmt);
     }
-    
-    bool VisitAsmStmt(AsmStmt * stmt) {
-        DEBUG;
-        stmt->dump();
-        return true;
+    ifStmt->dump();
+    return true;
+  }
+
+  bool VisitReturnStmt(ReturnStmt *S) {
+    DEBUG;
+    S->dump();
+    return true;
+  }
+
+  bool VisitCompoundStmt(CompoundStmt *stmt) {
+    for (CompoundStmt::const_body_iterator citer = stmt->body_begin();
+         citer != stmt->body_end(); ++citer) {
+      DEBUG;
+      (*citer)->dump();
+      TraverseStmt(*citer);
     }
-    
-    bool VisitBreakStmt(BreakStmt * stmt) {
-        DEBUG;
-        stmt->dump();
-        return true;
-    }
-    
-    bool VisitContinueStmt(ContinueStmt * stmt) {
-        DEBUG;
-        stmt->dump();
-        return true;
-    }
-    
-    bool VisitCXXCatchStmt(CXXCatchStmt * stmt) {
-        DEBUG;
-        stmt->dump();
-        return true;
-    }
-    
-    bool VisitCXXTryStmt(CXXTryStmt * stmt) {
-        DEBUG;
-        stmt->dump();
-        return true;
-    }
-    
-    bool VisitDoStmt(DoStmt * stmt) {
-        DEBUG;
-        stmt->dump();
-        return true;
-    }
-    
-    bool VisitGotoStmt(GotoStmt * stmt) {
-        DEBUG;
-        stmt->dump();
-        return true;
-    }
-    
-    bool VisitIndirectGotoStmt(IndirectGotoStmt * stmt) {
-        DEBUG;
-        stmt->dump();
-        return true;
-    }
-    
-    bool VisitLabelStmt(LabelStmt * stmt) {
-        DEBUG;
-        stmt->dump();
-        return true;
-    }
-    
-    bool VisitNullStmt(NullStmt * stmt) {
-        DEBUG;
-        stmt->dump();
-        return true;
-    }
-    
-    bool VisitDefaultStmt(DefaultStmt * stmt) {
-        DEBUG;
-        stmt->dump();
-        return true;
-    }
-    
-    bool VisitSwitchStmt(SwitchStmt * stmt) {
-        DEBUG;
-        stmt->dump();
-        return true;
-    }
-    
-    bool VisitWhileStmt(WhileStmt * stmt) {
-        DEBUG;
-        stmt->dump();
-        return true;
-    }
-    
-    
-    /*******************************************************************************************************/
-    /*******************************************************************************************************/
-    /*******************************************************************************************************/
-    /*******************************************************************************************************/
-    /*******************************************************************************************************/
-    
-    bool VisitIntegerLiteral(IntegerLiteral *E) {
-		DEBUG;
-		E->dump();
-        if (E->getType()->isUnsignedIntegerType()) {
+    return true;
+  }
+
+  bool VisitForStmt(ForStmt *stmt) {
+    DEBUG;
+    stmt->dump();
+    return true;
+  }
+
+  bool VisitAsmStmt(AsmStmt *stmt) {
+    DEBUG;
+    stmt->dump();
+    return true;
+  }
+
+  bool VisitBreakStmt(BreakStmt *stmt) {
+    DEBUG;
+    stmt->dump();
+    return true;
+  }
+
+  bool VisitContinueStmt(ContinueStmt *stmt) {
+    DEBUG;
+    stmt->dump();
+    return true;
+  }
+
+  bool VisitCXXCatchStmt(CXXCatchStmt *stmt) {
+    DEBUG;
+    stmt->dump();
+    return true;
+  }
+
+  bool VisitCXXTryStmt(CXXTryStmt *stmt) {
+    DEBUG;
+    stmt->dump();
+    return true;
+  }
+
+  bool VisitDoStmt(DoStmt *stmt) {
+    DEBUG;
+    stmt->dump();
+    return true;
+  }
+
+  bool VisitGotoStmt(GotoStmt *stmt) {
+    DEBUG;
+    stmt->dump();
+    return true;
+  }
+
+  bool VisitIndirectGotoStmt(IndirectGotoStmt *stmt) {
+    DEBUG;
+    stmt->dump();
+    return true;
+  }
+
+  bool VisitLabelStmt(LabelStmt *stmt) {
+    DEBUG;
+    stmt->dump();
+    return true;
+  }
+
+  bool VisitNullStmt(NullStmt *stmt) {
+    DEBUG;
+    stmt->dump();
+    return true;
+  }
+
+  bool VisitDefaultStmt(DefaultStmt *stmt) {
+    DEBUG;
+    stmt->dump();
+    return true;
+  }
+
+  bool VisitSwitchStmt(SwitchStmt *stmt) {
+    DEBUG;
+    stmt->dump();
+    return true;
+  }
+
+  bool VisitWhileStmt(WhileStmt *stmt) {
+    DEBUG;
+    stmt->dump();
+    return true;
+  }
+
+  /*******************************************************************************************************/
+  /*******************************************************************************************************/
+  /*******************************************************************************************************/
+  /*******************************************************************************************************/
+  /*******************************************************************************************************/
+
+  bool VisitIntegerLiteral(IntegerLiteral *E) {
+    DEBUG;
+    if (E->getType()->isUnsignedIntegerType()) {
             std::clog << "TODO;;;" << std::endl;
         } else if (E->getValue().getNumWords() == 1) {
-            *stmt_ <<= SymbolicExpr(this, toSymbolicLiteral(E->getValue()));
+    prog_->push_back(toNode(E->getValue()));
         } else {
             std::clog << "TODO;;;" << std::endl;
         }
-		return true;
-    }
-    
-    bool VisitAbstractConditionalOperator(AbstractConditionalOperator * E) {
-        DEBUG;
-        E->dump();
-        return true;
-    }
-    
-    bool VisitAddrLabelExpr(AddrLabelExpr * E) {
-        DEBUG;
-        E->dump();
-        return true;
-    }
-    
-    bool VisitBinaryOperator(BinaryOperator * E) {
-        DEBUG;
-        E->dump();
-        return true;
-    }
-    
-    //VISIT(BinaryTypeTraitExpr);
-    //VISIT(BlockDeclRefExpr);
-    //VISIT(BlockExpr);
-    //VISIT(CallExpr);
-    //VISIT(CastExpr);
-    //VISIT(CharacterLiteral);
-    //VISIT(ChooseExpr);
-    //VISIT(CompoundLiteralExpr);
-    //VISIT(CXXBindTemporaryExpr);
-    //VISIT(CXXBoolLiteralExpr);
-    //VISIT(CXXConstructExpr);
-    //VISIT(CXXDefaultArgExpr);
-    //VISIT(CXXDeleteExpr);
-    //VISIT(CXXDependentScopeMemberExpr);
-    //VISIT(CXXNewExpr);
-    //VISIT(CXXNoexceptExpr);
-    //VISIT(CXXNullPtrLiteralExpr);
-    //VISIT(CXXPseudoDestructorExpr);
-    //VISIT(CXXScalarValueInitExpr);
-    //VISIT(CXXThisExpr);
-    //VISIT(CXXThrowExpr);
-    //VISIT(CXXTypeidExpr);
-    //VISIT(CXXUnresolvedConstructExpr);
-    //VISIT(CXXUuidofExpr);
-    //VISIT(DeclRefExpr);
-    //VISIT(DependentScopeDeclRefExpr);
-    //VISIT(DesignatedInitExpr);
-    //VISIT(ExprWithCleanups);
-    //VISIT(ExtVectorElementExpr);
-    //VISIT(FloatingLiteral);
-    //VISIT(GNUNullExpr);
-    //VISIT(ImaginaryLiteral);
-    //VISIT(ImplicitValueInitExpr);
-    //VISIT(InitListExpr);
-    //VISIT(IntegerLiteral);
-    //VISIT(MemberExpr);
-    //VISIT(OffsetOfExpr);
-    //VISIT(OpaqueValueExpr);
-    //VISIT(OverloadExpr);
-    //VISIT(PackExpansionExpr);
-    //VISIT(ParenExpr);
-    //VISIT(ParenListExpr);
-    //VISIT(PredefinedExpr);
-    //VISIT(ShuffleVectorExpr);
-    //VISIT(SizeOfPackExpr);
-    //VISIT(StmtExpr);
-    //VISIT(StringLiteral);
-    //VISIT(SubstNonTypeTemplateParmPackExpr);
-    //VISIT(UnaryExprOrTypeTraitExpr);
-    //VISIT(UnaryOperator);
-    //VISIT(UnaryTypeTraitExpr);
-    //VISIT(VAArgExpr);
-    
-    /*******************************************************************************************************/
-    /*******************************************************************************************************/
-    /*******************************************************************************************************/
-    /*******************************************************************************************************/
-    /*******************************************************************************************************/
-    
+    return true;
+  }
+
+  bool VisitAbstractConditionalOperator(AbstractConditionalOperator *E) {
+    DEBUG;
+    E->dump();
+    return true;
+  }
+
+  bool VisitAddrLabelExpr(AddrLabelExpr *E) {
+    DEBUG;
+    E->dump();
+    return true;
+  }
+
+  bool VisitBinaryOperator(BinaryOperator *E) {
+    DEBUG;
+    E->dump();
+    return true;
+  }
+
+// VISIT(BinaryTypeTraitExpr);
+// VISIT(BlockDeclRefExpr);
+// VISIT(BlockExpr);
+// VISIT(CallExpr);
+// VISIT(CastExpr);
+// VISIT(CharacterLiteral);
+// VISIT(ChooseExpr);
+// VISIT(CompoundNodeLiteralExpr);
+// VISIT(CXXBindTemporaryExpr);
+// VISIT(CXXBoolLiteralExpr);
+// VISIT(CXXConstructExpr);
+// VISIT(CXXDefaultArgExpr);
+// VISIT(CXXDeleteExpr);
+// VISIT(CXXDependentScopeMemberExpr);
+// VISIT(CXXNewExpr);
+// VISIT(CXXNoexceptExpr);
+// VISIT(CXXNullPtrLiteralExpr);
+// VISIT(CXXPseudoDestructorExpr);
+// VISIT(CXXScalarValueInitExpr);
+// VISIT(CXXThisExpr);
+// VISIT(CXXThrowExpr);
+// VISIT(CXXTypeidExpr);
+// VISIT(CXXUnresolvedConstructExpr);
+// VISIT(CXXUuidofExpr);
+// VISIT(DeclRefExpr);
+// VISIT(DependentScopeDeclRefExpr);
+// VISIT(DesignatedInitExpr);
+// VISIT(ExprWithCleanups);
+// VISIT(ExtVectorElementExpr);
+// VISIT(FloatingLiteral);
+// VISIT(GNUNullExpr);
+// VISIT(ImaginaryLiteral);
+// VISIT(ImplicitValueInitExpr);
+// VISIT(InitListExpr);
+// VISIT(IntegerLiteral);
+// VISIT(MemberExpr);
+// VISIT(OffsetOfExpr);
+// VISIT(OpaqueValueExpr);
+// VISIT(OverloadExpr);
+// VISIT(PackExpansionExpr);
+// VISIT(ParenExpr);
+// VISIT(ParenListExpr);
+// VISIT(PredefinedExpr);
+// VISIT(ShuffleVectorExpr);
+// VISIT(SizeOfPackExpr);
+// VISIT(StmtExpr);
+// VISIT(StringLiteral);
+// VISIT(SubstNonTypeTemplateParmPackExpr);
+// VISIT(UnaryExprOrTypeTraitExpr);
+// VISIT(UnaryOperator);
+// VISIT(UnaryTypeTraitExpr);
+// VISIT(VAArgExpr);
+
+/*******************************************************************************************************/
+/*******************************************************************************************************/
+/*******************************************************************************************************/
+/*******************************************************************************************************/
+/*******************************************************************************************************/
+
 #if 0
 	bool VisitExpr(Expr * expr) {
 		DEBUG;
 		expr->dump();
-#define VISIT(type) do {                                                \
-clang::type* concrete_expr = dyn_cast_or_null<clang::type>(expr); \
-if (concrete_expr != NULL) {                                      \
-return Visit##type (concrete_expr);                        \
-}                                                                 \
-} while(0);
-        
+#define VISIT(type)                                                            \
+  do {                                                                         \
+    \
+clang::type *concrete_expr = dyn_cast_or_null<clang::type>(expr);              \
+    \
+if(concrete_expr != NULL) {                                                    \
+      \
+return Visit##type(concrete_expr);                                             \
+    \
+}                                                                       \
+  \
+} while (0);
+
         //VISIT(AbstractConditionalOperator);
         //VISIT(AddrLabelExpr);
         //VISIT(ArraySubscriptExpr);
@@ -1071,7 +745,7 @@ return Visit##type (concrete_expr);                        \
         //VISIT(CastExpr);
         //VISIT(CharacterLiteral);
         //VISIT(ChooseExpr);
-        //VISIT(CompoundLiteralExpr);
+        //VISIT(CompoundNodeLiteralExpr);
         //VISIT(CXXBindTemporaryExpr);
         //VISIT(CXXBoolLiteralExpr);
         //VISIT(CXXConstructExpr);
@@ -1117,134 +791,81 @@ return Visit##type (concrete_expr);                        \
         //VISIT(UnaryTypeTraitExpr);
         //VISIT(VAArgExpr);
 #undef VISIT
-    
+
 		return true;
 	}
 #endif
 
 private:
-clang::ASTContext *astContext; // used for getting additional AST info
-SymbolicBlock * block_;
-SymbolicStmt * stmt_;
-SymbolicExpr * expr_;
-SymbolicProgram * prog_;
+  clang::ASTContext *astContext; // used for getting additional AST info
+  shared_ptr<ProgramNode> prog_;
+  shared_ptr<Node> curr_;
+
+  const CommandTraits &Traits;
+  const SourceManager &SM;
 };
 
-
-SymbolicExpr::SymbolicExpr(MVisitor* owner) : len_(0), owner_(owner) {
-}
-
-SymbolicExpr::SymbolicExpr(MVisitor* owner, const SymbolicLiteral & lit) : len_(0), owner_(owner) {
-    operator<<=(lit);
-};
-
-SymbolicExpr::SymbolicExpr(MVisitor* owner, const SymbolicExpr & exp) : len_(0), owner_(owner) {
-    operator<<=(exp);
-};
-
-void SymbolicExpr::push() {
-    parent_ = owner_->EnterExpr(this);
-}
-
-void SymbolicExpr::pop() {
-    owner_->LeaveExpr(parent_);
-}
-
-SymbolicStmt::SymbolicStmt(MVisitor* owner, string head) : head_(head), owner_(owner) {
-}
-
-void SymbolicStmt::push() {
-    parent_ = owner_->EnterStmt(this);
-}
-
-void SymbolicStmt::pop() {
-    owner_->LeaveStmt(parent_);
-}
-
-SymbolicBlock::SymbolicBlock(MVisitor* owner) : owner_(owner) {
-}
-
-void SymbolicBlock::push() {
-    parent_ = owner_->EnterBlock(this);
-}
-
-void SymbolicBlock::pop() {
-    owner_->LeaveBlock(parent_);
-}
-
-SymbolicProgram::SymbolicProgram(MVisitor *owner) : owner_(owner) {
-}
-
-void SymbolicProgram::push() {
-
-}
-
-void SymbolicProgram::pop() {
-    
-}
-
-class JSONASTConsumer : public ASTConsumer {
+class SASTConsumer : public ASTConsumer {
 private:
-	MVisitor *visitor;
+  SVisitor *visitor;
+
 public:
-	explicit JSONASTConsumer(CompilerInstance *CI)
-		: visitor(new MVisitor(CI))
-	{ }
+  explicit SASTConsumer(CompilerInstance *CI) : visitor(new SVisitor(CI)) {}
 
-    /*
-	virtual void HandleTranslationUnit(ASTContext &Ctx) {
-		visitor->TraverseDecl(Ctx.getTranslationUnitDecl());
-	}
-     */
+  /*
+      virtual void HandleTranslationUnit(ASTContext &Ctx) {
+              visitor->TraverseDecl(Ctx.getTranslationUnitDecl());
+      }
+   */
 
-	// override this to call our MVisitor on each top-level Decl
-	virtual bool HandleTopLevelDecl(DeclGroupRef DG) {
-		// a DeclGroupRef may have multiple Decls, so we iterate through each one
-		for (DeclGroupRef::iterator i = DG.begin(), e = DG.end(); i != e; i++) {
-			Decl *D = *i;
-			visitor->TraverseDecl(D); // recursively visit each AST node in Decl "D"
-		}
-		return true;
-	}
+  // override this to call our SVisitor on each top-level Decl
+  virtual bool HandleTopLevelDecl(DeclGroupRef DG) {
+    // a DeclGroupRef may have multiple Decls, so we iterate through each one
+    for (DeclGroupRef::iterator i = DG.begin(), e = DG.end(); i != e; i++) {
+      Decl *D = *i;
+      visitor->TraverseDecl(D); // recursively visit each AST node in Decl "D"
+    }
+    return true;
+  }
 };
 
-class JSONFrontendAction : public ASTFrontendAction {
+class SFrontendAction : public ASTFrontendAction {
 public:
-	virtual ASTConsumer *CreateASTConsumer(CompilerInstance &CI, StringRef file) {
-		return new JSONASTConsumer(&CI); // pass CI pointer to ASTConsumer
-	}
+  virtual std::unique_ptr<ASTConsumer> CreateASTConsumer(CompilerInstance &CI,
+                                                         StringRef file) {
+    auto astcons = new SASTConsumer(&CI);
+    //prog_ = astcons->getProgram();
+    return std::unique_ptr<ASTConsumer>(astcons); // pass CI pointer to ASTConsumer
+  }
+  shared_ptr<ProgramNode> getProgram() {
+    return prog_;
+  }
+private:
+  shared_ptr<ProgramNode> prog_;
 };
 
 void parse() {
-	llvm::sys::PrintStackTraceOnErrorSignal();
+  llvm::sys::PrintStackTraceOnErrorSignal();
 
-  	IntrusiveRefCntPtr<clang::DiagnosticOptions> diagnosticOpts(new clang::DiagnosticOptions());
-	std::unique_ptr<clang::DiagnosticsEngine> diagnostics(new clang::DiagnosticsEngine(llvm::IntrusiveRefCntPtr<clang::DiagnosticIDs>(new clang::DiagnosticIDs()), &*diagnosticOpts, new clang::IgnoringDiagConsumer(), true));
+  IntrusiveRefCntPtr<clang::DiagnosticOptions> diagnosticOpts(
+      new clang::DiagnosticOptions());
+  std::unique_ptr<clang::DiagnosticsEngine> diagnostics(
+      new clang::DiagnosticsEngine(
+          llvm::IntrusiveRefCntPtr<clang::DiagnosticIDs>(
+              new clang::DiagnosticIDs()),
+          &*diagnosticOpts, new clang::IgnoringDiagConsumer(), true));
 
+  std::unique_ptr<CompilationDatabase> Compilations(
+      new FixedCompilationDatabase("/", vector<string>()));
 
-	std::unique_ptr<CompilationDatabase> Compilations(new FixedCompilationDatabase("/", vector<string>()));
-    std::vector<string> Sources;
-	//Sources.push_back("test.cpp");
+  std::vector<string> args;
+  args.push_back("-std=c++11");
 
-	//ClangTool Tool(*Compilations, Sources);
-	
-	//Tool.mapVirtualFile("/a.cc", "int x = 3; void do_math(int *x) {*x += 5;}");
+  runToolOnCodeWithArgs(
+      newFrontendActionFactory<SFrontendAction>()->create(),
+      "int g = 3, y =4; int main() { return 1; }", args);
+  // print out the rewritten source code ("rewriter" is a global var.)
+  // rewriter.getEditBuffer(rewriter.getSourceMgr().getMainFileID()).write(errs());
 
-	//vector<std::unique_ptr<ASTUnit>> ASTs;
-	//Tool.buildASTs(ASTs);
-    
-    //Tool.run(newFrontendActionFactory<JSONFrontendAction>().get());
-
-    
-    std::vector<string> args;
-    args.push_back("-std=c++11");
-    
-    runToolOnCodeWithArgs(newFrontendActionFactory<JSONFrontendAction>()->create(),
-                  "int g = 3; int main() { return 1; }",
-                          args
-                  );
-	// print out the rewritten source code ("rewriter" is a global var.)
-	// rewriter.getEditBuffer(rewriter.getSourceMgr().getMainFileID()).write(errs());
-
-	//llvm::DeleteContainerPointers(ASTs);
+  // llvm::DeleteContainerPointers(ASTs);
 }

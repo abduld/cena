@@ -2,31 +2,32 @@
 #ifndef __BINARY_OP_H__
 #define __BINARY_OP_H__
 
-class BinaryOperator : public String {
+class BinaryOp : public StringNode {
 public:
-  BinaryOperator(const char *s) : String(s) {}
-  BinaryOperator(string s) : String(s) {}
+  BinaryOp(const char *s) : StringNode(s) {}
+  BinaryOp(string s) : StringNode(s) {}
   string getHead() { return head_; }
 
 private:
-  string head_ = "BinaryOperator";
+  string head_ = "BinaryOp";
 };
 
-class BinaryOp : public Compound {
+class BinaryOperatorNode : public CompoundNode {
 public:
-  BinaryOp() : Compound() {}
-  BinaryOp(string op, Node *lhs, Node *rhs) : Compound() {
-    push_back(shared_ptr<BinaryOperator>(new BinaryOperator(op)));
+  BinaryOperatorNode() : CompoundNode() {}
+  BinaryOperatorNode(string op, Node *lhs, Node *rhs) : CompoundNode() {
+    push_back(shared_ptr<BinaryOp>(new BinaryOp(op)));
     push_back(lhs);
     push_back(rhs);
   }
-  BinaryOp(string op, const shared_ptr<Node> &lhs, const shared_ptr<Node> &rhs)
-      : Compound() {
-    push_back(shared_ptr<BinaryOperator>(new BinaryOperator(op)));
+  BinaryOperatorNode(string op, const shared_ptr<Node> &lhs,
+                     const shared_ptr<Node> &rhs)
+      : CompoundNode() {
+    push_back(shared_ptr<BinaryOp>(new BinaryOp(op)));
     push_back(lhs);
     push_back(rhs);
   }
-  ~BinaryOp() {}
+  ~BinaryOperatorNode() {}
   void setOperator(const shared_ptr<Node> &op) { setPart(0, op); }
   void setLHS(const shared_ptr<Node> &lhs) { setPart(1, lhs); }
 
@@ -37,7 +38,7 @@ public:
   string getHead() { return head_; }
 
 private:
-  string head_ = "BinaryOp";
+  string head_ = "BinaryOperatorNode";
 };
 
 #endif /* __BINARY_OP_H__ */

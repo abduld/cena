@@ -10586,7 +10586,7 @@ namespace internal {
 // fixture class for the same test case. This may happen when
 // TEST_P macro is used to define two tests with the same name
 // but in different namespaces.
-GTEST_API_ void ReportInvalidTestCaseType(const char* test_case_name,
+GTEST_API_ void ReportInvalidTestCaseTypeNode(const char* test_case_name,
                                           const char* file, int line);
 
 template <typename> class ParamGeneratorInterface;
@@ -11107,7 +11107,7 @@ class ParameterizedTestCaseRegistry {
           // Complain about incorrect usage of Google Test facilities
           // and terminate the program since we cannot guaranty correct
           // test case setup and tear-down in this case.
-          ReportInvalidTestCaseType(test_case_name,  file, line);
+          ReportInvalidTestCaseTypeNode(test_case_name,  file, line);
           posix::Abort();
         } else {
           // At this point we are sure that the object we found is of the same
@@ -14383,7 +14383,7 @@ class CartesianProductGenerator2
 
     void ComputeCurrentValue() {
       if (!AtEnd())
-        current_value_ = ParamType(*current1_, *current2_);
+        current_value_ = ParamTypeNode(*current1_, *current2_);
     }
     bool AtEnd() const {
       // We must report iterator past the end of the range when either of the
@@ -14510,7 +14510,7 @@ class CartesianProductGenerator3
 
     void ComputeCurrentValue() {
       if (!AtEnd())
-        current_value_ = ParamType(*current1_, *current2_, *current3_);
+        current_value_ = ParamTypeNode(*current1_, *current2_, *current3_);
     }
     bool AtEnd() const {
       // We must report iterator past the end of the range when either of the
@@ -14655,7 +14655,7 @@ class CartesianProductGenerator4
 
     void ComputeCurrentValue() {
       if (!AtEnd())
-        current_value_ = ParamType(*current1_, *current2_, *current3_,
+        current_value_ = ParamTypeNode(*current1_, *current2_, *current3_,
             *current4_);
     }
     bool AtEnd() const {
@@ -14817,7 +14817,7 @@ class CartesianProductGenerator5
 
     void ComputeCurrentValue() {
       if (!AtEnd())
-        current_value_ = ParamType(*current1_, *current2_, *current3_,
+        current_value_ = ParamTypeNode(*current1_, *current2_, *current3_,
             *current4_, *current5_);
     }
     bool AtEnd() const {
@@ -14998,7 +14998,7 @@ class CartesianProductGenerator6
 
     void ComputeCurrentValue() {
       if (!AtEnd())
-        current_value_ = ParamType(*current1_, *current2_, *current3_,
+        current_value_ = ParamTypeNode(*current1_, *current2_, *current3_,
             *current4_, *current5_, *current6_);
     }
     bool AtEnd() const {
@@ -15196,7 +15196,7 @@ class CartesianProductGenerator7
 
     void ComputeCurrentValue() {
       if (!AtEnd())
-        current_value_ = ParamType(*current1_, *current2_, *current3_,
+        current_value_ = ParamTypeNode(*current1_, *current2_, *current3_,
             *current4_, *current5_, *current6_, *current7_);
     }
     bool AtEnd() const {
@@ -15413,7 +15413,7 @@ class CartesianProductGenerator8
 
     void ComputeCurrentValue() {
       if (!AtEnd())
-        current_value_ = ParamType(*current1_, *current2_, *current3_,
+        current_value_ = ParamTypeNode(*current1_, *current2_, *current3_,
             *current4_, *current5_, *current6_, *current7_, *current8_);
     }
     bool AtEnd() const {
@@ -15646,7 +15646,7 @@ class CartesianProductGenerator9
 
     void ComputeCurrentValue() {
       if (!AtEnd())
-        current_value_ = ParamType(*current1_, *current2_, *current3_,
+        current_value_ = ParamTypeNode(*current1_, *current2_, *current3_,
             *current4_, *current5_, *current6_, *current7_, *current8_,
             *current9_);
     }
@@ -15897,7 +15897,7 @@ class CartesianProductGenerator10
 
     void ComputeCurrentValue() {
       if (!AtEnd())
-        current_value_ = ParamType(*current1_, *current2_, *current3_,
+        current_value_ = ParamTypeNode(*current1_, *current2_, *current3_,
             *current4_, *current5_, *current6_, *current7_, *current8_,
             *current9_, *current10_);
     }

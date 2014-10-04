@@ -213,7 +213,7 @@ public:
 	//!@name Type
 	//@{
 
-	Type GetType()	const { return static_cast<Type>(flags_ & kTypeMask); }
+	Type GetTypeNode()	const { return static_cast<Type>(flags_ & kTypeMask); }
 	bool IsNull()	const { return flags_ == kNullFlag; }
 	bool IsFalse()	const { return flags_ == kFalseFlag; }
 	bool IsTrue()	const { return flags_ == kTrueFlag; }
@@ -406,7 +406,7 @@ public:
 Value a(kArrayType);
 a.PushBack(123);
 int x = a[0].GetInt();				// Error: operator[ is ambiguous, as 0 also mean a null pointer of const char* type.
-int y = a[SizeType(0)].GetInt();	// Cast to SizeType will work.
+int y = a[SizeTypeNode(0)].GetInt();	// Cast to SizeType will work.
 int z = a[0u].GetInt();				// This works too.
 \endcode
 	*/
@@ -543,7 +543,7 @@ int z = a[0u].GetInt();				// This works too.
 	*/
 	template <typename Handler>
 	const GenericValue& Accept(Handler& handler) const {
-		switch(GetType()) {
+		switch(GetTypeNode()) {
 		case kNullType:		handler.Null(); break;
 		case kFalseType:	handler.Bool(false); break;
 		case kTrueType:		handler.Bool(true); break;
@@ -830,29 +830,29 @@ private:
 	friend class GenericValue<Encoding,Allocator>; // for deep copying
 
 	// Implementation of Handler
-	void Null()	{ new (stack_.template Push<ValueType>()) ValueType(); }
-	void Bool(bool b) { new (stack_.template Push<ValueType>()) ValueType(b); }
-	void Int(int i) { new (stack_.template Push<ValueType>()) ValueType(i); }
-	void Uint(unsigned i) { new (stack_.template Push<ValueType>()) ValueType(i); }
-	void Int64(int64_t i) { new (stack_.template Push<ValueType>()) ValueType(i); }
-	void Uint64(uint64_t i) { new (stack_.template Push<ValueType>()) ValueType(i); }
-	void Double(double d) { new (stack_.template Push<ValueType>()) ValueType(d); }
+	void Null()	{ new (stack_.template Push<ValueType>()) ValueTypeNode(); }
+	void Bool(bool b) { new (stack_.template Push<ValueType>()) ValueTypeNode(b); }
+	void Int(int i) { new (stack_.template Push<ValueType>()) ValueTypeNode(i); }
+	void Uint(unsigned i) { new (stack_.template Push<ValueType>()) ValueTypeNode(i); }
+	void Int64(int64_t i) { new (stack_.template Push<ValueType>()) ValueTypeNode(i); }
+	void Uint64(uint64_t i) { new (stack_.template Push<ValueType>()) ValueTypeNode(i); }
+	void Double(double d) { new (stack_.template Push<ValueType>()) ValueTypeNode(d); }
 
 	void String(const Ch* str, SizeType length, bool copy) { 
 		if (copy) 
-			new (stack_.template Push<ValueType>()) ValueType(str, length, GetAllocator());
+			new (stack_.template Push<ValueType>()) ValueTypeNode(str, length, GetAllocator());
 		else
-			new (stack_.template Push<ValueType>()) ValueType(str, length);
+			new (stack_.template Push<ValueType>()) ValueTypeNode(str, length);
 	}
 
-	void StartObject() { new (stack_.template Push<ValueType>()) ValueType(kObjectType); }
+	void StartObject() { new (stack_.template Push<ValueType>()) ValueTypeNode(kObjectType); }
 	
 	void EndObject(SizeType memberCount) {
 		typename ValueType::Member* members = stack_.template Pop<typename ValueType::Member>(memberCount);
 		stack_.template Top<ValueType>()->SetObjectRaw(members, (SizeType)memberCount, GetAllocator());
 	}
 
-	void StartArray() { new (stack_.template Push<ValueType>()) ValueType(kArrayType); }
+	void StartArray() { new (stack_.template Push<ValueType>()) ValueTypeNode(kArrayType); }
 	
 	void EndArray(SizeType elementCount) {
 		ValueType* elements = stack_.template Pop<ValueType>(elementCount);
@@ -866,7 +866,7 @@ private:
 	void ClearStack() {
 		if (Allocator::kNeedFree)
 			while (stack_.GetSize() > 0)	// Here assumes all elements in stack array are GenericValue (Member is actually 2 GenericValue objects)
-				(stack_.template Pop<ValueType>(1))->~ValueType();
+				(stack_.template Pop<ValueType>(1))->~ValueTypeNode();
 		else
 			stack_.Clear();
 	}

@@ -90,13 +90,13 @@ public:
 		\param type UTF encoding type if it is not detected from the stream.
 	*/
 	AutoUTFInputStream(InputByteStream& is, UTFType type = kUTF8) : is_(&is), type_(type), hasBOM_(false) {
-		DetectType();
+		DetectTypeNode();
 		static const TakeFunc f[] = { RAPIDJSON_ENCODINGS_FUNC(Take) };
 		takeFunc_ = f[type_];
 		current_ = takeFunc_(*is_);
 	}
 
-	UTFType GetType() const { return type_; }
+	UTFType GetTypeNode() const { return type_; }
 	bool HasBOM() const { return hasBOM_; }
 
 	Ch Peek() const { return current_; }
@@ -111,7 +111,7 @@ public:
 
 private:
 	// Detect encoding type with BOM or RFC 4627
-	void DetectType() {
+	void DetectTypeNode() {
 		// BOM (Byte Order Mark):
 		// 00 00 FE FF  UTF-32BE
 		// FF FE 00 00  UTF-32LE
@@ -217,7 +217,7 @@ public:
 			PutBOM();
 	}
 
-	UTFType GetType() const { return type_; }
+	UTFType GetTypeNode() const { return type_; }
 
 	void Put(Ch c) { putFunc_(*os_, c); }
 	void Flush() { os_->Flush(); } 

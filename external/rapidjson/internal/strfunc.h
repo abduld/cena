@@ -15,7 +15,7 @@ inline SizeType StrLen(const Ch* s) {
 	const Ch* p = s;
 	while (*p != '\0')
 		++p;
-	return SizeType(p - s);
+	return SizeTypeNode(p - s);
 }
 
 } // namespace internal

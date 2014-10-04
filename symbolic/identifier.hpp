@@ -2,14 +2,15 @@
 #ifndef __IDENTIFIER_H__
 #define __IDENTIFIER_H__
 
-class Identifier : public Atom<string> {
+class IdentifierNode : public virtual AtomNode<string> {
 public:
-  Identifier() : Atom<string>() {}
-  Identifier(string v) : Atom<string>(v) {}
+  IdentifierNode() : AtomNode<string>() {}
+  IdentifierNode(string v) : AtomNode<string>(v) {}
   string getHead() { return head_; }
+
 private:
   string head_ = "Identifier";
-  Type typ_;
+  TypeNode typ_;
 };
 
 #endif /* __IDENTIFIER_H__ */

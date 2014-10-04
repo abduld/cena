@@ -2,14 +2,10 @@
 #ifndef __FALSE_H__
 #define __FALSE_H__
 
-class False : public Node {
+class False : public Keyword {
 public:
-  False() : Node() {}
+  False() : Keyword("False") {}
   ~False() {}
-  string getHead() { return head_; }
-
-private:
-  string head_ = "False";
 };
 
 #endif /* __FALSE_H__ */

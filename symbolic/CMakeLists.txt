@@ -18,10 +18,11 @@ enable_testing()
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
-if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
+if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "clang")
   add_definitions(-fno-exceptions)
   add_definitions(-Wall)
 endif()
+add_definitions(-Wno-unused-function)
 add_definitions(-Wfatal-errors)
 
 set(GTEST_SOURCES

@@ -3,57 +3,60 @@
 #ifndef __COMPOUND_H__
 #define __COMPOUND_H__
 
-class Compound : public Node {
+class CompoundNode : public Node {
 public:
-  Compound() : Node() { vals_ = vector<shared_ptr<Node> >(); }
-  virtual ~Compound() {
-    vals_.clear();
-  };
-  bool isCompound() const { return true; }
-  Compound *operator<<=(const bool &val) {
-    shared_ptr<Boolean> var(new Boolean(val));
+  CompoundNode() : Node() { vals_ = vector<shared_ptr<Node>>(); }
+  virtual ~CompoundNode() { vals_.clear(); };
+  bool isCompoundNode() const { return true; }
+  CompoundNode *operator<<=(const bool &val) {
+    shared_ptr<BooleanNode> var(new BooleanNode(val));
     vals_.push_back(var);
     len_++;
     return this;
   }
-  Compound &operator<<=(const int &val) {
-    shared_ptr<Integer> var(new Integer(val));
+  CompoundNode &operator<<=(const int &val) {
+    shared_ptr<IntegerNode> var(new IntegerNode(val));
     vals_.push_back(var);
     len_++;
     return *this;
   }
-  Compound &operator<<=(const int64_t &val) {
-    shared_ptr<Integer> var(new Integer(val));
+  CompoundNode &operator<<=(const int64_t &val) {
+    shared_ptr<IntegerNode> var(new IntegerNode(val));
     vals_.push_back(var);
     len_++;
     return *this;
   }
-  Compound &operator<<=(const float &val) {
-    shared_ptr<Real> var(new Real(val));
+  CompoundNode &operator<<=(const float &val) {
+    shared_ptr<RealNode> var(new RealNode(val));
     vals_.push_back(var);
     len_++;
     return *this;
   }
-  Compound &operator<<=(const double &val) {
-    shared_ptr<Real> var(new Real(val));
+  CompoundNode &operator<<=(const double &val) {
+    shared_ptr<RealNode> var(new RealNode(val));
     vals_.push_back(var);
     len_++;
     return *this;
   }
-  Compound &operator<<=(const char *val) {
-    shared_ptr<String> var(new String(val));
+  CompoundNode &operator<<=(const char *val) {
+    shared_ptr<StringNode> var(new StringNode(val));
     vals_.push_back(var);
     len_++;
     return *this;
   }
-  Compound &operator<<=(const string &val) {
-    shared_ptr<String> var(new String(val));
+  CompoundNode &operator<<=(const string &val) {
+    shared_ptr<StringNode> var(new StringNode(val));
     vals_.push_back(var);
     len_++;
     return *this;
   }
-  Compound &operator<<=(Compound *c) {
-    vector<shared_ptr<Node> > vals = c->getValues();
+  CompoundNode &operator<<=(const shared_ptr<Node> &c) {
+    vals_.push_back(c);
+    len_++;
+    return *this;
+  }
+  CompoundNode &operator<<=(CompoundNode *c) {
+    vector<shared_ptr<Node>> vals = c->getValues();
     for (auto iter = vals.begin(); iter != vals.end(); iter++) {
       vals_.push_back(*iter);
     }
@@ -71,7 +74,7 @@ public:
     len_++;
     return;
   }
-  void push_back(const vector<shared_ptr<Node> > &var) {
+  void push_back(const vector<shared_ptr<Node>> &var) {
     for (auto iter : var) {
       push_back(iter);
     }
@@ -85,13 +88,13 @@ public:
     vals_[idx] = var;
     return;
   }
-  string getHead() { return head_; }
-  vector<shared_ptr<Node> > getValues() { return vals_; }
+  virtual string getHead() { return head_; }
+  vector<shared_ptr<Node>> getValues() { return vals_; }
 
 protected:
   int len_;
-  string head_ = "Compound";
-  vector<shared_ptr<Node> > vals_;
+  string head_ = "CompoundNode";
+  vector<shared_ptr<Node>> vals_;
 };
 
 #endif /* __COMPOUND_H__ */

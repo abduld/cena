@@ -3,7 +3,7 @@
 #ifndef __DEREFERENCE_H__
 #define __DEREFERENCE_H__
 
-class __DEREFERENCE_H__ : public Node {
+class Dereference : public Node {
 public:
   Dereference() : Node() {}
   Dereference(const shared_ptr<Node> &typ) : Node() { type_ = typ; }

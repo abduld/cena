@@ -3687,7 +3687,7 @@ TestInfo* MakeAndRegisterTestInfo(
 }
 
 #if GTEST_HAS_PARAM_TEST
-void ReportInvalidTestCaseType(const char* test_case_name,
+void ReportInvalidTestCaseTypeNode(const char* test_case_name,
                                const char* file, int line) {
   Message errors;
   errors

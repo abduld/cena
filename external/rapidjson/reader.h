@@ -424,7 +424,7 @@ private:
 			ParseStringToStream<parseFlags, SourceEncoding, SourceEncoding>(s, s);
 			size_t length = s.PutEnd(head) - 1;
 			RAPIDJSON_ASSERT(length <= 0xFFFFFFFF);
-			handler.String((typename TargetEncoding::Ch*)head, SizeType(length), false);
+			handler.String((typename TargetEncoding::Ch*)head, SizeTypeNode(length), false);
 		}
 		else {
 			StackStream stackStream(stack_);

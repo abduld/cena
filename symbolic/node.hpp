@@ -33,12 +33,12 @@ public:
     return o.str();
   }
   virtual string getHead() { return "unknown"; }
-  virtual bool isCompound() const { return false; }
+  virtual bool isCompoundNode() const { return false; }
   virtual bool isStatement() const { return false; }
   virtual bool isAtom() const { return false; }
   virtual bool isBlock() const { return false; }
-  virtual vector<shared_ptr<Node> > getValues() {
-    vector<shared_ptr<Node> > vec;
+  virtual vector<shared_ptr<Node>> getValues() {
+    vector<shared_ptr<Node>> vec;
     return vec;
   }
   void setParent(shared_ptr<Node> parent) { parent_ = parent; }

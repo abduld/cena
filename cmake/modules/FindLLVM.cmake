@@ -12,6 +12,7 @@
 find_program(LLVM_CONFIG_EXECUTABLE
   NAMES llvm-config
   PATHS
+  /usr/local/opt/llvm/bin
   /opt/local/bin
   /Users/abduld/usr/bin
 )

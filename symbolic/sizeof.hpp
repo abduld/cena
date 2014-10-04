@@ -2,18 +2,13 @@
 #ifndef __SIZEOF_H__
 #define __SIZEOF_H__
 
-class SizeOf : public Compound {
+class SizeOf : public CompoundNode {
 public:
-  SizeOf() : Compound() {}
-  SizeOf(Node *nd) : Compound() {
-    push_back(nd);
-  }
-  SizeOf(const shared_ptr<Node> &nd)
-      : Compound() {
-    push_back(nd);
-  }
-  ~TypeDef() {}
-  void setArg(const shared_ptr<Node> &arg) { setPart(0, lhs); }
+  SizeOf() : CompoundNode() {}
+  SizeOf(Node *nd) : CompoundNode() { push_back(nd); }
+  SizeOf(const shared_ptr<Node> &nd) : CompoundNode() { push_back(nd); }
+  ~SizeOf() {}
+  void setArg(const shared_ptr<Node> &arg) { setPart(0, arg); }
   shared_ptr<Node> getArg() { return getPart(0); }
   string getHead() { return head_; }
 

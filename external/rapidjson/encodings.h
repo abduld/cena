@@ -452,7 +452,7 @@ enum UTFType {
 };
 
 //! Dynamically select encoding according to stream's runtime-specified UTF encoding type.
-/*! \note This class can be used with AutoUTFInputtStream and AutoUTFOutputStream, which provides GetType().
+/*! \note This class can be used with AutoUTFInputtStream and AutoUTFOutputStream, which provides GetTypeNode().
 */
 template<typename CharType>
 struct AutoUTF {
@@ -464,21 +464,21 @@ struct AutoUTF {
 	RAPIDJSON_FORCEINLINE static void Encode(OutputStream& os, unsigned codepoint) {
 		typedef void (*EncodeFunc)(OutputStream&, unsigned);
 		static const EncodeFunc f[] = { RAPIDJSON_ENCODINGS_FUNC(Encode) };
-		(*f[os.GetType()])(os, codepoint);
+		(*f[os.GetTypeNode()])(os, codepoint);
 	}
 
 	template <typename InputStream>
 	RAPIDJSON_FORCEINLINE static bool Decode(InputStream& is, unsigned* codepoint) {
 		typedef bool (*DecodeFunc)(InputStream&, unsigned*);
 		static const DecodeFunc f[] = { RAPIDJSON_ENCODINGS_FUNC(Decode) };
-		return (*f[is.GetType()])(is, codepoint);
+		return (*f[is.GetTypeNode()])(is, codepoint);
 	}
 
 	template <typename InputStream, typename OutputStream>
 	RAPIDJSON_FORCEINLINE static bool Validate(InputStream& is, OutputStream& os) {
 		typedef bool (*ValidateFunc)(InputStream&, OutputStream&);
 		static const ValidateFunc f[] = { RAPIDJSON_ENCODINGS_FUNC(Validate) };
-		return (*f[is.GetType()])(is, os);
+		return (*f[is.GetTypeNode()])(is, os);
 	}
 
 #undef RAPIDJSON_ENCODINGS_FUNC

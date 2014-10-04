@@ -4,6 +4,8 @@
 
 #include "gtest/gtest.h"
 #include <memory>
+#include <cinttypes>
+#include <cstdint>
 #include <iostream>
 #include <cassert>
 #include <iterator>
@@ -14,6 +16,7 @@
 #include "stdio.h"
 #include "stdlib.h"
 
+using std::int64_t;
 using std::shared_ptr;
 using std::string;
 using std::vector;
@@ -26,6 +29,7 @@ using std::transform;
 #include "utilities.hpp"
 #include "atom.hpp"
 #include "type.hpp"
+#include "keyword.hpp"
 #include "identifier.hpp"
 #include "compound.hpp"
 #include "statement.hpp"

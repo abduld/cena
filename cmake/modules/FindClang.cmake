@@ -21,6 +21,8 @@ ENDMACRO(FIND_AND_ADD_CLANG_LIB)
 
 # Clang shared library provides just the limited C interface, so it
 # can not be used.  We look for the static libraries.
+FIND_AND_ADD_CLANG_LIB(clangSerialization)
+FIND_AND_ADD_CLANG_LIB(clangRewriteCore)
 FIND_AND_ADD_CLANG_LIB(clangFrontend)
 FIND_AND_ADD_CLANG_LIB(clangDriver)
 FIND_AND_ADD_CLANG_LIB(clangCodeGen)

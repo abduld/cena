@@ -2,9 +2,9 @@
 #ifndef __CASE_H__
 #define __CASE_H__
 
-class Case : public Compound {
+class Case : public CompoundNode {
 public:
-  Case(const shared_ptr<Node> &node) : Compound() { push_back(node); }
+  Case(const shared_ptr<Node> &node) : CompoundNode() { push_back(node); }
   ~Case() {}
   string getHead() { return head_; }
 

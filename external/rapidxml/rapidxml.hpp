@@ -245,7 +245,7 @@ namespace rapidxml
     //! See xml_document::parse() function.
     const int parse_normalize_whitespace = 0x800;
 
-    // Compound flags
+    // CompoundNode flags
 
     //! Parse flags which represent default behaviour of the parser.
     //! This is always equal to 0, so that all other flags can be simply ored together.

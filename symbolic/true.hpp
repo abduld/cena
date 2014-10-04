@@ -2,14 +2,10 @@
 #ifndef __TRUE_H__
 #define __TRUE_H__
 
-class True : public Node {
+class True : public Keyword {
 public:
-  True() : Node() {}
+  True() : Keyword("True") {}
   ~True() {}
-  string getHead() { return head_; }
-
-private:
-  string head_ = "True";
 };
 
 #endif /* __TRUE_H__ */

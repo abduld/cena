@@ -12,14 +12,14 @@ private:
   string head_ = "UnaryOperator";
 };
 
-class UnaryOp : public Compound {
+class UnaryOp : public CompoundNode {
 public:
-  UnaryOp() : Compound() {}
-  UnaryOp(string op, Node *arg) : Compound() {
+  UnaryOp() : CompoundNode() {}
+  UnaryOp(string op, Node *arg) : CompoundNode() {
     push_back(shared_ptr<UnaryOperator>(new UnaryOperator(op)));
     push_back(arg);
   }
-  UnaryOp(string op, const shared_ptr<Node> &arg) : Compound() {
+  UnaryOp(string op, const shared_ptr<Node> &arg) : CompoundNode() {
     push_back(shared_ptr<UnaryOperator>(new UnaryOperator(op)));
     push_back(arg);
   }

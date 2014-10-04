@@ -3,28 +3,28 @@
 #ifndef __ATOM_H__
 #define __ATOM_H__
 
-template <typename T> class Atom : public Node {
+template <typename T> class AtomNode : public Node {
 public:
-  Atom() : Node() { val_ = (T)0; }
-  Atom(T v) : Node() { val_ = v; }
-  vector<shared_ptr<Node> > getValues() {
-    vector<shared_ptr<Node> > vec;
+  AtomNode() : Node() { val_ = (T)0; }
+  AtomNode(T v) : Node() { val_ = v; }
+  vector<shared_ptr<Node>> getValues() {
+    vector<shared_ptr<Node>> vec;
     shared_ptr<Node> v(this);
     vec.push_back(v);
     return vec;
   }
-  bool isAtom() const { return true; }
+  bool isAtomNode() const { return true; }
   T getConstant() const { return val_; }
   virtual void toCCode(ostringstream &o) { o << getConstant(); }
-  virtual void toString(ostringstream &o) { toCCode(o); }
+  virtual void toStringNode(ostringstream &o) { toCCode(o); }
   string toCCode() {
     ostringstream o;
     toCCode(o);
     return o.str();
   }
-  string toString() {
+  string toStringNode() {
     ostringstream o;
-    toString(o);
+    toStringNode(o);
     return o.str();
   }
 
@@ -32,44 +32,45 @@ private:
   T val_;
 };
 
-class Boolean : public Atom<bool> {
+class BooleanNode : public AtomNode<bool> {
 public:
-  Boolean() : Atom<bool>() {}
-  Boolean(bool v) : Atom<bool>(v) {}
+  BooleanNode() : AtomNode<bool>() {}
+  BooleanNode(bool v) : AtomNode<bool>(v) {}
   string getHead() { return head_; }
   void toCCode(ostringstream &o) { o << (getConstant() ? "true" : "false"); }
 
 private:
-  string head_ = "Boolean";
+  string head_ = "BooleanNode";
 };
 
-class Integer : public Atom<int64_t> {
+class IntegerNode : public AtomNode<int64_t> {
 public:
-  Integer() : Atom<int64_t>() {}
-  Integer(int64_t v) : Atom<int64_t>(v) {}
+  IntegerNode() : AtomNode<int64_t>() {}
+  IntegerNode(int64_t v) : AtomNode<int64_t>(v) {}
   string getHead() { return head_; }
 
 private:
-  string head_ = "Integer";
+  string head_ = "IntegerNode";
 };
 
-class Real : public Atom<double> {
+class RealNode : public AtomNode<double> {
 public:
-  Real() : Atom<double>() {}
-  Real(double v) : Atom<double>(v) {}
-  string getHead() { return head_; }
-private:
-  string head_ = "Real";
-};
-
-class String : public Atom<string> {
-public:
-  String() : Atom<string>() {}
-  String(string v) : Atom<string>(v) {}
-  String(const char *v) : Atom<string>(string(v)) {}
+  RealNode() : AtomNode<double>() {}
+  RealNode(double v) : AtomNode<double>(v) {}
   string getHead() { return head_; }
 
 private:
-  string head_ = "String";
+  string head_ = "RealNode";
+};
+
+class StringNode : public AtomNode<string> {
+public:
+  StringNode() : AtomNode<string>() {}
+  StringNode(string v) : AtomNode<string>(v) {}
+  StringNode(const char *v) : AtomNode<string>(string(v)) {}
+  string getHead() { return head_; }
+
+private:
+  string head_ = "StringNode";
 };
 #endif /* __ATOM_H__ */
