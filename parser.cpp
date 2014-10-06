@@ -75,15 +75,15 @@ public:
     shared_ptr<TypeNode> toNode(QualType typ) {
         return shared_ptr<TypeNode>(new TypeNode());
     }
-    #if 0
-    SymbolicLiteral toSymbolicLiteral(const Expr * e) {
+    share_ptr<StringNode> toNode(const Expr * e) {
         clang::LangOptions LO;
         std::string str;
         raw_string_ostream ros(str);
         e->printPretty(ros, nullptr, astContext->getLangOpts());
-        return SymbolicLiteral(str);
+        return share_ptr<StringNode>(new StringNode(str));
     }
     
+    #if 0
     SymbolicExpr toSymbolicExpr(Qualifiers quals) {
         
         SymbolicQualifierExpr qualExp = SymbolicQualifierExpr(this);
