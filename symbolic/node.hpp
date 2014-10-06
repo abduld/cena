@@ -32,8 +32,36 @@ public:
     toJSON(o);
     return o.str();
   }
+
+  virtual Node *operator<<=(const bool &val) {
+    return this;
+  }
+  virtual Node &operator<<=(const int &val) {
+    return *this;
+  }
+  virtual Node &operator<<=(const int64_t &val) {
+    return *this;
+  }
+  virtual Node &operator<<=(const float &val) {
+    return *this;
+  }
+  virtual Node &operator<<=(const double &val) {
+    return *this;
+  }
+  virtual Node &operator<<=(const char *val) {
+    return *this;
+  }
+  virtual Node &operator<<=(const string &val) {
+    return *this;
+  }
+  virtual Node &operator<<=(const shared_ptr<Node> &c) {
+    return *this;
+  }
+  virtual Node &operator<<=(Node *c) {
+    return *this;
+  }
   virtual string getHead() { return "unknown"; }
-  virtual bool isCompoundNode() const { return false; }
+  virtual bool isNode() const { return false; }
   virtual bool isStatement() const { return false; }
   virtual bool isAtom() const { return false; }
   virtual bool isBlock() const { return false; }

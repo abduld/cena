@@ -57,7 +57,7 @@ class SVisitor : public RecursiveASTVisitor<SVisitor> {
 public:
   explicit SVisitor(CompilerInstance *CI) : astContext(&(CI->getASTContext())), SM(CI->getASTContext().getSourceManager()), Traits(CI->getASTContext().getCommentCommandTraits()) {
     prog_ = shared_ptr<ProgramNode>(new ProgramNode());
-    curr_ = prog_;
+    current_node = prog_;
   }
 
   shared_ptr<ProgramNode> getProgram() {
@@ -71,6 +71,9 @@ public:
         } else {
             return shared_ptr<StringNode>(new StringNode(ii.toString(10, ii.isSignBit())));
         }
+    }
+    shared_ptr<TypeNode> toNode(QualType typ) {
+        return shared_ptr<TypeNode>(new TypeNode());
     }
     #if 0
     SymbolicLiteral toSymbolicLiteral(const Expr * e) {
@@ -213,271 +216,6 @@ public:
   /*******************************************************************************************************/
   /*******************************************************************************************************/
 
-  bool VisitTranslationUnitDecl(TranslationUnitDecl *D) {
-    DEBUG;
-    D->dump();
-    return true;
-  }
-
-  bool VisitTypedefDecl(TypedefDecl *D) {
-    DEBUG;
-    D->dump();
-    return true;
-  }
-
-  bool VisitTypeAliasDecl(TypeAliasDecl *D) {
-    DEBUG;
-    D->dump();
-    return true;
-  }
-
-  bool VisitEnumDecl(EnumDecl *D) {
-    DEBUG;
-    D->dump();
-    return true;
-  }
-
-  bool VisitRecordDecl(RecordDecl *D) {
-    DEBUG;
-    D->dump();
-    return true;
-  }
-
-  bool VisitEnumConstantDecl(EnumConstantDecl *D) {
-    DEBUG;
-    D->dump();
-    return true;
-  }
-
-  bool VisitEmptyDecl(EmptyDecl *D) {
-    DEBUG;
-    D->dump();
-    return true;
-  }
-
-  bool VisitFunctionDecl(FunctionDecl *D) {
-    DEBUG;
-    D->dump();
-    return true;
-  }
-
-  bool VisitFriendDecl(FriendDecl *D) {
-    DEBUG;
-    D->dump();
-    return true;
-  }
-
-  bool VisitFieldDecl(FieldDecl *D) {
-    DEBUG;
-    D->dump();
-    return true;
-  }
-
-  bool VisitVarDecl(VarDecl *D) {
-    DEBUG;
-    //D->dump();
-    *prog_ <<= shared_ptr<StringNode>(new StringNode("test"));
-    std::cout << prog_->getHead().c_str() << std::endl;
-    return true;
-  }
-
-  bool VisitLabelDecl(LabelDecl *D) {
-    DEBUG;
-    D->dump();
-    return true;
-  }
-
-  bool VisitParmVarDecl(ParmVarDecl *D) {
-    DEBUG;
-    D->dump();
-    return true;
-  }
-
-  bool VisitFileScopeAsmDecl(FileScopeAsmDecl *D) {
-    DEBUG;
-    D->dump();
-    return true;
-  }
-
-  bool VisitImportDecl(ImportDecl *D) {
-    DEBUG;
-    D->dump();
-    return true;
-  }
-
-  bool VisitStaticAssertDecl(StaticAssertDecl *D) {
-    DEBUG;
-    D->dump();
-    return true;
-  }
-
-  bool VisitNamespaceDecl(NamespaceDecl *D) {
-    DEBUG;
-    D->dump();
-    return true;
-  }
-
-  bool VisitUsingDirectiveDecl(UsingDirectiveDecl *D) {
-    DEBUG;
-    D->dump();
-    return true;
-  }
-
-  bool VisitNamespaceAliasDecl(NamespaceAliasDecl *D) {
-    DEBUG;
-    D->dump();
-    return true;
-  }
-
-  bool VisitCXXRecordDecl(CXXRecordDecl *D) {
-    DEBUG;
-    D->dump();
-    return true;
-  }
-
-  bool VisitLinkageSpecDecl(LinkageSpecDecl *D) {
-    DEBUG;
-    D->dump();
-    return true;
-  }
-
-  bool VisitTemplateDecl(const TemplateDecl *D) {
-    DEBUG;
-    D->dump();
-    return true;
-  }
-
-  bool VisitFunctionTemplateDecl(FunctionTemplateDecl *D) {
-    DEBUG;
-    D->dump();
-    return true;
-  }
-
-  bool VisitClassTemplateDecl(ClassTemplateDecl *D) {
-    DEBUG;
-    D->dump();
-    return true;
-  }
-
-  bool VisitObjCMethodDecl(ObjCMethodDecl *D) {
-    DEBUG;
-    D->dump();
-    return true;
-  }
-
-  bool VisitObjCImplementationDecl(ObjCImplementationDecl *D) {
-    DEBUG;
-    D->dump();
-    return true;
-  }
-
-  bool VisitObjCInterfaceDecl(ObjCInterfaceDecl *D) {
-    DEBUG;
-    D->dump();
-    return true;
-  }
-
-  bool VisitObjCProtocolDecl(ObjCProtocolDecl *D) {
-    DEBUG;
-    D->dump();
-    return true;
-  }
-
-  bool VisitObjCCategoryImplDecl(ObjCCategoryImplDecl *D) {
-    DEBUG;
-    D->dump();
-    return true;
-  }
-
-  bool VisitObjCCategoryDecl(ObjCCategoryDecl *D) {
-    DEBUG;
-    D->dump();
-    return true;
-  }
-
-  bool VisitObjCCompatibleAliasDecl(ObjCCompatibleAliasDecl *D) {
-    DEBUG;
-    D->dump();
-    return true;
-  }
-
-  bool VisitObjCPropertyDecl(ObjCPropertyDecl *D) {
-    DEBUG;
-    D->dump();
-    return true;
-  }
-
-  bool VisitObjCPropertyImplDecl(ObjCPropertyImplDecl *D) {
-    DEBUG;
-    D->dump();
-    return true;
-  }
-
-  bool VisitUnresolvedUsingTypenameDecl(UnresolvedUsingTypenameDecl *D) {
-    DEBUG;
-    D->dump();
-    return true;
-  }
-
-  bool VisitUnresolvedUsingValueDecl(UnresolvedUsingValueDecl *D) {
-    DEBUG;
-    D->dump();
-    return true;
-  }
-
-  bool VisitUsingDecl(UsingDecl *D) {
-    DEBUG;
-    D->dump();
-    return true;
-  }
-
-  bool VisitUsingShadowDecl(UsingShadowDecl *D) {
-    DEBUG;
-    D->dump();
-    return true;
-  }
-
-  bool VisitOMPThreadPrivateDecl(OMPThreadPrivateDecl *D) {
-    DEBUG;
-    D->dump();
-    return true;
-  }
-
-  bool VisitFieldDecl(const FieldDecl *decl) {
-    DEBUG;
-    decl->dump();
-    return true;
-  }
-
-  bool VisitVarDecl(const VarDecl *decl) {
-    //DEBUG;
-    //decl->dump();
-    return true;
-  }
-
-  bool VisitImplicitParamDecl(const ImplicitParamDecl *decl) {
-    DEBUG;
-    decl->dump();
-    return true;
-  }
-
-  bool VisitBlockDecl(const BlockDecl *decl) {
-    DEBUG;
-    decl->dump();
-    return true;
-  }
-
-  bool VisitCapturedDecl(const CapturedDecl *decl) {
-    DEBUG;
-    decl->dump();
-    return true;
-  }
-
-  bool VisitLabelDecl(const LabelDecl *decl) {
-    DEBUG;
-    decl->dump();
-    return true;
-  }
 
   /*******************************************************************************************************/
   /*******************************************************************************************************/
@@ -492,135 +230,36 @@ public:
   }
 
     virtual bool TraverseVarDecl(VarDecl *decl){
+        shared_ptr<DeclareNode> nd(new DeclareNode());
+        shared_ptr<TypeNode> typ = toNode(decl->getType());
+        shared_ptr<IdentifierNode> id(new IdentifierNode(decl->getNameAsString()));
+        PresumedLoc PLoc = SM.getPresumedLoc(decl->getSourceRange().getBegin());
         
-            DEBUG;
-            decl->dump();
+        nd->setType(typ);
+        nd->setIdentifier(id);
+
+        if (decl->hasInit()) {
+          shared_ptr<Node> tmp = current_node;
+          current_node = nd;
+          TraverseStmt(decl->getInit());
+          nd->setInitializer(current_node);
+          current_node = tmp;
+        }
+        *current_node <<= nd;
         return true;
     }  
 
     virtual bool TraverseDeclStmt(DeclStmt *decl){
-        
+      shared_ptr<Node> tmp = current_node;
+      shared_ptr<CompoundNode> cmp(new CompoundNode());
         for(auto init = decl->decl_begin(), end = decl->decl_end(); init!=end ; ++init) {
+            current_node = tmp;
             TraverseDecl(*init);
-            DEBUG;
-    (*init)->dump();
+            *cmp <<= current_node;
         }
+        current_node = cmp;
         return true;
-    }  
-
-  bool VisitIfStmt(IfStmt *ifStmt) {
-    DEBUG;
-    Expr *conditionExpr = ifStmt->getCond();
-    Stmt *thenStmt = ifStmt->getThen();
-    Stmt *elseStmt = ifStmt->getElse();
-    VisitExpr(conditionExpr);
-    TraverseStmt(thenStmt);
-    if (elseStmt != NULL) {
-      TraverseStmt(elseStmt);
     }
-    ifStmt->dump();
-    return true;
-  }
-
-  bool VisitReturnStmt(ReturnStmt *S) {
-    DEBUG;
-    S->dump();
-    return true;
-  }
-
-  bool VisitCompoundStmt(CompoundStmt *stmt) {
-    for (CompoundStmt::const_body_iterator citer = stmt->body_begin();
-         citer != stmt->body_end(); ++citer) {
-      DEBUG;
-      (*citer)->dump();
-      TraverseStmt(*citer);
-    }
-    return true;
-  }
-
-  bool VisitForStmt(ForStmt *stmt) {
-    DEBUG;
-    stmt->dump();
-    return true;
-  }
-
-  bool VisitAsmStmt(AsmStmt *stmt) {
-    DEBUG;
-    stmt->dump();
-    return true;
-  }
-
-  bool VisitBreakStmt(BreakStmt *stmt) {
-    DEBUG;
-    stmt->dump();
-    return true;
-  }
-
-  bool VisitContinueStmt(ContinueStmt *stmt) {
-    DEBUG;
-    stmt->dump();
-    return true;
-  }
-
-  bool VisitCXXCatchStmt(CXXCatchStmt *stmt) {
-    DEBUG;
-    stmt->dump();
-    return true;
-  }
-
-  bool VisitCXXTryStmt(CXXTryStmt *stmt) {
-    DEBUG;
-    stmt->dump();
-    return true;
-  }
-
-  bool VisitDoStmt(DoStmt *stmt) {
-    DEBUG;
-    stmt->dump();
-    return true;
-  }
-
-  bool VisitGotoStmt(GotoStmt *stmt) {
-    DEBUG;
-    stmt->dump();
-    return true;
-  }
-
-  bool VisitIndirectGotoStmt(IndirectGotoStmt *stmt) {
-    DEBUG;
-    stmt->dump();
-    return true;
-  }
-
-  bool VisitLabelStmt(LabelStmt *stmt) {
-    DEBUG;
-    stmt->dump();
-    return true;
-  }
-
-  bool VisitNullStmt(NullStmt *stmt) {
-    DEBUG;
-    stmt->dump();
-    return true;
-  }
-
-  bool VisitDefaultStmt(DefaultStmt *stmt) {
-    DEBUG;
-    stmt->dump();
-    return true;
-  }
-
-  bool VisitSwitchStmt(SwitchStmt *stmt) {
-    DEBUG;
-    stmt->dump();
-    return true;
-  }
-
-  bool VisitWhileStmt(WhileStmt *stmt) {
-    DEBUG;
-    stmt->dump();
-    return true;
-  }
 
   /*******************************************************************************************************/
   /*******************************************************************************************************/
@@ -629,93 +268,15 @@ public:
   /*******************************************************************************************************/
 
   bool VisitIntegerLiteral(IntegerLiteral *E) {
-    DEBUG;
     if (E->getType()->isUnsignedIntegerType()) {
             std::clog << "TODO;;;" << std::endl;
         } else if (E->getValue().getNumWords() == 1) {
-    prog_->push_back(toNode(E->getValue()));
+    current_node = toNode(E->getValue());
         } else {
             std::clog << "TODO;;;" << std::endl;
         }
     return true;
   }
-
-  bool VisitAbstractConditionalOperator(AbstractConditionalOperator *E) {
-    DEBUG;
-    E->dump();
-    return true;
-  }
-
-  bool VisitAddrLabelExpr(AddrLabelExpr *E) {
-    DEBUG;
-    E->dump();
-    return true;
-  }
-
-  bool VisitBinaryOperator(BinaryOperator *E) {
-    DEBUG;
-    E->dump();
-    return true;
-  }
-
-// VISIT(BinaryTypeTraitExpr);
-// VISIT(BlockDeclRefExpr);
-// VISIT(BlockExpr);
-// VISIT(CallExpr);
-// VISIT(CastExpr);
-// VISIT(CharacterLiteral);
-// VISIT(ChooseExpr);
-// VISIT(CompoundNodeLiteralExpr);
-// VISIT(CXXBindTemporaryExpr);
-// VISIT(CXXBoolLiteralExpr);
-// VISIT(CXXConstructExpr);
-// VISIT(CXXDefaultArgExpr);
-// VISIT(CXXDeleteExpr);
-// VISIT(CXXDependentScopeMemberExpr);
-// VISIT(CXXNewExpr);
-// VISIT(CXXNoexceptExpr);
-// VISIT(CXXNullPtrLiteralExpr);
-// VISIT(CXXPseudoDestructorExpr);
-// VISIT(CXXScalarValueInitExpr);
-// VISIT(CXXThisExpr);
-// VISIT(CXXThrowExpr);
-// VISIT(CXXTypeidExpr);
-// VISIT(CXXUnresolvedConstructExpr);
-// VISIT(CXXUuidofExpr);
-// VISIT(DeclRefExpr);
-// VISIT(DependentScopeDeclRefExpr);
-// VISIT(DesignatedInitExpr);
-// VISIT(ExprWithCleanups);
-// VISIT(ExtVectorElementExpr);
-// VISIT(FloatingLiteral);
-// VISIT(GNUNullExpr);
-// VISIT(ImaginaryLiteral);
-// VISIT(ImplicitValueInitExpr);
-// VISIT(InitListExpr);
-// VISIT(IntegerLiteral);
-// VISIT(MemberExpr);
-// VISIT(OffsetOfExpr);
-// VISIT(OpaqueValueExpr);
-// VISIT(OverloadExpr);
-// VISIT(PackExpansionExpr);
-// VISIT(ParenExpr);
-// VISIT(ParenListExpr);
-// VISIT(PredefinedExpr);
-// VISIT(ShuffleVectorExpr);
-// VISIT(SizeOfPackExpr);
-// VISIT(StmtExpr);
-// VISIT(StringLiteral);
-// VISIT(SubstNonTypeTemplateParmPackExpr);
-// VISIT(UnaryExprOrTypeTraitExpr);
-// VISIT(UnaryOperator);
-// VISIT(UnaryTypeTraitExpr);
-// VISIT(VAArgExpr);
-
-/*******************************************************************************************************/
-/*******************************************************************************************************/
-/*******************************************************************************************************/
-/*******************************************************************************************************/
-/*******************************************************************************************************/
 
 #if 0
 	bool VisitExpr(Expr * expr) {
@@ -799,7 +360,7 @@ return Visit##type(concrete_expr);                                             \
 private:
   clang::ASTContext *astContext; // used for getting additional AST info
   shared_ptr<ProgramNode> prog_;
-  shared_ptr<Node> curr_;
+  shared_ptr<Node> current_node;
 
   const CommandTraits &Traits;
   const SourceManager &SM;
@@ -831,11 +392,11 @@ public:
 
 class SFrontendAction : public ASTFrontendAction {
 public:
-  virtual std::unique_ptr<ASTConsumer> CreateASTConsumer(CompilerInstance &CI,
+  std::unique_ptr<ASTConsumer> CreateASTConsumer(CompilerInstance &CI,
                                                          StringRef file) {
-    auto astcons = new SASTConsumer(&CI);
+    std::unique_ptr<ASTConsumer> astcons( new SASTConsumer(&CI));
     //prog_ = astcons->getProgram();
-    return std::unique_ptr<ASTConsumer>(astcons); // pass CI pointer to ASTConsumer
+    return std::move(astcons); // pass CI pointer to ASTConsumer
   }
   shared_ptr<ProgramNode> getProgram() {
     return prog_;

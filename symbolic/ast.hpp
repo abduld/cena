@@ -56,5 +56,6 @@ using std::transform;
 #include "true.hpp"
 #include "typedef.hpp"
 #include "while.hpp"
+#include "declare.hpp"
 
 #endif /* __AST_H__ */
