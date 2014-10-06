@@ -217,17 +217,7 @@ public:
   /*******************************************************************************************************/
 
 
-  /*******************************************************************************************************/
-  /*******************************************************************************************************/
-  /*******************************************************************************************************/
-  /*******************************************************************************************************/
-  /*******************************************************************************************************/
 
-  bool VisitDeclStmt(DeclStmt *decl) {
-    DEBUG;
-    decl->viewAST();
-    return true;
-  }
 
     virtual bool TraverseVarDecl(VarDecl *decl){
         shared_ptr<DeclareNode> nd(new DeclareNode());
@@ -251,13 +241,14 @@ public:
 
     virtual bool TraverseDeclStmt(DeclStmt *decl){
       shared_ptr<Node> tmp = current_node;
-      shared_ptr<CompoundNode> cmp(new CompoundNode());
+      shared_ptr<CompoundNode> nd(new CompoundNode());
         for(auto init = decl->decl_begin(), end = decl->decl_end(); init!=end ; ++init) {
             current_node = tmp;
             TraverseDecl(*init);
-            *cmp <<= current_node;
+            *nd <<= current_node;
         }
-        current_node = cmp;
+        *tmp <<= nd;
+        current_node = tmp;
         return true;
     }
 
@@ -277,85 +268,6 @@ public:
         }
     return true;
   }
-
-#if 0
-	bool VisitExpr(Expr * expr) {
-		DEBUG;
-		expr->dump();
-#define VISIT(type)                                                            \
-  do {                                                                         \
-    \
-clang::type *concrete_expr = dyn_cast_or_null<clang::type>(expr);              \
-    \
-if(concrete_expr != NULL) {                                                    \
-      \
-return Visit##type(concrete_expr);                                             \
-    \
-}                                                                       \
-  \
-} while (0);
-
-        //VISIT(AbstractConditionalOperator);
-        //VISIT(AddrLabelExpr);
-        //VISIT(ArraySubscriptExpr);
-        //VISIT(BinaryOperator);
-        //VISIT(BinaryTypeTraitExpr);
-        //VISIT(BlockDeclRefExpr);
-        //VISIT(BlockExpr);
-        //VISIT(CallExpr);
-        //VISIT(CastExpr);
-        //VISIT(CharacterLiteral);
-        //VISIT(ChooseExpr);
-        //VISIT(CompoundNodeLiteralExpr);
-        //VISIT(CXXBindTemporaryExpr);
-        //VISIT(CXXBoolLiteralExpr);
-        //VISIT(CXXConstructExpr);
-        //VISIT(CXXDefaultArgExpr);
-        //VISIT(CXXDeleteExpr);
-        //VISIT(CXXDependentScopeMemberExpr);
-        //VISIT(CXXNewExpr);
-        //VISIT(CXXNoexceptExpr);
-        //VISIT(CXXNullPtrLiteralExpr);
-        //VISIT(CXXPseudoDestructorExpr);
-        //VISIT(CXXScalarValueInitExpr);
-        //VISIT(CXXThisExpr);
-        //VISIT(CXXThrowExpr);
-        //VISIT(CXXTypeidExpr);
-        //VISIT(CXXUnresolvedConstructExpr);
-        //VISIT(CXXUuidofExpr);
-        //VISIT(DeclRefExpr);
-        //VISIT(DependentScopeDeclRefExpr);
-        //VISIT(DesignatedInitExpr);
-        //VISIT(ExprWithCleanups);
-        //VISIT(ExtVectorElementExpr);
-        //VISIT(FloatingLiteral);
-        //VISIT(GNUNullExpr);
-        //VISIT(ImaginaryLiteral);
-        //VISIT(ImplicitValueInitExpr);
-        //VISIT(InitListExpr);
-        VISIT(IntegerLiteral);
-        //VISIT(MemberExpr);
-        //VISIT(OffsetOfExpr);
-        //VISIT(OpaqueValueExpr);
-        //VISIT(OverloadExpr);
-        //VISIT(PackExpansionExpr);
-        //VISIT(ParenExpr);
-        //VISIT(ParenListExpr);
-        //VISIT(PredefinedExpr);
-        //VISIT(ShuffleVectorExpr);
-        //VISIT(SizeOfPackExpr);
-        //VISIT(StmtExpr);
-        //VISIT(StringLiteral);
-        //VISIT(SubstNonTypeTemplateParmPackExpr);
-        //VISIT(UnaryExprOrTypeTraitExpr);
-        //VISIT(UnaryOperator);
-        //VISIT(UnaryTypeTraitExpr);
-        //VISIT(VAArgExpr);
-#undef VISIT
-
-		return true;
-	}
-#endif
 
 private:
   clang::ASTContext *astContext; // used for getting additional AST info
