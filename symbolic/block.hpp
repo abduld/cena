@@ -2,10 +2,10 @@
 #ifndef __BLOCK_H__
 #define __BLOCK_H__
 
-class Block : public CompoundNode {
+class BlockNode : public CompoundNode {
 public:
-  Block() : CompoundNode() {}
-  ~Block() {}
+  BlockNode() : CompoundNode() {}
+  ~BlockNode() {}
   string getHead() { return head_; }
 
 private:

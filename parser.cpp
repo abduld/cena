@@ -247,11 +247,29 @@ public:
             TraverseDecl(*init);
             *nd <<= current_node;
         }
-        *tmp <<= nd;
         current_node = tmp;
+        *current_node <<= nd;
         return true;
     }
 
+
+    virtual bool TraverseWhileStmt(WhileStmt *stmt) {
+      shared_ptr<Node> tmp = current_node;
+        shared_ptr<WhileNode> nd(new WhileNode());
+
+        PresumedLoc PLoc = SM.getPresumedLoc(whSt->getWhileLoc());
+
+        current_node = nd;        
+        TraverseStmt(stmt->getCond());
+
+        current_node = shared_ptr<BlockNode>(new BlockNode());
+        TraverseStmt(stmt->getBody());
+        *nd <<= current_node;
+
+        current_node = tmp;
+        *current_node <<= nd;
+        return true;
+    }   
   /*******************************************************************************************************/
   /*******************************************************************************************************/
   /*******************************************************************************************************/
@@ -262,7 +280,7 @@ public:
     if (E->getType()->isUnsignedIntegerType()) {
             std::clog << "TODO;;;" << std::endl;
         } else if (E->getValue().getNumWords() == 1) {
-    current_node = toNode(E->getValue());
+    *current_node <<= toNode(E->getValue());
         } else {
             std::clog << "TODO;;;" << std::endl;
         }
