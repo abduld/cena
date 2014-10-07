@@ -7,12 +7,9 @@ public:
   BinaryOp(const char *s) : StringNode(s) {}
   BinaryOp(string s) : StringNode(s) {}
   string getHead() { return head_; }
-  void toCCode_(ostringstream &o) {
-    o << getConstant();
-  }
-  void toString_(ostringstream &o) {
-    toCCode_(o);
-  }
+  void toCCode_(ostringstream &o) { o << getConstant(); }
+  void toString_(ostringstream &o) { toCCode_(o); }
+
 private:
   string head_ = "BinaryOp";
 };
@@ -22,21 +19,20 @@ public:
   BinaryOperatorNode() : Node() {}
   BinaryOperatorNode(string op, const shared_ptr<Node> &lhs,
                      const shared_ptr<Node> &rhs)
-      : Node(), op_(shared_ptr<BinaryOp>(new BinaryOp(op))), lhs_(lhs), rhs_(rhs) {
-  }
+      : Node(), op_(shared_ptr<BinaryOp>(new BinaryOp(op))), lhs_(lhs),
+        rhs_(rhs) {}
   ~BinaryOperatorNode() {}
   void setOperator(const string &op) {
     op_ = shared_ptr<BinaryOp>(new BinaryOp(op));
   }
   void setOperator(const shared_ptr<BinaryOp> &op) { op_ = op; }
-  void setLHS(const shared_ptr<Node> &lhs) { lhs_ = lhs;}
+  void setLHS(const shared_ptr<Node> &lhs) { lhs_ = lhs; }
 
   void setRHS(const shared_ptr<Node> &rhs) { rhs_ = rhs; }
   shared_ptr<Node> getOperator() { return op_; }
   shared_ptr<Node> getLHS() { return lhs_; }
   shared_ptr<Node> setRHS() { return rhs_; }
   string getHead() { return head_; }
-
 
   void toCCode_(ostringstream &o) {
     assert(lhs_ != nullptr);
@@ -59,6 +55,7 @@ public:
     rhs_->toString_(o);
   }
   void toJSON_(ostringstream &o) { o << "{\"type\": \"unknown\"}"; }
+
 private:
   string head_ = "BinaryOperatorNode";
   shared_ptr<BinaryOp> op_ = nullptr;

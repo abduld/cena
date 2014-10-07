@@ -14,7 +14,7 @@ public:
     return vec;
   }
   bool isAtomNode() const { return true; }
-  void setConstant(const T & val)  {  val_ = val; }
+  void setConstant(const T &val) { val_ = val; }
   T getConstant() const { return val_; }
   virtual void toCCode_(ostringstream &o) {
     // std::cout << getHead() << "   ::  " << getConstant() << std::endl;

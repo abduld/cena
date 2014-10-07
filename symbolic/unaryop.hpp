@@ -5,7 +5,7 @@
 class UnaryOp : public StringNode {
 public:
   UnaryOp(const char *s) : StringNode(s) {}
-  UnaryOp(const string & s) : StringNode(s) {}
+  UnaryOp(const string &s) : StringNode(s) {}
   string getHead() { return head_; }
 
 private:
@@ -15,16 +15,17 @@ private:
 class UnaryOperatorNode : public Node {
 public:
   UnaryOperatorNode() : Node() {}
-  UnaryOperatorNode(const string & op, const shared_ptr<Node> &arg) : Node(), op_(shared_ptr<UnaryOp>(new UnaryOp(op))), arg_(arg) {
-  }
+  UnaryOperatorNode(const string &op, const shared_ptr<Node> &arg)
+      : Node(), op_(shared_ptr<UnaryOp>(new UnaryOp(op))), arg_(arg) {}
   ~UnaryOperatorNode() {}
-  void setOperator(const string &op) { op_ = shared_ptr<UnaryOp>(new UnaryOp(op)); }
+  void setOperator(const string &op) {
+    op_ = shared_ptr<UnaryOp>(new UnaryOp(op));
+  }
   void setArg(const shared_ptr<Node> &arg) { arg_ = arg; }
 
   shared_ptr<UnaryOp> getOperator() { return op_; }
   shared_ptr<Node> getArg() { return arg_; }
   string getHead() { return head_; }
-
 
   void toCCode_(ostringstream &o) {
     assert(arg_ != nullptr);
@@ -41,6 +42,7 @@ public:
     arg_->toString_(o);
   }
   void toJSON_(ostringstream &o) { o << "{\"type\": \"unknown\"}"; }
+
 private:
   string head_ = "UnaryOperator";
   shared_ptr<UnaryOp> op_ = nullptr;

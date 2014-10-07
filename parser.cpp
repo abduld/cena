@@ -86,43 +86,41 @@ public:
     return shared_ptr<StringNode>(new StringNode(str));
   }
 
+  vector<shared_ptr<Node>> toNode(const Qualifiers &quals) {
+    vector<shared_ptr<Node>> res;
 
-    vector<shared_ptr<Node>> toNode(const Qualifiers & quals) {
-        vector<shared_ptr<Node>> res;
-        
-        if (quals.hasConst()) {
-            res.push_back(shared_ptr<StringNode>(new StringNode("const")));
-        }
-        if (quals.hasVolatile()) {
-            res.push_back(shared_ptr<StringNode>(new StringNode("volatile")));
-        }
-        if (quals.hasRestrict()) {
-            res.push_back(shared_ptr<StringNode>(new StringNode("restrict")));
-        }
-        if (quals.hasAddressSpace()) {
-            unsigned addressSpace = quals.getAddressSpace();
-            switch (addressSpace) {
-                case LangAS::opencl_global:
-            res.push_back(shared_ptr<StringNode>(new StringNode("__global")));
-                    break ;
-                case LangAS::opencl_local:
-            res.push_back(shared_ptr<StringNode>(new StringNode("__local")));
-                    break ;
-                case LangAS::opencl_constant:
-            res.push_back(shared_ptr<StringNode>(new StringNode("__constant")));
-                    break ;
-                default:
-                {
-                  ostringstream o;
-                  o<<"__attribute__((address_space(";
-                    o<<addressSpace;
-                    o<< ")))";
-            res.push_back(shared_ptr<StringNode>(new StringNode(o.str())));
-                }
-            }
-        }
-        return res;
+    if (quals.hasConst()) {
+      res.push_back(shared_ptr<StringNode>(new StringNode("const")));
     }
+    if (quals.hasVolatile()) {
+      res.push_back(shared_ptr<StringNode>(new StringNode("volatile")));
+    }
+    if (quals.hasRestrict()) {
+      res.push_back(shared_ptr<StringNode>(new StringNode("restrict")));
+    }
+    if (quals.hasAddressSpace()) {
+      unsigned addressSpace = quals.getAddressSpace();
+      switch (addressSpace) {
+      case LangAS::opencl_global:
+        res.push_back(shared_ptr<StringNode>(new StringNode("__global")));
+        break;
+      case LangAS::opencl_local:
+        res.push_back(shared_ptr<StringNode>(new StringNode("__local")));
+        break;
+      case LangAS::opencl_constant:
+        res.push_back(shared_ptr<StringNode>(new StringNode("__constant")));
+        break;
+      default: {
+        ostringstream o;
+        o << "__attribute__((address_space(";
+        o << addressSpace;
+        o << ")))";
+        res.push_back(shared_ptr<StringNode>(new StringNode(o.str())));
+      }
+      }
+    }
+    return res;
+  }
   shared_ptr<TypeNode> toNode(const Type *ty) {
     if (const BuiltinType *bty = dyn_cast<const BuiltinType>(ty)) {
       StringRef s = bty->getName(PrintingPolicy(astContext->getLangOpts()));
@@ -132,18 +130,18 @@ public:
     }
   }
 
-  shared_ptr<TypeNode> toNode(const QualType & typ) {
+  shared_ptr<TypeNode> toNode(const QualType &typ) {
     shared_ptr<TypeNode> res;
     res = toNode(typ.getTypePtr());
     if (typ.hasQualifiers()) {
-        auto quals = toNode(typ.getQualifiers());
-        for (auto q: quals) {
-          res->addQualifyer(q);
-        }
+      auto quals = toNode(typ.getQualifiers());
+      for (auto q : quals) {
+        res->addQualifyer(q);
       }
+    }
     return res;
   }
-  shared_ptr<IdentifierNode> toNode(const Decl * decl) {
+  shared_ptr<IdentifierNode> toNode(const Decl *decl) {
     const NamedDecl *ND = dyn_cast<NamedDecl>(decl);
     shared_ptr<IdentifierNode> nd(new IdentifierNode());
     if (ND) {
@@ -342,7 +340,7 @@ public:
     if (stmt->getRetValue()) {
       TraverseStmt(stmt->getRetValue());
 
-    std::cout << current_node->toString() << std::endl;
+      std::cout << current_node->toString() << std::endl;
       nd->setReturnValue(current_node);
     }
 
@@ -350,43 +348,42 @@ public:
     return true;
   }
 
-#define OPERATOR(NAME)                                           \
-  bool TraverseUnary##NAME(UnaryOperator *E) {                  \
-      shared_ptr<UnaryOperatorNode> nd(new UnaryOperatorNode());\
-      current_node = nd;\
-      nd->setOperator(string(#NAME));\
-      TraverseStmt(E->getSubExpr());\
-      nd->setArg(current_node);\
-      current_node = nd;\
-    return true;                                                \
-  }     
+#define OPERATOR(NAME)                                                         \
+  bool TraverseUnary##NAME(UnaryOperator *E) {                                 \
+    shared_ptr<UnaryOperatorNode> nd(new UnaryOperatorNode());                 \
+    current_node = nd;                                                         \
+    nd->setOperator(string(#NAME));                                            \
+    TraverseStmt(E->getSubExpr());                                             \
+    nd->setArg(current_node);                                                  \
+    current_node = nd;                                                         \
+    return true;                                                               \
+  }
 
   UNARYOP_LIST()
 #undef OPERATOR
 
-#define GENERAL_BINOP_FALLBACK(NAME, BINOP_TYPE)                \
-  bool TraverseBin##NAME(BINOP_TYPE *E) {                       \
-      shared_ptr<BinaryOperatorNode> nd(new BinaryOperatorNode());\
-      current_node = nd;\
-      nd->setOperator(E->getOpcodeStr());\
-      TraverseStmt(E->getLHS());\
-      nd->setLHS(current_node);\
-      current_node = nd;\
-      TraverseStmt(E->getRHS());\
-      nd->setRHS(current_node);\
-      current_node = nd;\
-    return true;                                                \
-  }        
+#define GENERAL_BINOP_FALLBACK(NAME, BINOP_TYPE)                               \
+  bool TraverseBin##NAME(BINOP_TYPE *E) {                                      \
+    shared_ptr<BinaryOperatorNode> nd(new BinaryOperatorNode());               \
+    current_node = nd;                                                         \
+    nd->setOperator(E->getOpcodeStr());                                        \
+    TraverseStmt(E->getLHS());                                                 \
+    nd->setLHS(current_node);                                                  \
+    current_node = nd;                                                         \
+    TraverseStmt(E->getRHS());                                                 \
+    nd->setRHS(current_node);                                                  \
+    current_node = nd;                                                         \
+    return true;                                                               \
+  }
 #define OPERATOR(NAME) GENERAL_BINOP_FALLBACK(NAME, BinaryOperator)
   BINOP_LIST()
 #undef OPERATOR
 
-#define OPERATOR(NAME) \
+#define OPERATOR(NAME)                                                         \
   GENERAL_BINOP_FALLBACK(NAME##Assign, CompoundAssignOperator)
   CAO_LIST()
 #undef GENERAL_BINOP_FALLBACK
 #undef OPERATOR
-
 
   virtual bool TraverseBinaryOperator(BinaryOperator *E) {
     PresumedLoc PLoc = SM.getPresumedLoc(E->getOperatorLoc());
@@ -410,23 +407,23 @@ public:
       nd->setRHS(current_node);
       current_node = nd;
     }
-DEBUG;
+    DEBUG;
     return true;
   }
-    virtual bool TraverseDeclRefExpr(DeclRefExpr * E) {
-DEBUG;
-      const ValueDecl *D = E->getDecl();
-        current_node = shared_ptr<IdentifierNode>(new IdentifierNode("unkownid"));
-      if (D) {
-        current_node = toNode(D);
-      }
-
-  const NamedDecl *FD = E->getFoundDecl();
-  if (FD && D != FD) {
-        current_node = toNode(FD);
-  }
-        return true;
+  virtual bool TraverseDeclRefExpr(DeclRefExpr *E) {
+    DEBUG;
+    const ValueDecl *D = E->getDecl();
+    current_node = shared_ptr<IdentifierNode>(new IdentifierNode("unkownid"));
+    if (D) {
+      current_node = toNode(D);
     }
+
+    const NamedDecl *FD = E->getFoundDecl();
+    if (FD && D != FD) {
+      current_node = toNode(FD);
+    }
+    return true;
+  }
   /*******************************************************************************************************/
   /*******************************************************************************************************/
   /*******************************************************************************************************/
@@ -448,11 +445,11 @@ DEBUG;
     return true;
   }
 
-    virtual bool TraverseStringLiteral(StringLiteral *E) {
-        //cout << "striiiing" << endl;
-      current_node = shared_ptr<StringNode>(new StringNode(E->getString().str()));
-        return true;
-    }
+  virtual bool TraverseStringLiteral(StringLiteral *E) {
+    // cout << "striiiing" << endl;
+    current_node = shared_ptr<StringNode>(new StringNode(E->getString().str()));
+    return true;
+  }
 
   void addCurrent() {
     *prog_ <<= current_node;
@@ -527,7 +524,7 @@ void parse() {
           llvm::IntrusiveRefCntPtr<clang::DiagnosticIDs>(
               new clang::DiagnosticIDs()),
           &*diagnosticOpts, new clang::IgnoringDiagConsumer(), true));
-  diagnostics->setSuppressSystemWarnings(true); 
+  diagnostics->setSuppressSystemWarnings(true);
   diagnostics->setIgnoreAllWarnings(true);
   std::unique_ptr<CompilationDatabase> Compilations(
       new FixedCompilationDatabase("/", vector<string>()));
@@ -535,9 +532,9 @@ void parse() {
   std::vector<string> args;
   args.push_back("-std=c++11 -O0");
 
-  runToolOnCodeWithArgs(newFrontendActionFactory<SFrontendAction>()->create(),
-                        "int main() { const char v = 'g', s = 2; int g; return g + v;}",
-                        args);
+  runToolOnCodeWithArgs(
+      newFrontendActionFactory<SFrontendAction>()->create(),
+      "int main() { const char v = 'g', s = 2; int g; return g + v;}", args);
   // print out the rewritten source code ("rewriter" is a global var.)
   // rewriter.getEditBuffer(rewriter.getSourceMgr().getMainFileID()).write(errs());
 
