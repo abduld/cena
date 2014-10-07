@@ -530,11 +530,14 @@ void parse() {
       new FixedCompilationDatabase("/", vector<string>()));
 
   std::vector<string> args;
-  args.push_back("-std=c++11 -O0");
+  args.push_back(" -O0  ");
+  args.push_back("-Xclang -fcuda-is-device ");
+  args.push_back("-Xclang -femit-all-decls ");
+  args.push_back("-Xclang -ffake-address-space-map");
 
   runToolOnCodeWithArgs(
       newFrontendActionFactory<SFrontendAction>()->create(),
-      "int main() { const char v = 'g', s = 2; int g; return g + v;}", args);
+      "__global__ void f() { return ; } int main() { const char v = 'g', s = 2; int g; return g + v;}", args);
   // print out the rewritten source code ("rewriter" is a global var.)
   // rewriter.getEditBuffer(rewriter.getSourceMgr().getMainFileID()).write(errs());
 
