@@ -85,6 +85,44 @@ public:
     e->printPretty(ros, nullptr, astContext->getLangOpts());
     return shared_ptr<StringNode>(new StringNode(str));
   }
+
+
+    vector<shared_ptr<Node>> toNode(const Qualifiers & quals) {
+        vector<shared_ptr<Node>> res;
+        
+        if (quals.hasConst()) {
+            res.push_back(shared_ptr<StringNode>(new StringNode("const")));
+        }
+        if (quals.hasVolatile()) {
+            res.push_back(shared_ptr<StringNode>(new StringNode("volatile")));
+        }
+        if (quals.hasRestrict()) {
+            res.push_back(shared_ptr<StringNode>(new StringNode("restrict")));
+        }
+        if (quals.hasAddressSpace()) {
+            unsigned addressSpace = quals.getAddressSpace();
+            switch (addressSpace) {
+                case LangAS::opencl_global:
+            res.push_back(shared_ptr<StringNode>(new StringNode("__global")));
+                    break ;
+                case LangAS::opencl_local:
+            res.push_back(shared_ptr<StringNode>(new StringNode("__local")));
+                    break ;
+                case LangAS::opencl_constant:
+            res.push_back(shared_ptr<StringNode>(new StringNode("__constant")));
+                    break ;
+                default:
+                {
+                  ostringstream o;
+                  o<<"__attribute__((address_space(";
+                    o<<addressSpace;
+                    o<< ")))";
+            res.push_back(shared_ptr<StringNode>(new StringNode(o.str())));
+                }
+            }
+        }
+        return res;
+    }
   shared_ptr<TypeNode> toNode(const Type *ty) {
     if (const BuiltinType *bty = dyn_cast<const BuiltinType>(ty)) {
       StringRef s = bty->getName(PrintingPolicy(astContext->getLangOpts()));
@@ -97,6 +135,12 @@ public:
   shared_ptr<TypeNode> toNode(const QualType & typ) {
     shared_ptr<TypeNode> res;
     res = toNode(typ.getTypePtr());
+    if (typ.hasQualifiers()) {
+        auto quals = toNode(typ.getQualifiers());
+        for (auto q: quals) {
+          res->addQualifyer(q);
+        }
+      }
     return res;
   }
   shared_ptr<IdentifierNode> toNode(const Decl * decl) {
@@ -113,37 +157,6 @@ public:
   }
 
 #if 0
-    SymbolicExpr toSymbolicExpr(Qualifiers quals) {
-        
-        SymbolicQualifierExpr qualExp = SymbolicQualifierExpr(this);
-        
-        if (quals.hasConst()) {
-            qualExp <<= "const";
-        }
-        if (quals.hasVolatile()) {
-            qualExp <<= "volatile";
-        }
-        if (quals.hasRestrict()) {
-            qualExp <<= "restrict";
-        }
-        if (quals.hasAddressSpace()) {
-            unsigned addressSpace = quals.getAddressSpace();
-            switch (addressSpace) {
-                case LangAS::opencl_global:
-                    qualExp <<= "__global";
-                    break ;
-                case LangAS::opencl_local:
-                    qualExp <<= "__local";
-                    break ;
-                case LangAS::opencl_constant:
-                    qualExp <<= "__constant";
-                    break ;
-                default:
-                    qualExp <<= ToString("__attribute__((address_space(", addressSpace, ")))");
-            }
-        }
-        return qualExp;
-    }
     
     SymbolicExpr toSymbolicExpr(const Expr * e) {
         SymbolicExpr expr = SymbolicExpr(this);
@@ -520,10 +533,10 @@ void parse() {
       new FixedCompilationDatabase("/", vector<string>()));
 
   std::vector<string> args;
-  args.push_back("-std=c++11 --O0");
+  args.push_back("-std=c++11 -O0");
 
   runToolOnCodeWithArgs(newFrontendActionFactory<SFrontendAction>()->create(),
-                        "int main() { char v = 'g', s = 2; int g; return g + v;}",
+                        "int main() { const char v = 'g', s = 2; int g; return g + v;}",
                         args);
   // print out the rewritten source code ("rewriter" is a global var.)
   // rewriter.getEditBuffer(rewriter.getSourceMgr().getMainFileID()).write(errs());
