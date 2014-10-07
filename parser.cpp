@@ -380,20 +380,20 @@ public:
     if (E->isAssignmentOp()) {
       shared_ptr<AssignNode> nd(new AssignNode());
       current_node = nd;
-      //TraverseStmt(E->getLHS());
+      TraverseStmt(E->getLHS());
       nd->setLHS(current_node);
       current_node = nd;
-      //TraverseStmt(E->getRHS());
+      TraverseStmt(E->getRHS());
       nd->setRHS(current_node);
       current_node = nd;
     } else {
       shared_ptr<BinaryOperatorNode> nd(new BinaryOperatorNode());
       current_node = nd;
       nd->setOperator(E->getOpcodeStr());
-      //TraverseStmt(E->getLHS());
+      TraverseStmt(E->getLHS());
       nd->setLHS(current_node);
       current_node = nd;
-      //TraverseStmt(E->getRHS());
+      TraverseStmt(E->getRHS());
       nd->setRHS(current_node);
       current_node = nd;
     }
