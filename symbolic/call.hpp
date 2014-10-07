@@ -25,7 +25,7 @@ public:
   }
   string getHead() { return head_; }
   void toCCode(ostringstream &o) {
-    getFunction()->toCCode(o);
+    getFunction()->toCCode_(o);
     o << "(";
     RiffleJoin(o, ToCCode(vals_), string(" ,"));
     o << ")";

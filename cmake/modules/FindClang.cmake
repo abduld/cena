@@ -37,8 +37,6 @@ FIND_AND_ADD_CLANG_LIB(clangParse)
 FIND_AND_ADD_CLANG_LIB(clangLex)
 FIND_AND_ADD_CLANG_LIB(clangBasic)
 FIND_AND_ADD_CLANG_LIB(clangTooling)
-FIND_AND_ADD_CLANG_LIB(clangRewriteCore)
-FIND_AND_ADD_CLANG_LIB(clangStaticAnalyzerFrontend)
 
 set(CLANG_INCLUDE_DIRS ${LLVM_INCLUDE_DIRS}/../tools/clang/include)
 if (CLANG_LIBS AND CLANG_INCLUDE_DIRS)

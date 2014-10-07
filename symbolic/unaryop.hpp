@@ -1,38 +1,50 @@
 
-#ifndef __BINARY_OP_H__
-#define __BINARY_OP_H__
+#ifndef __UNARY_OP_H__
+#define __UNARY_OP_H__
 
-class UnaryOperator : public String {
+class UnaryOp : public StringNode {
 public:
-  UnaryOperator(const char *s) : String(s) {}
-  UnaryOperator(string s) : String(s) {}
+  UnaryOp(const char *s) : StringNode(s) {}
+  UnaryOp(const string & s) : StringNode(s) {}
   string getHead() { return head_; }
 
 private:
   string head_ = "UnaryOperator";
 };
 
-class UnaryOp : public CompoundNode {
+class UnaryOperatorNode : public Node {
 public:
-  UnaryOp() : CompoundNode() {}
-  UnaryOp(string op, Node *arg) : CompoundNode() {
-    push_back(shared_ptr<UnaryOperator>(new UnaryOperator(op)));
-    push_back(arg);
+  UnaryOperatorNode() : Node() {}
+  UnaryOperatorNode(const string & op, const shared_ptr<Node> &arg) : Node(), op_(shared_ptr<UnaryOp>(new UnaryOp(op))), arg_(arg) {
   }
-  UnaryOp(string op, const shared_ptr<Node> &arg) : CompoundNode() {
-    push_back(shared_ptr<UnaryOperator>(new UnaryOperator(op)));
-    push_back(arg);
-  }
-  ~UnaryOp() {}
-  void setOperator(const shared_ptr<Node> &op) { setPart(0, op); }
-  void setArg(const shared_ptr<Node> &arg) { setPart(1, arg); }
+  ~UnaryOperatorNode() {}
+  void setOperator(const string &op) { op_ = shared_ptr<UnaryOp>(new UnaryOp(op)); }
+  void setArg(const shared_ptr<Node> &arg) { arg_ = arg; }
 
-  shared_ptr<Node> getOperator() { return getPart(0); }
-  shared_ptr<Node> getArg() { return getPart(1); }
+  shared_ptr<UnaryOp> getOperator() { return op_; }
+  shared_ptr<Node> getArg() { return arg_; }
   string getHead() { return head_; }
 
+
+  void toCCode_(ostringstream &o) {
+    assert(arg_ != nullptr);
+    assert(op_ != nullptr);
+    op_->toCCode_(o);
+    o << " ";
+    arg_->toCCode_(o);
+  }
+  void toString_(ostringstream &o) {
+    assert(arg_ != nullptr);
+    assert(op_ != nullptr);
+    op_->toString_(o);
+    o << " ";
+    arg_->toString_(o);
+  }
+  void toJSON_(ostringstream &o) { o << "{\"type\": \"unknown\"}"; }
 private:
-  string head_ = "UnaryOp";
+  string head_ = "UnaryOperator";
+  shared_ptr<UnaryOp> op_ = nullptr;
+  shared_ptr<Node> arg_ = nullptr;
 };
 
-#endif /* __BINARY_OP_H__ */
+#endif /* __UNARY_OP_H__ */

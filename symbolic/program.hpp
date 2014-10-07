@@ -8,6 +8,7 @@ public:
   ProgramNode() : CompoundNode() {}
   ~ProgramNode() {}
   string getHead() { return head_; }
+  bool isProgram() const { return true; }
 
 private:
   string head_ = "Program";

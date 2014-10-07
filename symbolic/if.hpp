@@ -17,7 +17,7 @@ class If : public CompoundNode {
     push_back(thenPart);
     push_back(elsePart);
   }
-  string getHead() const { return head_; }
+  virtual string getHead() { return head_; }
 
 private:
   string head_ = "If";

@@ -11,6 +11,7 @@ Find_Package(ZLIB REQUIRED)
 add_executable(ast
   parser.cpp
   main.cpp
+  external/backward_cpp/backward.cpp
 )
 
 link_directories(${LLVM_LIBRARY_DIRS})
@@ -28,6 +29,8 @@ if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "clang")
 endif()
 add_definitions(-Wno-unused-function)
 add_definitions(-Wfatal-errors)
+add_definitions(-g)
+add_definitions(-O0)
 
 
 target_link_libraries(ast ${ZLIB_LIBRARIES} -lncurses ${CLANG_LIBS} ${LLVM_MODULE_LIBS} ${LLVM_LDFLAGS} ${Boost_LIBRARIES})

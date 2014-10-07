@@ -4,7 +4,7 @@
 
 int main(void) {
 
-	parse();
+  parse();
 
-	return 0;
+  return 0;
 }

@@ -14,19 +14,14 @@ public:
     return vec;
   }
   bool isAtomNode() const { return true; }
+  void setConstant(const T & val)  {  val_ = val; }
   T getConstant() const { return val_; }
-  virtual void toCCode(ostringstream &o) { o << getConstant(); }
-  virtual void toStringNode(ostringstream &o) { toCCode(o); }
-  string toCCode() {
-    ostringstream o;
-    toCCode(o);
-    return o.str();
+  virtual void toCCode_(ostringstream &o) {
+    // std::cout << getHead() << "   ::  " << getConstant() << std::endl;
+    o << getConstant();
   }
-  string toStringNode() {
-    ostringstream o;
-    toStringNode(o);
-    return o.str();
-  }
+  virtual void toString_(ostringstream &o) { toCCode_(o); }
+  virtual void toJSON_(ostringstream &o) { toCCode_(o); }
 
 private:
   T val_;
@@ -37,20 +32,32 @@ public:
   BooleanNode() : AtomNode<bool>() {}
   BooleanNode(bool v) : AtomNode<bool>(v) {}
   string getHead() { return head_; }
-  void toCCode(ostringstream &o) { o << (getConstant() ? "true" : "false"); }
+  void toCCode_(ostringstream &o) { o << (getConstant() ? "true" : "false"); }
 
 private:
-  string head_ = "BooleanNode";
+  string head_ = "Boolean";
 };
 
-class IntegerNode : public AtomNode<int64_t> {
+class CharacterNode : public AtomNode<unsigned char> {
+public:
+  CharacterNode() : AtomNode<unsigned char>() {}
+  CharacterNode(unsigned char v) : AtomNode<unsigned char>(v) {}
+  string getHead() { return head_; }
+  void toCCode_(ostringstream &o) {
+    o << "'" << string(1, getConstant()) << "'";
+  }
+
+private:
+  string head_ = "Character";
+};
+class IntegerNode : public virtual AtomNode<int64_t> {
 public:
   IntegerNode() : AtomNode<int64_t>() {}
   IntegerNode(int64_t v) : AtomNode<int64_t>(v) {}
   string getHead() { return head_; }
 
 private:
-  string head_ = "IntegerNode";
+  string head_ = "Integer";
 };
 
 class RealNode : public AtomNode<double> {
@@ -60,7 +67,7 @@ public:
   string getHead() { return head_; }
 
 private:
-  string head_ = "RealNode";
+  string head_ = "Real";
 };
 
 class StringNode : public AtomNode<string> {
@@ -71,6 +78,6 @@ public:
   string getHead() { return head_; }
 
 private:
-  string head_ = "StringNode";
+  string head_ = "String";
 };
 #endif /* __ATOM_H__ */
