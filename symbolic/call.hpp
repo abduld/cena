@@ -2,37 +2,46 @@
 #ifndef __CALL_H__
 #define __CALL_H__
 
-class Call : public CompoundNode {
+class CallNode : public Node {
 public:
-  Call() : CompoundNode() {}
-  Call(shared_ptr<Node> fun, shared_ptr<Node> arg) : CompoundNode() {
-    vector<shared_ptr<Node>> args;
-    args.push_back(arg);
-    push_back(fun);
-    push_back(args);
-  }
-  Call(shared_ptr<Node> fun, vector<shared_ptr<Node>> args) : CompoundNode() {
-    push_back(fun);
-    push_back(args);
-  }
-  ~Call() {}
-  shared_ptr<Node> getFunction() { return getPart(0); }
+  CallNode() : Node() {}
+  CallNode(const shared_ptr<IdentifierNode> & fun, const vector<shared_ptr<Node>> & args) : Node(), fun_(fun), args_(new CompoundNode(args)) {}
+  ~CallNode() {}
+  shared_ptr<IdentifierNode> getFunction() { return fun_; }
   vector<shared_ptr<Node>> getArgs() {
-    vector<shared_ptr<Node>> vals = getValues();
-    vector<shared_ptr<Node>> res =
-        vector<shared_ptr<Node>>(vals.begin() + 1, vals.end());
-    return res;
+    return args_->getValues();
+  }
+  void setFunction(const shared_ptr<IdentifierNode> & fun) {
+    fun_ = fun;
+  }
+  void addArg(const shared_ptr<Node> & nd) {
+    if (args_ == nullptr) {
+      args_ = shared_ptr<CompoundNode>(new CompoundNode());
+    }
+    args_->push_back(nd);
   }
   string getHead() { return head_; }
-  void toCCode(ostringstream &o) {
-    getFunction()->toCCode_(o);
+  void toCCode_(ostringstream &o) {
+    fun_->toCCode_(o);
     o << "(";
-    RiffleJoin(o, ToCCode(vals_), string(" ,"));
+      if (args_ != nullptr) {
+    args_->toCCode_(o);
+  }
+    o << ")";
+  }
+  void toString_(ostringstream &o) {
+    fun_->toString_(o);
+    o << "(";
+      if (args_ != nullptr) {
+    args_->toString_(o);
+  }
     o << ")";
   }
 
 private:
   string head_ = "Call";
+  shared_ptr<IdentifierNode> fun_ = nullptr;
+  shared_ptr<CompoundNode> args_ = nullptr;
 };
 
 #endif /* __CALL_H__ */

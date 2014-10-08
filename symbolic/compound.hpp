@@ -6,6 +6,7 @@
 class CompoundNode : public Node {
 public:
   CompoundNode() : Node() { vals_ = vector<shared_ptr<Node>>(); }
+  CompoundNode(const vector<shared_ptr<Node>> & vals) : Node(), vals_(vals) { }
   virtual ~CompoundNode() { vals_.clear(); }
   virtual bool isCompound() const { return true; }
   virtual bool isEmpty() const { return getArgCount() == 0; }
@@ -107,7 +108,7 @@ public:
 
   virtual void toCCode_(ostringstream &o) {
     auto vals = getValues();
-    auto len = vals.size() - 1;
+    auto len = vals.size();
     if (isBlock()) {
       o << "{\n";
     }
@@ -116,7 +117,7 @@ public:
         len--;
         v->toCCode_(o);
         if (v->isBlock()) {
-          continue ;
+          continue;
         }
         if (v->isStatement() || isBlock()) {
           o << "; /* " << v->getHead() << "*/\n";
@@ -131,7 +132,7 @@ public:
   }
   virtual void toString_(ostringstream &o) {
     auto vals = getValues();
-    auto len = vals.size() - 1;
+    auto len = vals.size();
     if (isBlock()) {
       o << "{\n";
     }
@@ -140,7 +141,7 @@ public:
         len--;
         v->toString_(o);
         if (v->isBlock()) {
-          continue ;
+          continue;
         }
         if (v->isStatement() || isBlock()) {
           o << "\n";

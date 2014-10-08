@@ -7,22 +7,14 @@ class IfNode : public Node {
 public:
   IfNode() : Node() {}
   IfNode(const shared_ptr<Node> &cond, const shared_ptr<Node> &thenPart)
-      : Node(), cond_(cond), then_(thenPart) {
-  }
+      : Node(), cond_(cond), then_(thenPart) {}
   IfNode(const shared_ptr<Node> &cond, const shared_ptr<Node> &thenPart,
-     const shared_ptr<Node> &elsePart)
-      : Node(), cond_(cond), then_(thenPart), else_(elsePart) {
-  }
+         const shared_ptr<Node> &elsePart)
+      : Node(), cond_(cond), then_(thenPart), else_(elsePart) {}
   string getHead() { return head_; }
-  void setCondition(const shared_ptr<Node> & cond) {
-    cond_ = cond;
-  }
-  void setThen(const shared_ptr<Node> & nd) {
-    then_ = nd;
-  }
-  void setElse(const shared_ptr<Node> & nd) {
-    else_ = nd;
-  }
+  void setCondition(const shared_ptr<Node> &cond) { cond_ = cond; }
+  void setThen(const shared_ptr<Node> &nd) { then_ = nd; }
+  void setElse(const shared_ptr<Node> &nd) { else_ = nd; }
   void toCCode_(ostringstream &o) {
     assert(cond_ != nullptr);
     assert(then_ != nullptr);
@@ -31,8 +23,8 @@ public:
     o << ")";
     then_->toCCode_(o);
     if (else_ != nullptr) {
-    o << " else ";
-    else_->toCCode_(o);
+      o << " else ";
+      else_->toCCode_(o);
     }
   }
   void toString_(ostringstream &o) {
@@ -44,12 +36,13 @@ public:
     o << ")";
     then_->toString_(o);
     if (else_ != nullptr) {
-    o << " else ";
-    else_->toString_(o);
+      o << " else ";
+      else_->toString_(o);
     }
   }
   bool isBlock() const { return true; }
   void toJSON_(ostringstream &o) { o << "{\"type\": \"unknown\"}"; }
+
 private:
   string head_ = "If";
   shared_ptr<Node> cond_ = nullptr;

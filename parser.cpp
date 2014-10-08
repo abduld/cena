@@ -19,6 +19,8 @@
 #include "clang/Basic/TargetInfo.h"
 #include "clang/Basic/LangOptions.h"
 #include "llvm/Support/Signals.h"
+#include "clang/Lex/Lexer.h"
+#include "clang/Lex/Preprocessor.h"
 #include "symbolic/ast.hpp"
 #include "external/backward_cpp/backward.hpp"
 
@@ -28,9 +30,9 @@
 using namespace std;
 using namespace llvm;
 using namespace clang;
-using namespace clang::comments;
-using namespace clang::driver;
-using namespace clang::tooling;
+using namespace comments;
+using namespace driver;
+using namespace tooling;
 using namespace backward;
 
 #define DEBUG printf("DEBUG :: >>> %s %d ... \n", __PRETTY_FUNCTION__, __LINE__)
@@ -62,10 +64,10 @@ StackTrace st;
 void collect_trace() { st.load_here(); }
 class SVisitor : public RecursiveASTVisitor<SVisitor> {
 public:
-  explicit SVisitor(CompilerInstance *CI)
-      : astContext(&(CI->getASTContext())),
-        Traits(astContext->getCommentCommandTraits()),
-        SM(astContext->getSourceManager()) {
+  explicit SVisitor(CompilerInstance &CI)
+      : ctx(&(CI.getASTContext())),
+        Traits(ctx->getCommentCommandTraits()),
+        SM(ctx->getSourceManager()) {
     prog_ = shared_ptr<ProgramNode>(new ProgramNode());
     current_node = prog_;
   }
@@ -82,10 +84,10 @@ public:
   }
 
   shared_ptr<StringNode> toNode(const Expr *e) {
-    clang::LangOptions LO;
+    LangOptions LO;
     std::string str;
     raw_string_ostream ros(str);
-    e->printPretty(ros, nullptr, astContext->getLangOpts());
+    e->printPretty(ros, nullptr, ctx->getLangOpts());
     return shared_ptr<StringNode>(new StringNode(str));
   }
 
@@ -126,7 +128,7 @@ public:
   }
   shared_ptr<TypeNode> toNode(const Type *ty) {
     if (const BuiltinType *bty = dyn_cast<const BuiltinType>(ty)) {
-      StringRef s = bty->getName(PrintingPolicy(astContext->getLangOpts()));
+      StringRef s = bty->getName(PrintingPolicy(ctx->getLangOpts()));
       return shared_ptr<TypeNode>(new TypeNode(s));
     } else {
       return shared_ptr<TypeNode>(new TypeNode("unsupported"));
@@ -221,7 +223,7 @@ public:
          assert(false && "PromoteDecl: unsupported elaborated type.");
          }
          } else if (const BuiltinType* bty = dyn_cast<const BuiltinType>(ty)) {
-         clang::LangOptions LO;
+         LangOptions LO;
          result = bty->getName(PrintingPolicy(LO)) + std::string(" ") + name;
          } else if (const TypedefType* tty = dyn_cast<const TypedefType>(ty)) {
          result = tty->getDecl()->getName().str() + std::string(" ") + name;
@@ -236,7 +238,7 @@ public:
          }
          */
         else if (const BuiltinType* bty = dyn_cast<const BuiltinType>(ty)) {
-            SymbolicLiteral lit = bty->getName(PrintingPolicy(astContext->getLangOpts()));
+            SymbolicLiteral lit = bty->getName(PrintingPolicy(ctx->getLangOpts()));
             SymbolicTypeExpr exp(this);
             exp <<= lit;
             return exp;
@@ -250,7 +252,22 @@ public:
   /*******************************************************************************************************/
   /*******************************************************************************************************/
   /*******************************************************************************************************/
+  
+  bool canIgnoreCurrentASTNode() const {
+    const DeclContext *decl = ctx->getTranslationUnitDecl();
+    for (auto it = decl->decls_begin(), declEnd = decl->decls_end(); it != declEnd; ++it) {
+      auto startLocation = (*it)->getLocStart();
+            if (startLocation.isValid() &&
+                SM.getMainFileID() == SM.getFileID(startLocation)) {
+              return false;
+            }
+    }
+    return true;
+  }
   virtual bool TraverseFunctionDecl(FunctionDecl *decl) {
+    if (canIgnoreCurrentASTNode()) {
+      return true;
+    }
     shared_ptr<Node> tmp = current_node;
     shared_ptr<FunctionNode> func(new FunctionNode());
     shared_ptr<TypeNode> returnType = toNode(decl->getReturnType());
@@ -266,16 +283,19 @@ public:
       func->addParameter(current_node);
     }
     if (decl->doesThisDeclarationHaveABody()) {
-    shared_ptr<BlockNode> body = func->getBody();
-    current_node = body;
-    TraverseStmt(decl->getBody());
-    *body <<= current_node;
-  }
+      shared_ptr<BlockNode> body = func->getBody();
+      current_node = body;
+      TraverseStmt(decl->getBody());
+      *body <<= current_node;
+    }
     current_node = func;
     return true;
   }
 
   virtual bool TraverseVarDecl(VarDecl *decl) {
+    if (canIgnoreCurrentASTNode()) {
+      return true;
+    }
     shared_ptr<Node> tmp = current_node;
     shared_ptr<DeclareNode> nd(new DeclareNode());
     shared_ptr<TypeNode> typ = toNode(decl->getType());
@@ -296,6 +316,9 @@ public:
   }
 
   virtual bool TraverseDeclStmt(DeclStmt *decl) {
+    if (canIgnoreCurrentASTNode()) {
+      return true;
+    }
     shared_ptr<Node> tmp = current_node;
     shared_ptr<CompoundNode> nd(new CompoundNode());
     for (auto init = decl->decl_begin(), end = decl->decl_end(); init != end;
@@ -323,35 +346,35 @@ public:
     current_node = nd;
     return true;
   }
-virtual bool TraverseIfStmt(IfStmt *stmt) {
+  virtual bool TraverseIfStmt(IfStmt *stmt) {
     shared_ptr<Node> tmp = current_node;
     shared_ptr<IfNode> nd(new IfNode());
-    
+
     current_node = nd;
     TraverseStmt(stmt->getCond());
     nd->setCondition(current_node);
 
     current_node = nd;
     TraverseStmt(stmt->getThen());
-    if(!current_node->isBlock()){
+    if (!current_node->isBlock()) {
       shared_ptr<BlockNode> blk(new BlockNode());
       *blk <<= current_node;
       current_node = blk;
     }
     nd->setThen(current_node);
 
-    if(stmt->getElse()!=NULL){
-    current_node = nd;
-    TraverseStmt(stmt->getElse());
-    if(!current_node->isBlock()){
-      shared_ptr<BlockNode> blk(new BlockNode());
-      *blk <<= current_node;
-      current_node = blk;
+    if (stmt->getElse() != NULL) {
+      current_node = nd;
+      TraverseStmt(stmt->getElse());
+      if (!current_node->isBlock()) {
+        shared_ptr<BlockNode> blk(new BlockNode());
+        *blk <<= current_node;
+        current_node = blk;
+      }
+      nd->setElse(current_node);
     }
-    nd->setElse(current_node);
-  }
     current_node = nd;
-    
+
     return true;
   }
   virtual bool TraverseCompoundStmt(CompoundStmt *stmt) {
@@ -376,7 +399,6 @@ virtual bool TraverseIfStmt(IfStmt *stmt) {
     if (stmt->getRetValue()) {
       TraverseStmt(stmt->getRetValue());
 
-      std::cout << current_node->toString() << std::endl;
       nd->setReturnValue(current_node);
     }
 
@@ -443,11 +465,9 @@ virtual bool TraverseIfStmt(IfStmt *stmt) {
       nd->setRHS(current_node);
       current_node = nd;
     }
-    DEBUG;
     return true;
   }
   virtual bool TraverseDeclRefExpr(DeclRefExpr *E) {
-    DEBUG;
     const ValueDecl *D = E->getDecl();
     current_node = shared_ptr<IdentifierNode>(new IdentifierNode("unkownid"));
     if (D) {
@@ -457,6 +477,18 @@ virtual bool TraverseIfStmt(IfStmt *stmt) {
     const NamedDecl *FD = E->getFoundDecl();
     if (FD && D != FD) {
       current_node = toNode(FD);
+    }
+    return true;
+  }
+  virtual bool TraverseCallExpr(CallExpr *E) {
+    const FunctionDecl * F = E->getDirectCallee();
+    shared_ptr<CallNode> call(new CallNode());
+    current_node = call;
+    call->setFunction(shared_ptr<IdentifierNode>(new IdentifierNode(F->getNameInfo().getName().getAsString())));
+    for (auto arg : E->arguments()) {
+      TraverseStmt(arg);
+      call->addArg(current_node); 
+      current_node = call;
     }
     return true;
   }
@@ -492,8 +524,14 @@ virtual bool TraverseIfStmt(IfStmt *stmt) {
     current_node = prog_;
   }
 
+  bool shouldVisitTemplateInstantiations() const {
+    return false;
+  }
+  bool shouldVisitImplicitCode() const {
+    return false;
+  }
 private:
-  clang::ASTContext *astContext; // used for getting additional AST info
+  ASTContext *ctx; // used for getting additional AST info
   shared_ptr<ProgramNode> prog_;
   shared_ptr<Node> current_node;
 
@@ -501,27 +539,121 @@ private:
   const SourceManager &SM;
 };
 
+class PreprocessorCallback : public PPCallbacks {
+  Preprocessor &PP;
+  bool disabled = false; // To prevent recurstion
+
+public:
+  PreprocessorCallback(Preprocessor &PP) : PP(PP) {}
+  ~PreprocessorCallback() {}
+
+  void MacroExpands(const Token &MacroNameTok, const MacroInfo *MI,
+                    SourceRange Range) {}
+
+  void MacroExpands(const Token &MacroNameTok, const MacroDirective *MD,
+                    SourceRange Range, const MacroArgs *Args) override {
+    MacroExpands(MacroNameTok, MD->getMacroInfo(), Range);
+  }
+
+  void InclusionDirective(SourceLocation HashLoc, const Token &IncludeTok,
+                          llvm::StringRef FileName, bool IsAngled,
+                          CharSourceRange FilenameRange, const FileEntry *File,
+                          llvm::StringRef SearchPath,
+                          llvm::StringRef RelativePath,
+                          const Module *Imported) override {
+
+    std::cout << "This is an include" << std::endl;
+  }
+  virtual void If(SourceLocation Loc, SourceRange ConditionRange,
+                  ConditionValueKind ConditionValue) override {
+    HandlePPCond(Loc, Loc);
+  }
+  virtual void Ifndef(SourceLocation Loc, const Token &MacroNameTok,
+                      const MacroDirective *MD) override {
+    HandlePPCond(Loc, Loc);
+  }
+  virtual void Ifdef(SourceLocation Loc, const Token &MacroNameTok,
+                     const MacroDirective *MD) override {
+    HandlePPCond(Loc, Loc);
+  }
+  virtual void Elif(SourceLocation Loc, SourceRange ConditionRange,
+                    ConditionValueKind ConditionValue,
+                    SourceLocation IfLoc) override {
+    ElifMapping[Loc] = IfLoc;
+    HandlePPCond(Loc, IfLoc);
+  }
+  virtual void Else(SourceLocation Loc, SourceLocation IfLoc) override {
+    HandlePPCond(Loc, IfLoc);
+  }
+  virtual void Endif(SourceLocation Loc, SourceLocation IfLoc) override {
+    HandlePPCond(Loc, IfLoc);
+  }
+
+private:
+  std::map<SourceLocation, SourceLocation>
+      ElifMapping; // Map an elif location to the real if;
+  void HandlePPCond(SourceLocation Loc, SourceLocation IfLoc) {}
+};
+
+struct SDiagnosticConsumer : DiagnosticConsumer {
+  SDiagnosticConsumer() {}
+
+  virtual void HandleDiagnostic(DiagnosticsEngine::Level DiagLevel,
+                                const Diagnostic &Info) override {
+    std::string clas;
+    llvm::SmallString<1000> diag;
+    Info.FormatDiagnostic(diag);
+
+    switch (DiagLevel) {
+    case DiagnosticsEngine::Fatal:
+      std::cerr << "FATAL ";
+    case DiagnosticsEngine::Error:
+      std::cerr << "Error: " //<< locationToString(Info.getLocation(),
+                             //annotator.getSourceMgr())
+                << ": " << diag.c_str() << std::endl;
+      clas = "error";
+      break;
+    case DiagnosticsEngine::Warning:
+      clas = "warning";
+      break;
+    default:
+      return;
+    }
+  }
+};
 class SASTConsumer : public ASTConsumer {
 private:
   SVisitor *visitor;
+  CompilerInstance &ci;
 
 public:
-  explicit SASTConsumer(CompilerInstance *CI) : visitor(new SVisitor(CI)) {}
+  explicit SASTConsumer(CompilerInstance &CI)
+      : ci(CI), visitor(new SVisitor(CI)) {
+    ci.getPreprocessor().enableIncrementalProcessing();
+  }
+  virtual void Initialize(ASTContext &Ctx) override {
+  }
 
   /*
-      virtual void HandleTranslationUnit(ASTContext &Ctx) {
+      virtual void HandleTranslationUnit(ctx &Ctx) {
               visitor->TraverseDecl(Ctx.getTranslationUnitDecl());
       }
    */
 
   // override this to call our SVisitor on each top-level Decl
   virtual void HandleTranslationUnit(ASTContext &context) {
-    visitor->TraverseDecl(context.getTranslationUnitDecl());
+    //visitor->TraverseDecl(context.getTranslationUnitDecl());
     std::cout << "Program : " << std::endl;
     std::cout << getProgram()->toCCode() << std::endl;
     return;
   }
   virtual bool HandleTopLevelDecl(DeclGroupRef dg) {
+    if (ci.getDiagnostics().hasFatalErrorOccurred()) {
+      // Reset errors: (Hack to ignore the fatal errors.)
+      ci.getDiagnostics().Reset();
+      // When there was fatal error, processing the warnings may cause crashes
+      ci.getDiagnostics().setIgnoreAllWarnings(true);
+    }
     for (auto iter : dg) {
       visitor->TraverseDecl(iter);
       visitor->addCurrent();
@@ -536,23 +668,28 @@ public:
   std::unique_ptr<ASTConsumer> CreateASTConsumer(CompilerInstance &CI,
                                                  StringRef file) {
     /* http://code.woboq.org/mocng/src/main.cpp.html */
-    CI.getFrontendOpts().SkipFunctionBodies = true;
-        CI.getPreprocessor().enableIncrementalProcessing(true);
-        CI.getPreprocessor().SetSuppressIncludeNotFoundError(true);
-        CI.getLangOpts().DelayedTemplateParsing = true;
- 
-        //enable all the extension
-        CI.getLangOpts().MicrosoftExt = true;
-        CI.getLangOpts().DollarIdents = true;
-#if CLANG_VERSION_MAJOR != 3 || CLANG_VERSION_MINOR > 2
-        CI.getLangOpts().CPlusPlus11 = true;
-#else
-        CI.getLangOpts().CPlusPlus0x = true;
-#endif
-        CI.getLangOpts().CPlusPlus1y = true;
-        CI.getLangOpts().GNUMode = true;
+    CI.getFrontendOpts().SkipFunctionBodies = false;
+    CI.getPreprocessor().enableIncrementalProcessing(true);
+    CI.getPreprocessor().SetSuppressIncludeNotFoundError(true);
+    CI.getPreprocessor().SetMacroExpansionOnlyInDirectives();
+    CI.getPreprocessorOpts().DisablePCHValidation = true;
+    CI.getLangOpts().DelayedTemplateParsing = true;
+    CI.getLangOpts().CUDA = true;
+    CI.getLangOpts().EmitAllDecls = true;
+    // enable all the extension
+    CI.getLangOpts().MicrosoftExt = true;
+    CI.getLangOpts().DollarIdents = true;
+    CI.getLangOpts().CPlusPlus11 = true;
+    CI.getLangOpts().GNUMode = true;
 
-    astcons = std::unique_ptr<SASTConsumer>(new SASTConsumer(&CI));
+    CI.getHeaderSearchOpts().UseBuiltinIncludes = true;
+    CI.getHeaderSearchOpts().UseStandardCXXIncludes = true;
+
+    CI.getPreprocessor().addPPCallbacks(unique_ptr<PreprocessorCallback>(
+        new PreprocessorCallback(CI.getPreprocessor())));
+    CI.getDiagnostics().setClient(new SDiagnosticConsumer(), true);
+
+    astcons = std::unique_ptr<SASTConsumer>(new SASTConsumer(CI));
     return std::move(astcons); // pass CI pointer to ASTConsumer
   }
   shared_ptr<ProgramNode> getProgram() {
@@ -571,41 +708,35 @@ void parse(int argc, const char **argv) {
   collect_trace();
   Printer printer;
   printer.print(st, stdout);
-  IntrusiveRefCntPtr<clang::DiagnosticOptions> diagnosticOpts(
-      new clang::DiagnosticOptions());
-  std::unique_ptr<clang::DiagnosticsEngine> diagnostics(
-      new clang::DiagnosticsEngine(
-          llvm::IntrusiveRefCntPtr<clang::DiagnosticIDs>(
-              new clang::DiagnosticIDs()),
-          &*diagnosticOpts, new clang::IgnoringDiagConsumer(), true));
+  IntrusiveRefCntPtr<DiagnosticOptions> diagnosticOpts(new DiagnosticOptions());
+  std::unique_ptr<DiagnosticsEngine> diagnostics(new DiagnosticsEngine(
+      llvm::IntrusiveRefCntPtr<DiagnosticIDs>(new DiagnosticIDs()),
+      &*diagnosticOpts, new IgnoringDiagConsumer(), true));
   diagnostics->setSuppressSystemWarnings(true);
   diagnostics->setIgnoreAllWarnings(true);
   std::unique_ptr<CompilationDatabase> Compilations(
       new FixedCompilationDatabase("/", vector<string>()));
 
-
   std::vector<string> args;
-  //args.push_back(" -O0  ");
-  //args.push_back("-fsyntax-only ");
-  //args.push_back("-x cpp-output ");
-  //args.push_back("-Xclang -ffake-address-space-map");
+  // args.push_back(" -O0  ");
+  // args.push_back("-fsyntax-only ");
+  // args.push_back("-x cpp-output ");
+  // args.push_back("-Xclang -ffake-address-space-map");
 
-
-    ostringstream o;
-    o << "#include \"../parser.h\"" << std::endl;
-    o << "void f() {" << std::endl;
-    o << "return ;" << std::endl;
-    o << "}" << std::endl;
-    o << "int main() {" << std::endl;
-    o << "const char v = 'g', s = 2; int g; return g + v;" << std::endl;
-    o << "if (v == g) { return ; }" << std::endl;
-    o << "for (int dev = 0; dev < 10; dev++) {" << std::endl;
-    o << "f();" << std::endl;
-    o << "}" << std::endl;
-    o << "}" << std::endl;
-  runToolOnCodeWithArgs(
-      newFrontendActionFactory<SFrontendAction>()->create(),
-      o.str(), args);
+  ostringstream o;
+  o << "#include \"../parser.h\"" << std::endl;
+  o << "void f(int x, int y, int z) {" << std::endl;
+  o << "return ;" << std::endl;
+  o << "}" << std::endl;
+  o << "int main() {" << std::endl;
+  o << "const char v = 'g', s = 2; int g; return g + v;" << std::endl;
+  o << "if (v == g) { return ; }" << std::endl;
+  o << "for (int dev = 0; dev < 10; dev++) {" << std::endl;
+  o << "f(1,2,3);" << std::endl;
+  o << "}" << std::endl;
+  o << "}" << std::endl;
+  runToolOnCodeWithArgs(newFrontendActionFactory<SFrontendAction>()->create(),
+                        o.str(), args);
   // print out the rewritten source code ("rewriter" is a global var.)
   // rewriter.getEditBuffer(rewriter.getSourceMgr().getMainFileID()).write(errs());
 
