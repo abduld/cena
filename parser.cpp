@@ -535,6 +535,23 @@ class SFrontendAction : public ASTFrontendAction {
 public:
   std::unique_ptr<ASTConsumer> CreateASTConsumer(CompilerInstance &CI,
                                                  StringRef file) {
+    /* http://code.woboq.org/mocng/src/main.cpp.html */
+    CI.getFrontendOpts().SkipFunctionBodies = true;
+        CI.getPreprocessor().enableIncrementalProcessing(true);
+        CI.getPreprocessor().SetSuppressIncludeNotFoundError(true);
+        CI.getLangOpts().DelayedTemplateParsing = true;
+ 
+        //enable all the extension
+        CI.getLangOpts().MicrosoftExt = true;
+        CI.getLangOpts().DollarIdents = true;
+#if CLANG_VERSION_MAJOR != 3 || CLANG_VERSION_MINOR > 2
+        CI.getLangOpts().CPlusPlus11 = true;
+#else
+        CI.getLangOpts().CPlusPlus0x = true;
+#endif
+        CI.getLangOpts().CPlusPlus1y = true;
+        CI.getLangOpts().GNUMode = true;
+
     astcons = std::unique_ptr<SASTConsumer>(new SASTConsumer(&CI));
     return std::move(astcons); // pass CI pointer to ASTConsumer
   }
