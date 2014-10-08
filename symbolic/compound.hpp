@@ -6,7 +6,7 @@
 class CompoundNode : public Node {
 public:
   CompoundNode() : Node() { vals_ = vector<shared_ptr<Node>>(); }
-  CompoundNode(const vector<shared_ptr<Node>> & vals) : Node(), vals_(vals) { }
+  CompoundNode(const vector<shared_ptr<Node>> &vals) : Node(), vals_(vals) {}
   virtual ~CompoundNode() { vals_.clear(); }
   virtual bool isCompound() const { return true; }
   virtual bool isEmpty() const { return getArgCount() == 0; }

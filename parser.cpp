@@ -65,8 +65,7 @@ void collect_trace() { st.load_here(); }
 class SVisitor : public RecursiveASTVisitor<SVisitor> {
 public:
   explicit SVisitor(CompilerInstance &CI)
-      : ctx(&(CI.getASTContext())),
-        Traits(ctx->getCommentCommandTraits()),
+      : ctx(&(CI.getASTContext())), Traits(ctx->getCommentCommandTraits()),
         SM(ctx->getSourceManager()) {
     prog_ = shared_ptr<ProgramNode>(new ProgramNode());
     current_node = prog_;
@@ -252,15 +251,16 @@ public:
   /*******************************************************************************************************/
   /*******************************************************************************************************/
   /*******************************************************************************************************/
-  
+
   bool canIgnoreCurrentASTNode() const {
     const DeclContext *decl = ctx->getTranslationUnitDecl();
-    for (auto it = decl->decls_begin(), declEnd = decl->decls_end(); it != declEnd; ++it) {
+    for (auto it = decl->decls_begin(), declEnd = decl->decls_end();
+         it != declEnd; ++it) {
       auto startLocation = (*it)->getLocStart();
-            if (startLocation.isValid() &&
-                SM.getMainFileID() == SM.getFileID(startLocation)) {
-              return false;
-            }
+      if (startLocation.isValid() &&
+          SM.getMainFileID() == SM.getFileID(startLocation)) {
+        return false;
+      }
     }
     return true;
   }
@@ -481,13 +481,14 @@ public:
     return true;
   }
   virtual bool TraverseCallExpr(CallExpr *E) {
-    const FunctionDecl * F = E->getDirectCallee();
+    const FunctionDecl *F = E->getDirectCallee();
     shared_ptr<CallNode> call(new CallNode());
     current_node = call;
-    call->setFunction(shared_ptr<IdentifierNode>(new IdentifierNode(F->getNameInfo().getName().getAsString())));
+    call->setFunction(shared_ptr<IdentifierNode>(
+        new IdentifierNode(F->getNameInfo().getName().getAsString())));
     for (auto arg : E->arguments()) {
       TraverseStmt(arg);
-      call->addArg(current_node); 
+      call->addArg(current_node);
       current_node = call;
     }
     return true;
@@ -524,12 +525,9 @@ public:
     current_node = prog_;
   }
 
-  bool shouldVisitTemplateInstantiations() const {
-    return false;
-  }
-  bool shouldVisitImplicitCode() const {
-    return false;
-  }
+  bool shouldVisitTemplateInstantiations() const { return false; }
+  bool shouldVisitImplicitCode() const { return false; }
+
 private:
   ASTContext *ctx; // used for getting additional AST info
   shared_ptr<ProgramNode> prog_;
@@ -588,6 +586,13 @@ public:
   virtual void Endif(SourceLocation Loc, SourceLocation IfLoc) override {
     HandlePPCond(Loc, IfLoc);
   }
+  virtual bool FileNotFound(llvm::StringRef FileName,
+                            llvm::SmallVectorImpl<char> &RecoveryPath) {
+    if (!PP.GetSuppressIncludeNotFoundError()) {
+      PP.SetSuppressIncludeNotFoundError(true);
+    }
+    return false;
+  }
 
 private:
   std::map<SourceLocation, SourceLocation>
@@ -597,7 +602,7 @@ private:
 
 struct SDiagnosticConsumer : DiagnosticConsumer {
   SDiagnosticConsumer() {}
-
+  int HadRealError = 0;
   virtual void HandleDiagnostic(DiagnosticsEngine::Level DiagLevel,
                                 const Diagnostic &Info) override {
     std::string clas;
@@ -609,7 +614,7 @@ struct SDiagnosticConsumer : DiagnosticConsumer {
       std::cerr << "FATAL ";
     case DiagnosticsEngine::Error:
       std::cerr << "Error: " //<< locationToString(Info.getLocation(),
-                             //annotator.getSourceMgr())
+                // annotator.getSourceMgr())
                 << ": " << diag.c_str() << std::endl;
       clas = "error";
       break;
@@ -617,8 +622,9 @@ struct SDiagnosticConsumer : DiagnosticConsumer {
       clas = "warning";
       break;
     default:
-      return;
+      break;
     }
+    const_cast<DiagnosticsEngine *>(Info.getDiags())->Reset();
   }
 };
 class SASTConsumer : public ASTConsumer {
@@ -631,8 +637,7 @@ public:
       : ci(CI), visitor(new SVisitor(CI)) {
     ci.getPreprocessor().enableIncrementalProcessing();
   }
-  virtual void Initialize(ASTContext &Ctx) override {
-  }
+  virtual void Initialize(ASTContext &Ctx) override {}
 
   /*
       virtual void HandleTranslationUnit(ctx &Ctx) {
@@ -642,7 +647,25 @@ public:
 
   // override this to call our SVisitor on each top-level Decl
   virtual void HandleTranslationUnit(ASTContext &context) {
-    //visitor->TraverseDecl(context.getTranslationUnitDecl());
+    visitor->TraverseDecl(context.getTranslationUnitDecl());
+    // find all C++ #include needed for the converted C++ types
+    auto collectInclude =
+        [&](clang::ASTContext &i_ctx, const clang::QualType &i_type) {
+      auto decl = i_type->getAsCXXRecordDecl();
+      if (decl != nullptr) {
+        decl->dump();
+        /*
+        auto loc = decl->clang::Decl::getLocStart();
+          clang::PresumedLoc ploc = i_ctx.getSourceManager().getPresumedLoc( loc
+        );
+          if ( not ploc.isInvalid() )
+        {
+          this->_data.addCXXTypeIncludePath( ploc.getFilename() );
+        }
+        */
+      }
+    };
+
     std::cout << "Program : " << std::endl;
     std::cout << getProgram()->toCCode() << std::endl;
     return;
@@ -652,7 +675,6 @@ public:
       // Reset errors: (Hack to ignore the fatal errors.)
       ci.getDiagnostics().Reset();
       // When there was fatal error, processing the warnings may cause crashes
-      ci.getDiagnostics().setIgnoreAllWarnings(true);
     }
     for (auto iter : dg) {
       visitor->TraverseDecl(iter);
@@ -668,14 +690,19 @@ public:
   std::unique_ptr<ASTConsumer> CreateASTConsumer(CompilerInstance &CI,
                                                  StringRef file) {
     /* http://code.woboq.org/mocng/src/main.cpp.html */
+    clang::Preprocessor &PP = CI.getPreprocessor();
+    clang::MacroInfo *MI = PP.AllocateMacroInfo({});
+    MI->setIsBuiltinMacro();
+
     CI.getFrontendOpts().SkipFunctionBodies = false;
-    CI.getPreprocessor().enableIncrementalProcessing(true);
-    CI.getPreprocessor().SetSuppressIncludeNotFoundError(true);
-    CI.getPreprocessor().SetMacroExpansionOnlyInDirectives();
+    PP.enableIncrementalProcessing(true);
+    // PP.SetSuppressIncludeNotFoundError(true);
+    PP.SetMacroExpansionOnlyInDirectives();
     CI.getPreprocessorOpts().DisablePCHValidation = true;
     CI.getLangOpts().DelayedTemplateParsing = true;
     CI.getLangOpts().CUDA = true;
     CI.getLangOpts().EmitAllDecls = true;
+    CI.getLangOpts().ImplicitInt = false;
     // enable all the extension
     CI.getLangOpts().MicrosoftExt = true;
     CI.getLangOpts().DollarIdents = true;
@@ -685,8 +712,18 @@ public:
     CI.getHeaderSearchOpts().UseBuiltinIncludes = true;
     CI.getHeaderSearchOpts().UseStandardCXXIncludes = true;
 
-    CI.getPreprocessor().addPPCallbacks(unique_ptr<PreprocessorCallback>(
-        new PreprocessorCallback(CI.getPreprocessor())));
+    CodeGenOptions &codeGenOpts = CI.getCodeGenOpts();
+    codeGenOpts.RelaxAll = 1;
+    codeGenOpts.RelocationModel = "static";
+    codeGenOpts.DisableFPElim = 1;
+    codeGenOpts.AsmVerbose = 1;
+    codeGenOpts.CXXCtorDtorAliases = 1;
+    codeGenOpts.UnwindTables = 1;
+    codeGenOpts.OmitLeafFramePointer = 1;
+    codeGenOpts.StackRealignment = 1;
+
+    // CI.getPreprocessor().addPPCallbacks(unique_ptr<PreprocessorCallback>(
+    //    new PreprocessorCallback(CI.getPreprocessor())));
     CI.getDiagnostics().setClient(new SDiagnosticConsumer(), true);
 
     astcons = std::unique_ptr<SASTConsumer>(new SASTConsumer(CI));
@@ -718,13 +755,28 @@ void parse(int argc, const char **argv) {
       new FixedCompilationDatabase("/", vector<string>()));
 
   std::vector<string> args;
+  args.emplace_back("-x");
+  args.emplace_back("c++");
+  args.emplace_back("-fPIE");
+  args.emplace_back("-std=c++11");
   // args.push_back(" -O0  ");
   // args.push_back("-fsyntax-only ");
   // args.push_back("-x cpp-output ");
   // args.push_back("-Xclang -ffake-address-space-map");
 
+  args.emplace_back("-I/usr/include/");
+  args.emplace_back("-I/builtins");
+  // clang++ -E -x c++ - -v < /dev/null
+  args.emplace_back("-I/usr/local/Cellar/llvm/HEAD/include");
+  args.emplace_back("-I/usr/local/include");
+  args.emplace_back("-I/usr/local/Cellar/llvm/HEAD/lib/clang/3.6.0/include");
+  args.emplace_back("-I/Applications/Xcode.app/Contents/Developer/Platforms/"
+                    "MacOSX.platform/Developer/SDKs/MacOSX10.9.sdk/usr/"
+                    "include/");
+  args.emplace_back("-fsyntax-only");
+
   ostringstream o;
-  o << "#include \"stdio.h\"" << std::endl;
+  o << "#include <cstdio>" << std::endl;
   o << "void f(int x, int y, int z) {" << std::endl;
   o << "return ;" << std::endl;
   o << "}" << std::endl;
@@ -732,7 +784,7 @@ void parse(int argc, const char **argv) {
   o << "const char v = 'g', s = 2; int g; return g + v;" << std::endl;
   o << "if (v == g) { return ; }" << std::endl;
   o << "for (int dev = 0; dev < 10; dev++) {" << std::endl;
-  o << "f(1,2,3);" << std::endl;
+  o << "printf(\"%s\", 1,2,3);" << std::endl;
   o << "}" << std::endl;
   o << "}" << std::endl;
   runToolOnCodeWithArgs(newFrontendActionFactory<SFrontendAction>()->create(),

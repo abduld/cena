@@ -5,16 +5,14 @@
 class CallNode : public Node {
 public:
   CallNode() : Node() {}
-  CallNode(const shared_ptr<IdentifierNode> & fun, const vector<shared_ptr<Node>> & args) : Node(), fun_(fun), args_(new CompoundNode(args)) {}
+  CallNode(const shared_ptr<IdentifierNode> &fun,
+           const vector<shared_ptr<Node>> &args)
+      : Node(), fun_(fun), args_(new CompoundNode(args)) {}
   ~CallNode() {}
   shared_ptr<IdentifierNode> getFunction() { return fun_; }
-  vector<shared_ptr<Node>> getArgs() {
-    return args_->getValues();
-  }
-  void setFunction(const shared_ptr<IdentifierNode> & fun) {
-    fun_ = fun;
-  }
-  void addArg(const shared_ptr<Node> & nd) {
+  vector<shared_ptr<Node>> getArgs() { return args_->getValues(); }
+  void setFunction(const shared_ptr<IdentifierNode> &fun) { fun_ = fun; }
+  void addArg(const shared_ptr<Node> &nd) {
     if (args_ == nullptr) {
       args_ = shared_ptr<CompoundNode>(new CompoundNode());
     }
@@ -24,17 +22,17 @@ public:
   void toCCode_(ostringstream &o) {
     fun_->toCCode_(o);
     o << "(";
-      if (args_ != nullptr) {
-    args_->toCCode_(o);
-  }
+    if (args_ != nullptr) {
+      args_->toCCode_(o);
+    }
     o << ")";
   }
   void toString_(ostringstream &o) {
     fun_->toString_(o);
     o << "(";
-      if (args_ != nullptr) {
-    args_->toString_(o);
-  }
+    if (args_ != nullptr) {
+      args_->toString_(o);
+    }
     o << ")";
   }
 
