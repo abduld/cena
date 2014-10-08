@@ -115,6 +115,9 @@ public:
       for (auto v : vals) {
         len--;
         v->toCCode_(o);
+        if (v->isBlock()) {
+          continue ;
+        }
         if (v->isStatement() || isBlock()) {
           o << "; /* " << v->getHead() << "*/\n";
         } else if (!isProgram() && len > 0) {
@@ -136,6 +139,9 @@ public:
       for (auto v : vals) {
         len--;
         v->toString_(o);
+        if (v->isBlock()) {
+          continue ;
+        }
         if (v->isStatement() || isBlock()) {
           o << "\n";
         } else if (!isProgram() && len > 0) {

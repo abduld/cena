@@ -5,7 +5,7 @@
 
 
 
-void parse();
+void parse(int argc, const char **argv);
 int test();
 
 #endif /* __PARSER_H__ */

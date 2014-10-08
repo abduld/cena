@@ -2,9 +2,9 @@
 
 #include "parser.h"
 
-int main(void) {
+int main(int argc, const char **argv) {
 
-  parse();
+  parse(argc, argv);
 
   return 0;
 }

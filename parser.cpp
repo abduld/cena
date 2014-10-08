@@ -13,7 +13,10 @@
 #include "clang/Frontend/FrontendActions.h"
 #include "clang/Frontend/CompilerInstance.h"
 #include "clang/Tooling/CommonOptionsParser.h"
+#include "clang/Frontend/FrontendOptions.h"
+#include "clang/Lex/HeaderSearch.h"
 #include "clang/Tooling/Tooling.h"
+#include "clang/Basic/TargetInfo.h"
 #include "clang/Basic/LangOptions.h"
 #include "llvm/Support/Signals.h"
 #include "symbolic/ast.hpp"
@@ -262,13 +265,16 @@ public:
       TraverseDecl(decl->getParamDecl(i));
       func->addParameter(current_node);
     }
+    if (decl->doesThisDeclarationHaveABody()) {
     shared_ptr<BlockNode> body = func->getBody();
     current_node = body;
     TraverseStmt(decl->getBody());
     *body <<= current_node;
+  }
     current_node = func;
     return true;
   }
+
   virtual bool TraverseVarDecl(VarDecl *decl) {
     shared_ptr<Node> tmp = current_node;
     shared_ptr<DeclareNode> nd(new DeclareNode());
@@ -317,7 +323,37 @@ public:
     current_node = nd;
     return true;
   }
+virtual bool TraverseIfStmt(IfStmt *stmt) {
+    shared_ptr<Node> tmp = current_node;
+    shared_ptr<IfNode> nd(new IfNode());
+    
+    current_node = nd;
+    TraverseStmt(stmt->getCond());
+    nd->setCondition(current_node);
 
+    current_node = nd;
+    TraverseStmt(stmt->getThen());
+    if(!current_node->isBlock()){
+      shared_ptr<BlockNode> blk(new BlockNode());
+      *blk <<= current_node;
+      current_node = blk;
+    }
+    nd->setThen(current_node);
+
+    if(stmt->getElse()!=NULL){
+    current_node = nd;
+    TraverseStmt(stmt->getElse());
+    if(!current_node->isBlock()){
+      shared_ptr<BlockNode> blk(new BlockNode());
+      *blk <<= current_node;
+      current_node = blk;
+    }
+    nd->setElse(current_node);
+  }
+    current_node = nd;
+    
+    return true;
+  }
   virtual bool TraverseCompoundStmt(CompoundStmt *stmt) {
     shared_ptr<Node> tmp = current_node;
     shared_ptr<CompoundNode> nd(new CompoundNode());
@@ -512,7 +548,8 @@ private:
   std::unique_ptr<SASTConsumer> astcons;
   shared_ptr<ProgramNode> prog_;
 };
-void parse() {
+
+void parse(int argc, const char **argv) {
   llvm::sys::PrintStackTraceOnErrorSignal();
   collect_trace();
   Printer printer;
@@ -529,15 +566,29 @@ void parse() {
   std::unique_ptr<CompilationDatabase> Compilations(
       new FixedCompilationDatabase("/", vector<string>()));
 
-  std::vector<string> args;
-  args.push_back(" -O0  ");
-  args.push_back("-Xclang -fcuda-is-device ");
-  args.push_back("-Xclang -femit-all-decls ");
-  args.push_back("-Xclang -ffake-address-space-map");
 
+  std::vector<string> args;
+  //args.push_back(" -O0  ");
+  //args.push_back("-fsyntax-only ");
+  //args.push_back("-x cpp-output ");
+  //args.push_back("-Xclang -ffake-address-space-map");
+
+
+    ostringstream o;
+    o << "#include \"../parser.h\"" << std::endl;
+    o << "void f() {" << std::endl;
+    o << "return ;" << std::endl;
+    o << "}" << std::endl;
+    o << "int main() {" << std::endl;
+    o << "const char v = 'g', s = 2; int g; return g + v;" << std::endl;
+    o << "if (v == g) { return ; }" << std::endl;
+    o << "for (int dev = 0; dev < 10; dev++) {" << std::endl;
+    o << "f();" << std::endl;
+    o << "}" << std::endl;
+    o << "}" << std::endl;
   runToolOnCodeWithArgs(
       newFrontendActionFactory<SFrontendAction>()->create(),
-      "__global__ void f() { return ; } int main() { const char v = 'g', s = 2; int g; return g + v;}", args);
+      o.str(), args);
   // print out the rewritten source code ("rewriter" is a global var.)
   // rewriter.getEditBuffer(rewriter.getSourceMgr().getMainFileID()).write(errs());
 
