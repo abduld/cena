@@ -637,7 +637,7 @@ public:
       : ci(CI), visitor(new SVisitor(CI)) {
     ci.getPreprocessor().enableIncrementalProcessing();
   }
-  virtual void Initialize(ASTContext &Ctx) override {}
+  //virtual void Initialize(ASTContext &Ctx) override {}
 
   /*
       virtual void HandleTranslationUnit(ctx &Ctx) {
@@ -689,28 +689,33 @@ class SFrontendAction : public ASTFrontendAction {
 public:
   std::unique_ptr<ASTConsumer> CreateASTConsumer(CompilerInstance &CI,
                                                  StringRef file) {
+
     /* http://code.woboq.org/mocng/src/main.cpp.html */
     clang::Preprocessor &PP = CI.getPreprocessor();
     clang::MacroInfo *MI = PP.AllocateMacroInfo({});
     MI->setIsBuiltinMacro();
 
+
     CI.getFrontendOpts().SkipFunctionBodies = false;
-    PP.enableIncrementalProcessing(true);
+    //PP.enableIncrementalProcessing(true);
     // PP.SetSuppressIncludeNotFoundError(true);
     PP.SetMacroExpansionOnlyInDirectives();
-    CI.getPreprocessorOpts().DisablePCHValidation = true;
+    //CI.getPreprocessorOpts().DisablePCHValidation = true;
     CI.getLangOpts().DelayedTemplateParsing = true;
     CI.getLangOpts().CUDA = true;
     CI.getLangOpts().EmitAllDecls = true;
     CI.getLangOpts().ImplicitInt = false;
+    CI.getLangOpts().POSIXThreads = false;
     // enable all the extension
     CI.getLangOpts().MicrosoftExt = true;
     CI.getLangOpts().DollarIdents = true;
     CI.getLangOpts().CPlusPlus11 = true;
     CI.getLangOpts().GNUMode = true;
 
-    CI.getHeaderSearchOpts().UseBuiltinIncludes = true;
-    CI.getHeaderSearchOpts().UseStandardCXXIncludes = true;
+HeaderSearchOptions &HSO = CI.getHeaderSearchOpts();
+    HSO.UseBuiltinIncludes = true;
+    HSO.UseStandardCXXIncludes = true;
+
 
     CodeGenOptions &codeGenOpts = CI.getCodeGenOpts();
     codeGenOpts.RelaxAll = 1;
@@ -726,7 +731,18 @@ public:
     //    new PreprocessorCallback(CI.getPreprocessor())));
     CI.getDiagnostics().setClient(new SDiagnosticConsumer(), true);
 
-    astcons = std::unique_ptr<SASTConsumer>(new SASTConsumer(CI));
+/* does not work
+    //shared_ptr<TargetOptions> pto( new TargetOptions());
+    //pto->Triple = llvm::sys::getDefaultTargetTriple();
+    // CI.setTarget( TargetInfo::CreateTargetInfo(CI.getDiagnostics(), pto));
+
+  //  
+    // CI.setASTConsumer(std::move(astcons));
+//CI.createASTContext();
+//CI.createSema(clang::TU_Complete, NULL);
+*/
+astcons = std::unique_ptr<SASTConsumer>(new SASTConsumer(CI));
+
     return std::move(astcons); // pass CI pointer to ASTConsumer
   }
   shared_ptr<ProgramNode> getProgram() {
@@ -745,18 +761,12 @@ void parse(int argc, const char **argv) {
   collect_trace();
   Printer printer;
   printer.print(st, stdout);
-  IntrusiveRefCntPtr<DiagnosticOptions> diagnosticOpts(new DiagnosticOptions());
-  std::unique_ptr<DiagnosticsEngine> diagnostics(new DiagnosticsEngine(
-      llvm::IntrusiveRefCntPtr<DiagnosticIDs>(new DiagnosticIDs()),
-      &*diagnosticOpts, new IgnoringDiagConsumer(), true));
-  diagnostics->setSuppressSystemWarnings(true);
-  diagnostics->setIgnoreAllWarnings(true);
-  std::unique_ptr<CompilationDatabase> Compilations(
-      new FixedCompilationDatabase("/", vector<string>()));
 
   std::vector<string> args;
   args.emplace_back("-x");
   args.emplace_back("c++");
+  args.emplace_back("-v");
+  args.emplace_back("-E");
   args.emplace_back("-fPIE");
   args.emplace_back("-std=c++11");
   // args.push_back(" -O0  ");
@@ -773,6 +783,9 @@ void parse(int argc, const char **argv) {
   args.emplace_back("-I/Applications/Xcode.app/Contents/Developer/Platforms/"
                     "MacOSX.platform/Developer/SDKs/MacOSX10.9.sdk/usr/"
                     "include/");
+  args.emplace_back("-I/Applications/Xcode.app/Contents/Developer/Platforms/"
+                    "MacOSX.platform/Developer/SDKs/MacOSX10.9.sdk/usr/"
+                    "include/c++/4.2.1");
   args.emplace_back("-fsyntax-only");
 
   ostringstream o;
