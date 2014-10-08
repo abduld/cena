@@ -724,7 +724,7 @@ void parse(int argc, const char **argv) {
   // args.push_back("-Xclang -ffake-address-space-map");
 
   ostringstream o;
-  o << "#include \"../parser.h\"" << std::endl;
+  o << "#include \"stdio.h\"" << std::endl;
   o << "void f(int x, int y, int z) {" << std::endl;
   o << "return ;" << std::endl;
   o << "}" << std::endl;
