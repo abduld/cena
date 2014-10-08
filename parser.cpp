@@ -635,9 +635,9 @@ private:
 public:
   explicit SASTConsumer(CompilerInstance &CI)
       : ci(CI), visitor(new SVisitor(CI)) {
-    ci.getPreprocessor().enableIncrementalProcessing();
+    //ci.getPreprocessor().enableIncrementalProcessing();
   }
-  //virtual void Initialize(ASTContext &Ctx) override {}
+  virtual void Initialize(ASTContext &Ctx) override {}
 
   /*
       virtual void HandleTranslationUnit(ctx &Ctx) {
@@ -647,7 +647,8 @@ public:
 
   // override this to call our SVisitor on each top-level Decl
   virtual void HandleTranslationUnit(ASTContext &context) {
-    visitor->TraverseDecl(context.getTranslationUnitDecl());
+    DEBUG;
+    //visitor->TraverseDecl(context.getTranslationUnitDecl());
     // find all C++ #include needed for the converted C++ types
     auto collectInclude =
         [&](clang::ASTContext &i_ctx, const clang::QualType &i_type) {
@@ -677,6 +678,8 @@ public:
       // When there was fatal error, processing the warnings may cause crashes
     }
     for (auto iter : dg) {
+    DEBUG;
+    (*iter).dump();
       visitor->TraverseDecl(iter);
       visitor->addCurrent();
     }
@@ -692,14 +695,14 @@ public:
 
     /* http://code.woboq.org/mocng/src/main.cpp.html */
     clang::Preprocessor &PP = CI.getPreprocessor();
-    clang::MacroInfo *MI = PP.AllocateMacroInfo({});
-    MI->setIsBuiltinMacro();
+    //clang::MacroInfo *MI = PP.AllocateMacroInfo({});
+    //MI->setIsBuiltinMacro();
 
 
     CI.getFrontendOpts().SkipFunctionBodies = false;
     //PP.enableIncrementalProcessing(true);
     // PP.SetSuppressIncludeNotFoundError(true);
-    PP.SetMacroExpansionOnlyInDirectives();
+    //PP.SetMacroExpansionOnlyInDirectives();
     //CI.getPreprocessorOpts().DisablePCHValidation = true;
     CI.getLangOpts().DelayedTemplateParsing = true;
     CI.getLangOpts().CUDA = true;
@@ -729,7 +732,7 @@ HeaderSearchOptions &HSO = CI.getHeaderSearchOpts();
 
     // CI.getPreprocessor().addPPCallbacks(unique_ptr<PreprocessorCallback>(
     //    new PreprocessorCallback(CI.getPreprocessor())));
-    CI.getDiagnostics().setClient(new SDiagnosticConsumer(), true);
+    //CI.getDiagnostics().setClient(new SDiagnosticConsumer(), true);
 
 /* does not work
     //shared_ptr<TargetOptions> pto( new TargetOptions());
@@ -774,6 +777,7 @@ void parse(int argc, const char **argv) {
   // args.push_back("-x cpp-output ");
   // args.push_back("-Xclang -ffake-address-space-map");
 
+  args.emplace_back("-D__LP64__");
   args.emplace_back("-I/usr/include/");
   args.emplace_back("-I/builtins");
   // clang++ -E -x c++ - -v < /dev/null
@@ -781,10 +785,10 @@ void parse(int argc, const char **argv) {
   args.emplace_back("-I/usr/local/include");
   args.emplace_back("-I/usr/local/Cellar/llvm/HEAD/lib/clang/3.6.0/include");
   args.emplace_back("-I/Applications/Xcode.app/Contents/Developer/Platforms/"
-                    "MacOSX.platform/Developer/SDKs/MacOSX10.9.sdk/usr/"
+                    "MacOSX.platform/Developer/SDKs/MacOSX10.8.sdk/usr/"
                     "include/");
   args.emplace_back("-I/Applications/Xcode.app/Contents/Developer/Platforms/"
-                    "MacOSX.platform/Developer/SDKs/MacOSX10.9.sdk/usr/"
+                    "MacOSX.platform/Developer/SDKs/MacOSX10.8.sdk/usr/"
                     "include/c++/4.2.1");
   args.emplace_back("-fsyntax-only");
 
