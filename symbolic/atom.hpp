@@ -77,7 +77,7 @@ class StringNode : public AtomNode<string> {
 public:
   StringNode(const int & row, const int & col) : AtomNode<string>(row, col) {}
   StringNode(const int & row, const int & col, const string & v) : AtomNode<string>(row, col, v) {}
-  StringNode(const char *v) : AtomNode<string>(string(v)) {}
+  StringNode(const int & row, const int & col, const char *v) : AtomNode<string>(row, col, string(v)) {}
   string getHead() { return head_; }
 
   void toCCode_(ostringstream &o) {

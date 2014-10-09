@@ -11,43 +11,43 @@ public:
   virtual bool isCompound() const { return true; }
   virtual bool isEmpty() const { return getArgCount() == 0; }
   CompoundNode *operator<<=(const bool &val) {
-    shared_ptr<BooleanNode> var(new BooleanNode(val));
+    shared_ptr<BooleanNode> var(new BooleanNode(row_, col_, val));
     vals_.push_back(var);
     len_++;
     return this;
   }
   CompoundNode &operator<<=(const int &val) {
-    shared_ptr<IntegerNode> var(new IntegerNode(val));
+    shared_ptr<IntegerNode> var(new IntegerNode(row_, col_, val));
     vals_.push_back(var);
     len_++;
     return *this;
   }
   CompoundNode &operator<<=(const int64_t &val) {
-    shared_ptr<IntegerNode> var(new IntegerNode(val));
+    shared_ptr<IntegerNode> var(new IntegerNode(row_, col_, val));
     vals_.push_back(var);
     len_++;
     return *this;
   }
   CompoundNode &operator<<=(const float &val) {
-    shared_ptr<RealNode> var(new RealNode(val));
+    shared_ptr<RealNode> var(new RealNode(row_, col_, val));
     vals_.push_back(var);
     len_++;
     return *this;
   }
   CompoundNode &operator<<=(const double &val) {
-    shared_ptr<RealNode> var(new RealNode(val));
+    shared_ptr<RealNode> var(new RealNode(row_, col_, val));
     vals_.push_back(var);
     len_++;
     return *this;
   }
   CompoundNode &operator<<=(const char *val) {
-    shared_ptr<StringNode> var(new StringNode(val));
+    shared_ptr<StringNode> var(new StringNode(row_, col_, val));
     vals_.push_back(var);
     len_++;
     return *this;
   }
   CompoundNode &operator<<=(const string &val) {
-    shared_ptr<StringNode> var(new StringNode(val));
+    shared_ptr<StringNode> var(new StringNode(row_, col_, val));
     vals_.push_back(var);
     len_++;
     return *this;

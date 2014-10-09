@@ -19,11 +19,14 @@ public:
   BinaryOperatorNode(const int & row, const int & col) : Node(row, col) {}
   BinaryOperatorNode(const int & row, const int & col, const string & op, const shared_ptr<Node> &lhs,
                      const shared_ptr<Node> &rhs)
-      : Node(row, col), op_(row, col, shared_ptr<BinaryOp>(new BinaryOp(op))), lhs_(lhs),
-        rhs_(rhs) {}
+      : Node(row, col) {
+        op_ = shared_ptr<BinaryOp>(new BinaryOp(row_, col_, op));
+        lhs_ = lhs;
+        rhs_ = rhs;
+     }
   ~BinaryOperatorNode() {}
   void setOperator(const string &op) {
-    op_ = shared_ptr<BinaryOp>(new BinaryOp(op));
+    op_ = shared_ptr<BinaryOp>(new BinaryOp(row_, col_, op));
   }
   void setOperator(const shared_ptr<BinaryOp> &op) { op_ = op; }
   void setLHS(const shared_ptr<Node> &lhs) { lhs_ = lhs; }

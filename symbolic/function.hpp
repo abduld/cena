@@ -11,7 +11,7 @@ public:
   shared_ptr<IdentifierNode> getName() { return name_; }
   void addParameter(const shared_ptr<Node> &nd) {
     if (params_ == nullptr) {
-      params_ = shared_ptr<CompoundNode>(new CompoundNode());
+      params_ = shared_ptr<CompoundNode>(new CompoundNode(row_, col_));
     }
     *params_ <<= nd;
   }

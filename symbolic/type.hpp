@@ -8,17 +8,17 @@ public:
   TypeNode(const int & row, const int & col) : Node(row, col) {}
   TypeNode(const int & row, const int & col, const string &typ) : Node(row, col) { addBase(typ); }
   void addQualifyer(const string &qual) {
-    addQualifyer(shared_ptr<StringNode>(new StringNode(qual)));
+    addQualifyer(shared_ptr<StringNode>(new StringNode(row_, col_, qual)));
   }
   void addQualifyer(const shared_ptr<Node> &qual) {
     qualifiers_.push_back(qual);
   }
   void addBase(const string &base) {
-    addBase(shared_ptr<StringNode>(new StringNode(base)));
+    addBase(shared_ptr<StringNode>(new StringNode(row_, col_, base)));
   }
   void addBase(const shared_ptr<Node> &base) { base_.push_back(base); }
   void addAddressSpace(const string &addr) {
-    addAddressSpace(shared_ptr<StringNode>(new StringNode(addr)));
+    addAddressSpace(shared_ptr<StringNode>(new StringNode(row_, col_, addr)));
   }
   void addAddressSpace(const shared_ptr<Node> &addr) {
     address_space_.push_back(addr);

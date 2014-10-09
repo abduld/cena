@@ -4,8 +4,8 @@
 
 class UnaryOp : public StringNode {
 public:
-  UnaryOp(const char *s) : StringNode(s) {}
-  UnaryOp(const string &s) : StringNode(s) {}
+  UnaryOp(const int & row, const int & col, const char *s) : StringNode(row, col, s) {}
+  UnaryOp(const int & row, const int & col, const string &s) : StringNode(row, col, s) {}
   string getHead() { return head_; }
 
 private:
@@ -14,12 +14,12 @@ private:
 
 class UnaryOperatorNode : public Node {
 public:
-  UnaryOperatorNode() : Node() {}
-  UnaryOperatorNode(const string &op, const shared_ptr<Node> &arg)
-      : Node(), op_(shared_ptr<UnaryOp>(new UnaryOp(op))), arg_(arg) {}
+  UnaryOperatorNode(const int & row, const int & col) : Node(row, col) {}
+  UnaryOperatorNode(const int & row, const int & col, const string &op, const shared_ptr<Node> &arg)
+      : Node(row, col), op_(shared_ptr<UnaryOp>(new UnaryOp(row, col, op))), arg_(arg) {}
   ~UnaryOperatorNode() {}
   void setOperator(const string &op) {
-    op_ = shared_ptr<UnaryOp>(new UnaryOp(op));
+    op_ = shared_ptr<UnaryOp>(new UnaryOp(row_, col_, op));
   }
   void setArg(const shared_ptr<Node> &arg) { arg_ = arg; }
 

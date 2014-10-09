@@ -5,7 +5,6 @@ set( CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/modules ${CMAKE_MODULE_PATH} 
 
 Find_Package(LLVM REQUIRED)
 Find_Package(Clang REQUIRED)
-Find_Package(Boost REQUIRED)
 Find_Package(ZLIB REQUIRED)
 
 add_executable(ast

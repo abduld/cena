@@ -5,7 +5,7 @@
 class Break : public Node {
 public:
   Break(const int & row, const int & col) : Node(row, col) {}
-  Break(const int & row, const int & col, const shared_ptr<Node> &node) : Node(row, col), trg_(node) {  }
+  Break(const int & row, const int & col, const shared_ptr<Node> &node) : Node(row, col), trgt_(node) {  }
   ~Break() {}
   string getHead() { return head_; }
   shared_ptr<Node> getTarget() {
