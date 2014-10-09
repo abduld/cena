@@ -688,11 +688,22 @@ public:
   shared_ptr<ProgramNode> getProgram() { return visitor->getProgram(); }
 };
 
+std::string GetExecutablePath(const char *Argv0) {
+  // This just needs to be some symbol in the binary; C++ doesn't
+  // allow taking the address of ::main however.
+  void *main_addr = (void*) (intptr_t) GetExecutablePath;
+  return llvm::sys::fs::getMainExecutable(Argv0, main_addr);
+}
 class SFrontendAction : public ASTFrontendAction {
 public:
+  SFrontendAction(const string & exe) : ASTFrontendAction() {
+    //exe_path = GetExecutablePath(exe);
+    exe_path = exe;
+  }
   std::unique_ptr<ASTConsumer> CreateASTConsumer(CompilerInstance &CI,
                                                  StringRef file) {
 
+  void* main_addr = (void*) (intptr_t) GetExecutablePath;
     /* http://code.woboq.org/mocng/src/main.cpp.html */
     clang::Preprocessor &PP = CI.getPreprocessor();
     //clang::MacroInfo *MI = PP.AllocateMacroInfo({});
@@ -744,6 +755,15 @@ HeaderSearchOptions &HSO = CI.getHeaderSearchOpts();
 //CI.createASTContext();
 //CI.createSema(clang::TU_Complete, NULL);
 */
+
+
+  // Infer the builtin include path if unspecified.
+  if (CI.getHeaderSearchOpts().UseBuiltinIncludes &&
+     CI.getHeaderSearchOpts().ResourceDir.empty()) {
+   CI.getHeaderSearchOpts().ResourceDir =
+      CompilerInvocation::GetResourcesPath(exe_path, main_addr);
+    }
+
 astcons = std::unique_ptr<SASTConsumer>(new SASTConsumer(CI));
 
     return std::move(astcons); // pass CI pointer to ASTConsumer
@@ -757,6 +777,7 @@ astcons = std::unique_ptr<SASTConsumer>(new SASTConsumer(CI));
 private:
   std::unique_ptr<SASTConsumer> astcons;
   shared_ptr<ProgramNode> prog_;
+  string exe_path;
 };
 
 void parse(int argc, const char **argv) {
@@ -776,7 +797,7 @@ void parse(int argc, const char **argv) {
   // args.push_back("-fsyntax-only ");
   // args.push_back("-x cpp-output ");
   // args.push_back("-Xclang -ffake-address-space-map");
-
+/*
   args.emplace_back("-D__LP64__");
   args.emplace_back("-I/usr/include/");
   args.emplace_back("-I/builtins");
@@ -791,6 +812,7 @@ void parse(int argc, const char **argv) {
                     "MacOSX.platform/Developer/SDKs/MacOSX10.8.sdk/usr/"
                     "include/c++/4.2.1");
   args.emplace_back("-fsyntax-only");
+  */
 
   ostringstream o;
   o << "#include <cstdio>" << std::endl;
@@ -804,7 +826,8 @@ void parse(int argc, const char **argv) {
   o << "printf(\"%s\", 1,2,3);" << std::endl;
   o << "}" << std::endl;
   o << "}" << std::endl;
-  runToolOnCodeWithArgs(newFrontendActionFactory<SFrontendAction>()->create(),
+
+  runToolOnCodeWithArgs(newFrontendActionFactory<SFrontendAction>(  GetExecutablePath(argv[0]))->create(),
                         o.str(), args);
   // print out the rewritten source code ("rewriter" is a global var.)
   // rewriter.getEditBuffer(rewriter.getSourceMgr().getMainFileID()).write(errs());
