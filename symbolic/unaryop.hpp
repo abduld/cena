@@ -4,9 +4,11 @@
 
 class UnaryOp : public StringNode {
 public:
-  UnaryOp(const int & row, const int & col, const char *s) : StringNode(row, col, s) {}
-  UnaryOp(const int & row, const int & col, const string &s) : StringNode(row, col, s) {}
-  string getHead() { return head_; }
+  UnaryOp(const int &row, const int &col, const char *s)
+      : StringNode(row, col, s) {}
+  UnaryOp(const int &row, const int &col, const string &s)
+      : StringNode(row, col, s) {}
+  string getHead() const { return head_; }
 
 private:
   string head_ = "UnaryOperator";
@@ -14,18 +16,20 @@ private:
 
 class UnaryOperatorNode : public Node {
 public:
-  UnaryOperatorNode(const int & row, const int & col) : Node(row, col) {}
-  UnaryOperatorNode(const int & row, const int & col, const string &op, const shared_ptr<Node> &arg)
-      : Node(row, col), op_(shared_ptr<UnaryOp>(new UnaryOp(row, col, op))), arg_(arg) {}
+  UnaryOperatorNode(const int &row, const int &col) : Node(row, col) {}
+  UnaryOperatorNode(const int &row, const int &col, const string &op,
+                    const shared_ptr<Node> &arg)
+      : Node(row, col), op_(shared_ptr<UnaryOp>(new UnaryOp(row, col, op))),
+        arg_(arg) {}
   ~UnaryOperatorNode() {}
   void setOperator(const string &op) {
     op_ = shared_ptr<UnaryOp>(new UnaryOp(row_, col_, op));
   }
   void setArg(const shared_ptr<Node> &arg) { arg_ = arg; }
 
-  shared_ptr<UnaryOp> getOperator() { return op_; }
-  shared_ptr<Node> getArg() { return arg_; }
-  string getHead() { return head_; }
+  shared_ptr<UnaryOp> getOperator() const { return op_; }
+  shared_ptr<Node> getArg() const { return arg_; }
+  string getHead() const { return head_; }
 
   void toCCode_(ostringstream &o) {
     assert(arg_ != nullptr);

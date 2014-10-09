@@ -4,12 +4,19 @@
 
 class IdentifierNode : public virtual AtomNode<string> {
 public:
-  IdentifierNode(const int & row, const int & col) : AtomNode<string>(row, col, "unknownid") {}
-  IdentifierNode(const int & row, const int & col, const string & v) : AtomNode<string>(row, col, v) {}
-  IdentifierNode(const int & row, const int & col, const shared_ptr<StringNode> &s) : AtomNode<string>(row, col) {
+  IdentifierNode(const int &row, const int &col)
+      : AtomNode<string>(row, col, "unknownid") {}
+  IdentifierNode(const int &row, const int &col, const string &v)
+      : AtomNode<string>(row, col, v) {}
+  IdentifierNode(const int &row, const int &col,
+                 const shared_ptr<StringNode> &s)
+      : AtomNode<string>(row, col) {
     setName(s);
   }
-  IdentifierNode(const int & row, const int & col, const shared_ptr<Node> &s) : AtomNode<string>(row, col) { setName(s); }
+  IdentifierNode(const int &row, const int &col, const shared_ptr<Node> &s)
+      : AtomNode<string>(row, col) {
+    setName(s);
+  }
   void setName(const string &name) { setConstant(name); }
   void setName(const shared_ptr<StringNode> &nd) {
     setConstant(nd->getConstant());
@@ -24,10 +31,10 @@ public:
   }
   string getName() const { return getConstant(); }
   void setType(const shared_ptr<TypeNode> &typ) { typ_ = typ; }
-  shared_ptr<TypeNode> getType() { return typ_; }
+  shared_ptr<TypeNode> getType() const { return typ_; }
   bool isHidden() const { return hidden_; }
   void isHidden(bool val) { hidden_ = val; }
-  string getHead() { return head_; }
+  string getHead() const { return head_; }
 
 private:
   string head_ = "Identifier";

@@ -4,7 +4,8 @@
 
 class Label : public Node {
 public:
-  Label(const int & row, const int & col, const shared_ptr<Node> &node) : Node(row, col), lbl_(node) {  }
+  Label(const int &row, const int &col, const shared_ptr<Node> &node)
+      : Node(row, col), lbl_(node) {}
   ~Label() {}
   string getHead() { return head_; }
 

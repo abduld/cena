@@ -4,7 +4,8 @@
 
 class Goto : public Node {
 public:
-  Goto(const int & row, const int & col, const shared_ptr<Node> &node) : Node(row, col), trgt_(trgt) {  }
+  Goto(const int &row, const int &col, const shared_ptr<Node> &node)
+      : Node(row, col), trgt_(trgt) {}
   ~Goto() {}
   string getHead() { return head_; }
 

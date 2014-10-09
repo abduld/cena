@@ -5,9 +5,9 @@
 
 class Node {
 public:
-  Node(const int & row, const int & col) : id_(0), label_(""), len_(0), children_(), parent_(nullptr), row_(0), col_(0) {
-  }
-  ~Node() {}
+  Node(const int &row, const int &col)
+      : id_(0), label_(""), children_(), parent_(nullptr), row_(0), col_(0) {}
+  virtual ~Node() {}
   void setId(const size_t &id) { id_ = id; }
   size_t getId() const { return id_; }
   virtual void toCCode_(ostringstream &o) {
@@ -85,26 +85,16 @@ public:
     return vec;
   }
   void setParent(shared_ptr<Node> parent) { parent_ = parent; }
-  virtual bool hasChildren() const {
-    return false;
-  }
-  virtual vector<shared_ptr<Node>> getChildren() {
-    return children_;
-  }
-  virtual void unlink() {
-    return ;
-  }
-  virtual void insertChild() {
-    return ;
-  }
-  virtual void rename() {
-    return ;
-  }
+  virtual bool hasChildren() const { return false; }
+  virtual vector<shared_ptr<Node>> getChildren() { return children_; }
+  virtual void unlink() { return; }
+  virtual void insertChild() { return; }
+  virtual void rename() { return; }
+
 protected:
-  int len_;
   size_t id_;
-  shared_ptr<Node> parent_ = nullptr;
   vector<shared_ptr<Node>> children_;
+  shared_ptr<Node> parent_ = nullptr;
   int row_;
   int col_;
   string label_;

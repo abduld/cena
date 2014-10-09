@@ -4,9 +4,11 @@
 
 class BinaryOp : public StringNode {
 public:
-  BinaryOp(const int & row, const int & col, const char *s) : StringNode(row, col, s) {}
-  BinaryOp(const int & row, const int & col, const string & s) : StringNode(row, col, s) {}
-  string getHead() { return head_; }
+  BinaryOp(const int &row, const int &col, const char *s)
+      : StringNode(row, col, s) {}
+  BinaryOp(const int &row, const int &col, const string &s)
+      : StringNode(row, col, s) {}
+  string getHead() const { return head_; }
   void toCCode_(ostringstream &o) { o << getConstant(); }
   void toString_(ostringstream &o) { toCCode_(o); }
 
@@ -16,14 +18,14 @@ private:
 
 class BinaryOperatorNode : public Node {
 public:
-  BinaryOperatorNode(const int & row, const int & col) : Node(row, col) {}
-  BinaryOperatorNode(const int & row, const int & col, const string & op, const shared_ptr<Node> &lhs,
-                     const shared_ptr<Node> &rhs)
+  BinaryOperatorNode(const int &row, const int &col) : Node(row, col) {}
+  BinaryOperatorNode(const int &row, const int &col, const string &op,
+                     const shared_ptr<Node> &lhs, const shared_ptr<Node> &rhs)
       : Node(row, col) {
-        op_ = shared_ptr<BinaryOp>(new BinaryOp(row_, col_, op));
-        lhs_ = lhs;
-        rhs_ = rhs;
-     }
+    op_ = shared_ptr<BinaryOp>(new BinaryOp(row_, col_, op));
+    lhs_ = lhs;
+    rhs_ = rhs;
+  }
   ~BinaryOperatorNode() {}
   void setOperator(const string &op) {
     op_ = shared_ptr<BinaryOp>(new BinaryOp(row_, col_, op));
@@ -32,9 +34,9 @@ public:
   void setLHS(const shared_ptr<Node> &lhs) { lhs_ = lhs; }
 
   void setRHS(const shared_ptr<Node> &rhs) { rhs_ = rhs; }
-  shared_ptr<Node> getOperator() { return op_; }
-  shared_ptr<Node> getLHS() { return lhs_; }
-  shared_ptr<Node> setRHS() { return rhs_; }
+  shared_ptr<Node> getOperator() const { return op_; }
+  shared_ptr<Node> getLHS() const { return lhs_; }
+  shared_ptr<Node> setRHS() const { return rhs_; }
   string getHead() { return head_; }
 
   void toCCode_(ostringstream &o) {

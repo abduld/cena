@@ -4,15 +4,15 @@
 
 class DeclareNode : public Node {
 public:
-  DeclareNode(const int & row, const int & col) : Node(row, col) {}
+  DeclareNode(const int &row, const int &col) : Node(row, col) {}
   void setIdentifier(const shared_ptr<IdentifierNode> &id) { id_ = id; }
   void setType(const shared_ptr<TypeNode> &typ) { typ_ = typ; }
   void setInitializer(const shared_ptr<Node> &init) { init_ = init; }
-  shared_ptr<Node> getIdentifier() { return id_; }
-  shared_ptr<Node> getType() { return typ_; }
-  shared_ptr<Node> getInitializer() { return init_; }
-  bool hasInitializer() { return init_ != nullptr; }
-  string getHead() { return head_; }
+  shared_ptr<Node> getIdentifier() const { return id_; }
+  shared_ptr<Node> getType() const { return typ_; }
+  shared_ptr<Node> getInitializer() const { return init_; }
+  bool hasInitializer() const { return init_ != nullptr; }
+  string getHead() const { return head_; }
 
   void toCCode_(ostringstream &o) {
     assert(typ_ != nullptr);

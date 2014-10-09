@@ -4,13 +4,14 @@
 
 class CallNode : public Node {
 public:
-  CallNode(const int & row, const int & col) : Node(row, col) {}
-  CallNode(const int & row, const int & col, const shared_ptr<IdentifierNode> &fun,
+  CallNode(const int &row, const int &col) : Node(row, col) {}
+  CallNode(const int &row, const int &col,
+           const shared_ptr<IdentifierNode> &fun,
            const vector<shared_ptr<Node>> &args)
       : Node(row, col), fun_(fun), args_(new CompoundNode(row, col, args)) {}
   ~CallNode() {}
-  shared_ptr<IdentifierNode> getFunction() { return fun_; }
-  vector<shared_ptr<Node>> getArgs() { return args_->getValues(); }
+  shared_ptr<IdentifierNode> getFunction() const { return fun_; }
+  vector<shared_ptr<Node>> getArgs() const { return args_->getValues(); }
   void setFunction(const shared_ptr<IdentifierNode> &fun) { fun_ = fun; }
   void addArg(const shared_ptr<Node> &nd) {
     if (args_ == nullptr) {
@@ -18,7 +19,7 @@ public:
     }
     args_->push_back(nd);
   }
-  string getHead() { return head_; }
+  string getHead() const { return head_; }
   void toCCode_(ostringstream &o) {
     fun_->toCCode_(o);
     o << "(";

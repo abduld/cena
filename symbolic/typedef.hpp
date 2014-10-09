@@ -18,9 +18,9 @@ public:
   ~TypeDefNode() {}
   void setTypeNode(const shared_ptr<Node> &lhs) { setPart(0, lhs); }
   void setName(const shared_ptr<Node> &rhs) { setPart(1, rhs); }
-  shared_ptr<Node> getTypeNode() { return getPart(0); }
-  shared_ptr<Node> getName() { return getPart(1); }
-  string getHead() { return head_; }
+  shared_ptr<Node> getTypeNode() const { return getPart(0); }
+  shared_ptr<Node> getName() const { return getPart(1); }
+  string getHead() const { return head_; }
 
 private:
   string head_ = "TypeDef";

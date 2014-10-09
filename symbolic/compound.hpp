@@ -5,51 +5,48 @@
 
 class CompoundNode : public Node {
 public:
-  CompoundNode(const int & row, const int & col) : Node(row, col) { vals_ = vector<shared_ptr<Node>>(); }
-  CompoundNode(const int & row, const int & col, const vector<shared_ptr<Node>> &vals) : Node(row, col), vals_(vals) {}
+  CompoundNode(const int &row, const int &col) : Node(row, col) {
+    vals_ = vector<shared_ptr<Node>>();
+  }
+  CompoundNode(const int &row, const int &col,
+               const vector<shared_ptr<Node>> &vals)
+      : Node(row, col), vals_(vals) {}
   virtual ~CompoundNode() { vals_.clear(); }
   virtual bool isCompound() const { return true; }
   virtual bool isEmpty() const { return getArgCount() == 0; }
   CompoundNode *operator<<=(const bool &val) {
     shared_ptr<BooleanNode> var(new BooleanNode(row_, col_, val));
     vals_.push_back(var);
-    len_++;
     return this;
   }
   CompoundNode &operator<<=(const int &val) {
     shared_ptr<IntegerNode> var(new IntegerNode(row_, col_, val));
     vals_.push_back(var);
-    len_++;
     return *this;
   }
   CompoundNode &operator<<=(const int64_t &val) {
     shared_ptr<IntegerNode> var(new IntegerNode(row_, col_, val));
     vals_.push_back(var);
-    len_++;
     return *this;
   }
   CompoundNode &operator<<=(const float &val) {
     shared_ptr<RealNode> var(new RealNode(row_, col_, val));
     vals_.push_back(var);
-    len_++;
     return *this;
   }
   CompoundNode &operator<<=(const double &val) {
     shared_ptr<RealNode> var(new RealNode(row_, col_, val));
     vals_.push_back(var);
-    len_++;
     return *this;
   }
   CompoundNode &operator<<=(const char *val) {
     shared_ptr<StringNode> var(new StringNode(row_, col_, val));
     vals_.push_back(var);
-    len_++;
     return *this;
   }
   CompoundNode &operator<<=(const string &val) {
     shared_ptr<StringNode> var(new StringNode(row_, col_, val));
     vals_.push_back(var);
-    len_++;
     return *this;
   }
   CompoundNode &operator<<=(const shared_ptr<Node> &c) {
@@ -57,7 +54,6 @@ public:
       *this <<= std::static_pointer_cast<CompoundNode>(c);
     } else {
       vals_.push_back(c);
-      len_++;
     }
     return *this;
   }
@@ -66,7 +62,6 @@ public:
     for (auto iter = vals.begin(); iter != vals.end(); iter++) {
       vals_.push_back(*iter);
     }
-    len_ += vals.size();
     return *this;
   }
   CompoundNode &operator<<=(const shared_ptr<CompoundNode> &c) {
@@ -74,18 +69,15 @@ public:
     for (auto iter = vals.begin(); iter != vals.end(); iter++) {
       vals_.push_back(*iter);
     }
-    len_ += vals.size();
     return *this;
   }
   void push_back(Node *v) {
     shared_ptr<Node> var(v);
     vals_.push_back(var);
-    len_++;
     return;
   }
   void push_back(const shared_ptr<Node> &var) {
     vals_.push_back(var);
-    len_++;
     return;
   }
   void push_back(const vector<shared_ptr<Node>> &var) {
@@ -95,7 +87,7 @@ public:
     return;
   }
   size_t getArgCount() const { return vals_.size(); }
-  shared_ptr<Node> getPart(int idx) { return vals_[idx]; }
+  shared_ptr<Node> getPart(int idx) const { return vals_[idx]; }
   void setPart(int idx, const shared_ptr<Node> &var) {
     if (vals_.size() <= idx) {
       vals_.resize(idx + 1);
@@ -103,7 +95,7 @@ public:
     vals_[idx] = var;
     return;
   }
-  virtual string getHead() { return head_; }
+  virtual string getHead() const { return head_; }
   vector<shared_ptr<Node>> getValues() { return vals_; }
 
   virtual void toCCode_(ostringstream &o) {
@@ -157,7 +149,6 @@ public:
   virtual void toJSON_(ostringstream &o) { o << "{\"type\": \"unknown\"}"; }
 
 protected:
-  int len_;
   string head_ = "CompoundNode";
   vector<shared_ptr<Node>> vals_;
 };

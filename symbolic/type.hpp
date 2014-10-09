@@ -5,8 +5,10 @@
 
 class TypeNode : public Node {
 public:
-  TypeNode(const int & row, const int & col) : Node(row, col) {}
-  TypeNode(const int & row, const int & col, const string &typ) : Node(row, col) { addBase(typ); }
+  TypeNode(const int &row, const int &col) : Node(row, col) {}
+  TypeNode(const int &row, const int &col, const string &typ) : Node(row, col) {
+    addBase(typ);
+  }
   void addQualifyer(const string &qual) {
     addQualifyer(shared_ptr<StringNode>(new StringNode(row_, col_, qual)));
   }
@@ -23,9 +25,9 @@ public:
   void addAddressSpace(const shared_ptr<Node> &addr) {
     address_space_.push_back(addr);
   }
-  vector<shared_ptr<Node>> getQualifiers() { return qualifiers_; }
-  vector<shared_ptr<Node>> getBase() { return base_; }
-  vector<shared_ptr<Node>> getAddressSpace() { return address_space_; }
+  vector<shared_ptr<Node>> getQualifiers() const { return qualifiers_; }
+  vector<shared_ptr<Node>> getBase() const { return base_; }
+  vector<shared_ptr<Node>> getAddressSpace() const { return address_space_; }
 
   void toCCode_(ostringstream &o) {
     for (auto addr : address_space_) {
@@ -43,7 +45,7 @@ public:
   }
   void toString_(ostringstream &o) { toCCode_(o); }
   void toJSON_(ostringstream &o) { o << "{\"type\": \"unknown\"}"; }
-  string getHead() { return head_; }
+  string getHead() const { return head_; }
 
 private:
   string head_ = "Type";

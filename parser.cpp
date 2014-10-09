@@ -635,7 +635,7 @@ private:
 public:
   explicit SASTConsumer(CompilerInstance &CI)
       : ci(CI), visitor(new SVisitor(CI)) {
-    //ci.getPreprocessor().enableIncrementalProcessing();
+    // ci.getPreprocessor().enableIncrementalProcessing();
   }
   virtual void Initialize(ASTContext &Ctx) override {}
 
@@ -648,7 +648,7 @@ public:
   // override this to call our SVisitor on each top-level Decl
   virtual void HandleTranslationUnit(ASTContext &context) {
     DEBUG;
-    //visitor->TraverseDecl(context.getTranslationUnitDecl());
+    // visitor->TraverseDecl(context.getTranslationUnitDecl());
     // find all C++ #include needed for the converted C++ types
     auto collectInclude =
         [&](clang::ASTContext &i_ctx, const clang::QualType &i_type) {
@@ -678,8 +678,8 @@ public:
       // When there was fatal error, processing the warnings may cause crashes
     }
     for (auto iter : dg) {
-    DEBUG;
-    (*iter).dump();
+      DEBUG;
+      (*iter).dump();
       visitor->TraverseDecl(iter);
       visitor->addCurrent();
     }
@@ -691,30 +691,29 @@ public:
 std::string GetExecutablePath(const char *Argv0) {
   // This just needs to be some symbol in the binary; C++ doesn't
   // allow taking the address of ::main however.
-  void *main_addr = (void*) (intptr_t) GetExecutablePath;
+  void *main_addr = (void *)(intptr_t)GetExecutablePath;
   return llvm::sys::fs::getMainExecutable(Argv0, main_addr);
 }
 class SFrontendAction : public ASTFrontendAction {
 public:
-  SFrontendAction(const string & exe) : ASTFrontendAction() {
-    //exe_path = GetExecutablePath(exe);
+  SFrontendAction(const string &exe) : ASTFrontendAction() {
+    // exe_path = GetExecutablePath(exe);
     exe_path = exe;
   }
   std::unique_ptr<ASTConsumer> CreateASTConsumer(CompilerInstance &CI,
                                                  StringRef file) {
 
-  void* main_addr = (void*) (intptr_t) GetExecutablePath;
+    void *main_addr = (void *)(intptr_t)GetExecutablePath;
     /* http://code.woboq.org/mocng/src/main.cpp.html */
     clang::Preprocessor &PP = CI.getPreprocessor();
-    //clang::MacroInfo *MI = PP.AllocateMacroInfo({});
-    //MI->setIsBuiltinMacro();
-
+    // clang::MacroInfo *MI = PP.AllocateMacroInfo({});
+    // MI->setIsBuiltinMacro();
 
     CI.getFrontendOpts().SkipFunctionBodies = false;
-    //PP.enableIncrementalProcessing(true);
+    // PP.enableIncrementalProcessing(true);
     // PP.SetSuppressIncludeNotFoundError(true);
-    //PP.SetMacroExpansionOnlyInDirectives();
-    //CI.getPreprocessorOpts().DisablePCHValidation = true;
+    // PP.SetMacroExpansionOnlyInDirectives();
+    // CI.getPreprocessorOpts().DisablePCHValidation = true;
     CI.getLangOpts().DelayedTemplateParsing = true;
     CI.getLangOpts().CUDA = true;
     CI.getLangOpts().EmitAllDecls = true;
@@ -726,10 +725,9 @@ public:
     CI.getLangOpts().CPlusPlus11 = true;
     CI.getLangOpts().GNUMode = true;
 
-HeaderSearchOptions &HSO = CI.getHeaderSearchOpts();
+    HeaderSearchOptions &HSO = CI.getHeaderSearchOpts();
     HSO.UseBuiltinIncludes = true;
     HSO.UseStandardCXXIncludes = true;
-
 
     CodeGenOptions &codeGenOpts = CI.getCodeGenOpts();
     codeGenOpts.RelaxAll = 1;
@@ -743,28 +741,28 @@ HeaderSearchOptions &HSO = CI.getHeaderSearchOpts();
 
     // CI.getPreprocessor().addPPCallbacks(unique_ptr<PreprocessorCallback>(
     //    new PreprocessorCallback(CI.getPreprocessor())));
-    //CI.getDiagnostics().setClient(new SDiagnosticConsumer(), true);
+    // CI.getDiagnostics().setClient(new SDiagnosticConsumer(), true);
 
-/* does not work
-    //shared_ptr<TargetOptions> pto( new TargetOptions());
-    //pto->Triple = llvm::sys::getDefaultTargetTriple();
-    // CI.setTarget( TargetInfo::CreateTargetInfo(CI.getDiagnostics(), pto));
+    /* does not work
+        //shared_ptr<TargetOptions> pto( new TargetOptions());
+        //pto->Triple = llvm::sys::getDefaultTargetTriple();
+        // CI.setTarget( TargetInfo::CreateTargetInfo(CI.getDiagnostics(),
+    pto));
 
-  //  
-    // CI.setASTConsumer(std::move(astcons));
-//CI.createASTContext();
-//CI.createSema(clang::TU_Complete, NULL);
-*/
+      //
+        // CI.setASTConsumer(std::move(astcons));
+    //CI.createASTContext();
+    //CI.createSema(clang::TU_Complete, NULL);
+    */
 
-
-  // Infer the builtin include path if unspecified.
-  if (CI.getHeaderSearchOpts().UseBuiltinIncludes &&
-     CI.getHeaderSearchOpts().ResourceDir.empty()) {
-   CI.getHeaderSearchOpts().ResourceDir =
-      CompilerInvocation::GetResourcesPath(exe_path, main_addr);
+    // Infer the builtin include path if unspecified.
+    if (CI.getHeaderSearchOpts().UseBuiltinIncludes &&
+        CI.getHeaderSearchOpts().ResourceDir.empty()) {
+      CI.getHeaderSearchOpts().ResourceDir =
+          CompilerInvocation::GetResourcesPath(exe_path, main_addr);
     }
 
-astcons = std::unique_ptr<SASTConsumer>(new SASTConsumer(CI));
+    astcons = std::unique_ptr<SASTConsumer>(new SASTConsumer(CI));
 
     return std::move(astcons); // pass CI pointer to ASTConsumer
   }
@@ -797,22 +795,22 @@ void parse(int argc, const char **argv) {
   // args.push_back("-fsyntax-only ");
   // args.push_back("-x cpp-output ");
   // args.push_back("-Xclang -ffake-address-space-map");
-/*
-  args.emplace_back("-D__LP64__");
-  args.emplace_back("-I/usr/include/");
-  args.emplace_back("-I/builtins");
-  // clang++ -E -x c++ - -v < /dev/null
-  args.emplace_back("-I/usr/local/Cellar/llvm/HEAD/include");
-  args.emplace_back("-I/usr/local/include");
-  args.emplace_back("-I/usr/local/Cellar/llvm/HEAD/lib/clang/3.6.0/include");
-  args.emplace_back("-I/Applications/Xcode.app/Contents/Developer/Platforms/"
-                    "MacOSX.platform/Developer/SDKs/MacOSX10.8.sdk/usr/"
-                    "include/");
-  args.emplace_back("-I/Applications/Xcode.app/Contents/Developer/Platforms/"
-                    "MacOSX.platform/Developer/SDKs/MacOSX10.8.sdk/usr/"
-                    "include/c++/4.2.1");
-  args.emplace_back("-fsyntax-only");
-  */
+  /*
+    args.emplace_back("-D__LP64__");
+    args.emplace_back("-I/usr/include/");
+    args.emplace_back("-I/builtins");
+    // clang++ -E -x c++ - -v < /dev/null
+    args.emplace_back("-I/usr/local/Cellar/llvm/HEAD/include");
+    args.emplace_back("-I/usr/local/include");
+    args.emplace_back("-I/usr/local/Cellar/llvm/HEAD/lib/clang/3.6.0/include");
+    args.emplace_back("-I/Applications/Xcode.app/Contents/Developer/Platforms/"
+                      "MacOSX.platform/Developer/SDKs/MacOSX10.8.sdk/usr/"
+                      "include/");
+    args.emplace_back("-I/Applications/Xcode.app/Contents/Developer/Platforms/"
+                      "MacOSX.platform/Developer/SDKs/MacOSX10.8.sdk/usr/"
+                      "include/c++/4.2.1");
+    args.emplace_back("-fsyntax-only");
+    */
 
   ostringstream o;
   o << "#include <cstdio>" << std::endl;
@@ -827,7 +825,8 @@ void parse(int argc, const char **argv) {
   o << "}" << std::endl;
   o << "}" << std::endl;
 
-  runToolOnCodeWithArgs(newFrontendActionFactory<SFrontendAction>(  GetExecutablePath(argv[0]))->create(),
+  runToolOnCodeWithArgs(newFrontendActionFactory<SFrontendAction>(
+                            GetExecutablePath(argv[0]))->create(),
                         o.str(), args);
   // print out the rewritten source code ("rewriter" is a global var.)
   // rewriter.getEditBuffer(rewriter.getSourceMgr().getMainFileID()).write(errs());

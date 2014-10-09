@@ -4,13 +4,12 @@
 
 class Break : public Node {
 public:
-  Break(const int & row, const int & col) : Node(row, col) {}
-  Break(const int & row, const int & col, const shared_ptr<Node> &node) : Node(row, col), trgt_(node) {  }
+  Break(const int &row, const int &col) : Node(row, col) {}
+  Break(const int &row, const int &col, const shared_ptr<Node> &node)
+      : Node(row, col), trgt_(node) {}
   ~Break() {}
-  string getHead() { return head_; }
-  shared_ptr<Node> getTarget() {
-  	return trgt_;
-  }
+  string getHead() const { return head_; }
+  shared_ptr<Node> getTarget() const { return trgt_; }
 
 private:
   string head_ = "Break";

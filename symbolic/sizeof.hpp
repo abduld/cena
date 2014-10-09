@@ -9,8 +9,8 @@ public:
   SizeOf(const shared_ptr<Node> &nd) : CompoundNode() { push_back(nd); }
   ~SizeOf() {}
   void setArg(const shared_ptr<Node> &arg) { setPart(0, arg); }
-  shared_ptr<Node> getArg() { return getPart(0); }
-  string getHead() { return head_; }
+  shared_ptr<Node> getArg() const { return getPart(0); }
+  string getHead() const { return head_; }
 
 private:
   string head_ = "SizeOf";

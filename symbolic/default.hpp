@@ -4,7 +4,7 @@
 
 class Default : public Keyword {
 public:
-  Default(const int & row, const int & col) : Keyword(row, col, "Default") {}
+  Default(const int &row, const int &col) : Keyword(row, col, "Default") {}
   ~Default() {}
 };
 

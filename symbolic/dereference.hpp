@@ -5,8 +5,9 @@
 
 class Dereference : public Node {
 public:
-  Dereference(const int & row, const int & col) : Node(row, col) {}
-  Dereference(const int & row, const int & col, const shared_ptr<Node> &typ) : Node(row, col), typ_(typ) {  }
+  Dereference(const int &row, const int &col) : Node(row, col) {}
+  Dereference(const int &row, const int &col, const shared_ptr<Node> &typ)
+      : Node(row, col), typ_(typ) {}
   string getHead() const { return head_; }
 
 private:

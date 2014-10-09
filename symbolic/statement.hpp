@@ -5,10 +5,10 @@
 
 class Statement : public CompoundNode {
 public:
-  Statement(const int & row, const int & col) : CompoundNode(row, col) {}
+  Statement(const int &row, const int &col) : CompoundNode(row, col) {}
   ~Statement() {}
   bool isStatement() const { return true; }
-  string getHead() { return head_; }
+  string getHead() const { return head_; }
 
 private:
   string head_ = "Statement";

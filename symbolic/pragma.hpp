@@ -4,7 +4,10 @@
 
 class Pragma : public CompoundNode {
 public:
-  Pragma(const int & row, const int & col, const shared_ptr<Node> &node) : CompoundNode(row, col) { push_back(node); }
+  Pragma(const int &row, const int &col, const shared_ptr<Node> &node)
+      : CompoundNode(row, col) {
+    push_back(node);
+  }
   ~Pragma() {}
   string getHead() { return head_; }
 
