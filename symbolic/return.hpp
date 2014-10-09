@@ -4,8 +4,8 @@
 
 class ReturnNode : public Node {
 public:
-  ReturnNode() : Node() {}
-  ReturnNode(const shared_ptr<Node> &nd) : Node() { setReturnValue(nd); }
+  ReturnNode(const int & row, const int & col) : Node(row, col) {}
+  ReturnNode(const int & row, const int & col, const shared_ptr<Node> &nd) : Node(row, col) { setReturnValue(nd); }
   ~ReturnNode() {}
   void setReturnValue(const shared_ptr<Node> &arg) { ret_ = arg; }
   shared_ptr<Node> getReturnValue() { return ret_; }

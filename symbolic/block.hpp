@@ -4,7 +4,7 @@
 
 class BlockNode : public CompoundNode {
 public:
-  BlockNode() : CompoundNode() {}
+  BlockNode(const int & row, const int & col) : CompoundNode(row, col) {}
   ~BlockNode() {}
   string getHead() { return head_; }
   bool isBlock() const { return true; }

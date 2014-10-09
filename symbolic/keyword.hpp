@@ -4,7 +4,7 @@
 
 class Keyword : public Node {
 public:
-  Keyword(string head) : Node(), head_(head) {}
+  Keyword(const int & row, const int & col, const string & head) : Node(row, col), head_(head) {}
   ~Keyword() {}
   string getHead() { return head_; }
 

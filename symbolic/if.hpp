@@ -5,12 +5,12 @@
 
 class IfNode : public Node {
 public:
-  IfNode() : Node() {}
-  IfNode(const shared_ptr<Node> &cond, const shared_ptr<Node> &thenPart)
+  IfNode(const int & row, const int & col) : Node(row, col) {}
+  IfNode(const int & row, const int & col, const shared_ptr<Node> &cond, const shared_ptr<Node> &thenPart)
       : Node(), cond_(cond), then_(thenPart) {}
-  IfNode(const shared_ptr<Node> &cond, const shared_ptr<Node> &thenPart,
+  IfNode(const int & row, const int & col, const shared_ptr<Node> &cond, const shared_ptr<Node> &thenPart,
          const shared_ptr<Node> &elsePart)
-      : Node(), cond_(cond), then_(thenPart), else_(elsePart) {}
+      : Node(row, col), cond_(cond), then_(thenPart), else_(elsePart) {}
   string getHead() { return head_; }
   void setCondition(const shared_ptr<Node> &cond) { cond_ = cond; }
   void setThen(const shared_ptr<Node> &nd) { then_ = nd; }

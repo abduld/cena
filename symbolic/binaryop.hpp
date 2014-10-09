@@ -4,8 +4,8 @@
 
 class BinaryOp : public StringNode {
 public:
-  BinaryOp(const char *s) : StringNode(s) {}
-  BinaryOp(string s) : StringNode(s) {}
+  BinaryOp(const int & row, const int & col, const char *s) : StringNode(row, col, s) {}
+  BinaryOp(const int & row, const int & col, const string & s) : StringNode(row, col, s) {}
   string getHead() { return head_; }
   void toCCode_(ostringstream &o) { o << getConstant(); }
   void toString_(ostringstream &o) { toCCode_(o); }
@@ -16,10 +16,10 @@ private:
 
 class BinaryOperatorNode : public Node {
 public:
-  BinaryOperatorNode() : Node() {}
-  BinaryOperatorNode(string op, const shared_ptr<Node> &lhs,
+  BinaryOperatorNode(const int & row, const int & col) : Node(row, col) {}
+  BinaryOperatorNode(const int & row, const int & col, const string & op, const shared_ptr<Node> &lhs,
                      const shared_ptr<Node> &rhs)
-      : Node(), op_(shared_ptr<BinaryOp>(new BinaryOp(op))), lhs_(lhs),
+      : Node(row, col), op_(row, col, shared_ptr<BinaryOp>(new BinaryOp(op))), lhs_(lhs),
         rhs_(rhs) {}
   ~BinaryOperatorNode() {}
   void setOperator(const string &op) {

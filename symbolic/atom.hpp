@@ -5,8 +5,8 @@
 
 template <typename T> class AtomNode : public Node {
 public:
-  AtomNode() : Node() { val_ = (T)0; }
-  AtomNode(T v) : Node() { val_ = v; }
+  AtomNode(const int & row, const int & col) : Node(row, col) { val_ = (T)0; }
+  AtomNode(const int & row, const int & col, const T & v) : Node(row, col) { val_ = v; }
   vector<shared_ptr<Node>> getValues() {
     vector<shared_ptr<Node>> vec;
     shared_ptr<Node> v(this);
@@ -22,6 +22,9 @@ public:
   }
   virtual void toString_(ostringstream &o) { toCCode_(o); }
   virtual void toJSON_(ostringstream &o) { toCCode_(o); }
+  virtual void toEsprima_(ostringstream &o) { o << "{\"type\": \"Literal\", \"value\": ";
+  toCCode_(o);
+  o <<"}"; }
 
 private:
   T val_;
@@ -29,8 +32,8 @@ private:
 
 class BooleanNode : public AtomNode<bool> {
 public:
-  BooleanNode() : AtomNode<bool>() {}
-  BooleanNode(bool v) : AtomNode<bool>(v) {}
+  BooleanNode(const int & row, const int & col) : AtomNode<bool>(row, col) {}
+  BooleanNode(const int & row, const int & col, const bool & v) : AtomNode<bool>(row, col, v) {}
   string getHead() { return head_; }
   void toCCode_(ostringstream &o) { o << (getConstant() ? "true" : "false"); }
 
@@ -40,8 +43,8 @@ private:
 
 class CharacterNode : public AtomNode<unsigned char> {
 public:
-  CharacterNode() : AtomNode<unsigned char>() {}
-  CharacterNode(unsigned char v) : AtomNode<unsigned char>(v) {}
+  CharacterNode(const int & row, const int & col) : AtomNode<unsigned char>(row, col) {}
+  CharacterNode(const int & row, const int & col, const unsigned char &v) : AtomNode<unsigned char>(row, col, v) {}
   string getHead() { return head_; }
   void toCCode_(ostringstream &o) {
     o << "'" << string(1, getConstant()) << "'";
@@ -52,8 +55,8 @@ private:
 };
 class IntegerNode : public virtual AtomNode<int64_t> {
 public:
-  IntegerNode() : AtomNode<int64_t>() {}
-  IntegerNode(int64_t v) : AtomNode<int64_t>(v) {}
+  IntegerNode(const int & row, const int & col) : AtomNode<int64_t>(row, col) {}
+  IntegerNode(const int & row, const int & col, const int64_t & v) : AtomNode<int64_t>(row, col, v) {}
   string getHead() { return head_; }
 
 private:
@@ -62,8 +65,8 @@ private:
 
 class RealNode : public AtomNode<double> {
 public:
-  RealNode() : AtomNode<double>() {}
-  RealNode(double v) : AtomNode<double>(v) {}
+  RealNode(const int & row, const int & col) : AtomNode<double>(row, col) {}
+  RealNode(const int & row, const int & col, const double & v) : AtomNode<double>(row, col, v) {}
   string getHead() { return head_; }
 
 private:
@@ -72,10 +75,14 @@ private:
 
 class StringNode : public AtomNode<string> {
 public:
-  StringNode() : AtomNode<string>() {}
-  StringNode(string v) : AtomNode<string>(v) {}
+  StringNode(const int & row, const int & col) : AtomNode<string>(row, col) {}
+  StringNode(const int & row, const int & col, const string & v) : AtomNode<string>(row, col, v) {}
   StringNode(const char *v) : AtomNode<string>(string(v)) {}
   string getHead() { return head_; }
+
+  void toCCode_(ostringstream &o) {
+    o << "\"" <<  getConstant() << "\"";
+  }
 
 private:
   string head_ = "String";

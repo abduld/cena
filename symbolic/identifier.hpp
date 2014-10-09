@@ -4,12 +4,12 @@
 
 class IdentifierNode : public virtual AtomNode<string> {
 public:
-  IdentifierNode() : AtomNode<string>("unknownid") {}
-  IdentifierNode(string v) : AtomNode<string>(v) {}
-  IdentifierNode(const shared_ptr<StringNode> &s) : AtomNode<string>() {
+  IdentifierNode(const int & row, const int & col) : AtomNode<string>(row, col, "unknownid") {}
+  IdentifierNode(const int & row, const int & col, const string & v) : AtomNode<string>(row, col, v) {}
+  IdentifierNode(const int & row, const int & col, const shared_ptr<StringNode> &s) : AtomNode<string>(row, col) {
     setName(s);
   }
-  IdentifierNode(const shared_ptr<Node> &s) : AtomNode<string>() { setName(s); }
+  IdentifierNode(const int & row, const int & col, const shared_ptr<Node> &s) : AtomNode<string>(row, col) { setName(s); }
   void setName(const string &name) { setConstant(name); }
   void setName(const shared_ptr<StringNode> &nd) {
     setConstant(nd->getConstant());

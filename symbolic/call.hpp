@@ -4,10 +4,10 @@
 
 class CallNode : public Node {
 public:
-  CallNode() : Node() {}
-  CallNode(const shared_ptr<IdentifierNode> &fun,
+  CallNode(const int & row, const int & col) : Node(row, col) {}
+  CallNode(const int & row, const int & col, const shared_ptr<IdentifierNode> &fun,
            const vector<shared_ptr<Node>> &args)
-      : Node(), fun_(fun), args_(new CompoundNode(args)) {}
+      : Node(row, col), fun_(fun), args_(new CompoundNode(args)) {}
   ~CallNode() {}
   shared_ptr<IdentifierNode> getFunction() { return fun_; }
   vector<shared_ptr<Node>> getArgs() { return args_->getValues(); }

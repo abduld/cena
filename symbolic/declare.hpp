@@ -4,7 +4,7 @@
 
 class DeclareNode : public Node {
 public:
-  DeclareNode() : Node() {}
+  DeclareNode(const int & row, const int & col) : Node(row, col) {}
   void setIdentifier(const shared_ptr<IdentifierNode> &id) { id_ = id; }
   void setType(const shared_ptr<TypeNode> &typ) { typ_ = typ; }
   void setInitializer(const shared_ptr<Node> &init) { init_ = init; }

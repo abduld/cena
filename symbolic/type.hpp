@@ -5,8 +5,8 @@
 
 class TypeNode : public Node {
 public:
-  TypeNode() : Node() {}
-  TypeNode(const string &typ) : Node() { addBase(typ); }
+  TypeNode(const int & row, const int & col) : Node(row, col) {}
+  TypeNode(const int & row, const int & col, const string &typ) : Node(row, col) { addBase(typ); }
   void addQualifyer(const string &qual) {
     addQualifyer(shared_ptr<StringNode>(new StringNode(qual)));
   }

@@ -5,11 +5,7 @@
 
 class Node {
 public:
-  Node() {
-    id_ = 0;
-    len_ = 0;
-    parent_ = nullptr;
-    source_location_ = nullptr;
+  Node(const int & row, const int & col) : id_(0), label_(""), len_(0), children_(), parent_(nullptr), row_(0), col_(0) {
   }
   ~Node() {}
   void setId(const size_t &id) { id_ = id; }
@@ -21,6 +17,7 @@ public:
     o << "unkown(" << this->getHead() << ")";
   }
   virtual void toJSON_(ostringstream &o) { o << "{\"type\": \"unknown\"}"; }
+  virtual void toEsprima_(ostringstream &o) { o << "{\"type\": \"unknown\"}"; }
   string toCCode() {
     ostringstream o;
     toCCode_(o);
@@ -34,6 +31,11 @@ public:
   string toJSON() {
     ostringstream o;
     toJSON_(o);
+    return o.str();
+  }
+  string toEsprima() {
+    ostringstream o;
+    toEsprima_(o);
     return o.str();
   }
 
@@ -83,12 +85,29 @@ public:
     return vec;
   }
   void setParent(shared_ptr<Node> parent) { parent_ = parent; }
-
+  virtual bool hasChildren() const {
+    return false;
+  }
+  virtual vector<shared_ptr<Node>> getChildren() {
+    return children_;
+  }
+  virtual void unlink() {
+    return ;
+  }
+  virtual void insertChild() {
+    return ;
+  }
+  virtual void rename() {
+    return ;
+  }
 protected:
   int len_;
   size_t id_;
-  shared_ptr<Node> parent_;
-  shared_ptr<Node> source_location_;
+  shared_ptr<Node> parent_ = nullptr;
+  vector<shared_ptr<Node>> children_;
+  int row_;
+  int col_;
+  string label_;
 };
 
 #endif /* __NODE_H__ */

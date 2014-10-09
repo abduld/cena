@@ -4,7 +4,7 @@
 
 class FunctionNode : public Node {
 public:
-  FunctionNode() : Node() {}
+  FunctionNode(const int & row, const int & col) : Node(row, col) {}
   void setReturnType(const shared_ptr<TypeNode> &typ) { ret_ = typ; }
   shared_ptr<TypeNode> getReturnType() { return ret_; }
   void setName(const shared_ptr<IdentifierNode> &id) { name_ = id; }
