@@ -49,8 +49,8 @@ public:
 
 private:
   string head_ = "Type";
-  vector<shared_ptr<Node>> qualifiers_;
-  vector<shared_ptr<Node>> base_;
-  vector<shared_ptr<Node>> address_space_;
+  vector<shared_ptr<Node>> qualifiers_{};
+  vector<shared_ptr<Node>> base_{};
+  vector<shared_ptr<Node>> address_space_{};
 };
 #endif /* __TYPE_H__ */

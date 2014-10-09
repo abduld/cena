@@ -5,7 +5,7 @@
 
 template <typename T> class AtomNode : public Node {
 public:
-  AtomNode(const int &row, const int &col) : Node(row, col) { val_ = (T)0; }
+  AtomNode(const int &row, const int &col) : Node(row, col) {  }
   AtomNode(const int &row, const int &col, const T &v) : Node(row, col) {
     val_ = v;
   }
@@ -31,7 +31,7 @@ public:
   }
 
 private:
-  T val_;
+  T val_{};
 };
 
 class BooleanNode : public AtomNode<bool> {

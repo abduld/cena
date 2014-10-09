@@ -93,11 +93,11 @@ public:
 
 protected:
   size_t id_;
-  vector<shared_ptr<Node>> children_;
+  vector<shared_ptr<Node>> children_{};
   shared_ptr<Node> parent_ = nullptr;
-  int row_;
-  int col_;
-  string label_;
+  int row_{};
+  int col_{};
+  string label_{};
 };
 
 #endif /* __NODE_H__ */

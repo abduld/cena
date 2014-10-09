@@ -14,6 +14,6 @@ public:
   string getHead() { return head_; }
 
 private:
-  string head_ = "WhileNode";
+  string head_ = "While";
 };
 #endif /* __WHILE_H__ */
