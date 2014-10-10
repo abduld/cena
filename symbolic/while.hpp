@@ -3,17 +3,17 @@
 #ifndef __WHILE_H__
 #define __WHILE_H__
 
-class WhileNode : public CompoundNode {
+class WhileNode : public Node {
 public:
-  WhileNode() : CompoundNode() {}
-  WhileNode(const shared_ptr<Node> &cond, const shared_ptr<Node> &body)
-      : CompoundNode() {
-    push_back(cond);
-    push_back(body);
-  }
-  string getHead() { return head_; }
+  WhileNode(const int &row, const int &col) : Node(row, col) {}
+  WhileNode(const int &row, const int &col, const shared_ptr<Node> &cond,
+            const shared_ptr<Node> &body)
+      : Node(row, col), cond_(cond), body_(body) {}
+  string getHead() const { return head_; }
 
 private:
   string head_ = "While";
+  shared_ptr<Node> cond_;
+  shared_ptr<Node> body_;
 };
 #endif /* __WHILE_H__ */

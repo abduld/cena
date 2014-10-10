@@ -73,87 +73,100 @@ public:
 
   shared_ptr<ProgramNode> getProgram() { return prog_; }
 
-  shared_ptr<Node> toNode(APInt ii) {
+  shared_ptr<Node> toNode(const PresumedLoc &loc, const APInt &ii) {
     if (ii.getBitWidth() <= 64) {
-      return shared_ptr<IntegerNode>(new IntegerNode(ii.getSExtValue()));
+      return shared_ptr<IntegerNode>(
+          new IntegerNode(loc.getLine(), loc.getColumn(), ii.getSExtValue()));
     } else {
-      return shared_ptr<StringNode>(
-          new StringNode(ii.toString(10, ii.isSignBit())));
+      return shared_ptr<StringNode>(new StringNode(
+          loc.getLine(), loc.getColumn(), ii.toString(10, ii.isSignBit())));
     }
   }
 
-  shared_ptr<StringNode> toNode(const Expr *e) {
+  shared_ptr<StringNode> toNode(const PresumedLoc &loc, const Expr *e) {
     LangOptions LO;
     std::string str;
     raw_string_ostream ros(str);
     e->printPretty(ros, nullptr, ctx->getLangOpts());
-    return shared_ptr<StringNode>(new StringNode(str));
+    return shared_ptr<StringNode>(
+        new StringNode(loc.getLine(), loc.getColumn(), str));
   }
 
-  vector<shared_ptr<Node>> toNode(const Qualifiers &quals) {
+  vector<shared_ptr<Node>> toNode(const PresumedLoc &loc,
+                                  const Qualifiers &quals) {
     vector<shared_ptr<Node>> res;
 
     if (quals.hasConst()) {
-      res.push_back(shared_ptr<StringNode>(new StringNode("const")));
+      res.push_back(shared_ptr<StringNode>(
+          new StringNode(loc.getLine(), loc.getColumn(), "const")));
     }
     if (quals.hasVolatile()) {
-      res.push_back(shared_ptr<StringNode>(new StringNode("volatile")));
+      res.push_back(shared_ptr<StringNode>(
+          new StringNode(loc.getLine(), loc.getColumn(), "volatile")));
     }
     if (quals.hasRestrict()) {
-      res.push_back(shared_ptr<StringNode>(new StringNode("restrict")));
+      res.push_back(shared_ptr<StringNode>(
+          new StringNode(loc.getLine(), loc.getColumn(), "restrict")));
     }
     if (quals.hasAddressSpace()) {
       unsigned addressSpace = quals.getAddressSpace();
       switch (addressSpace) {
       case LangAS::opencl_global:
-        res.push_back(shared_ptr<StringNode>(new StringNode("__global")));
+        res.push_back(shared_ptr<StringNode>(
+            new StringNode(loc.getLine(), loc.getColumn(), "__global")));
         break;
       case LangAS::opencl_local:
-        res.push_back(shared_ptr<StringNode>(new StringNode("__local")));
+        res.push_back(shared_ptr<StringNode>(
+            new StringNode(loc.getLine(), loc.getColumn(), "__local")));
         break;
       case LangAS::opencl_constant:
-        res.push_back(shared_ptr<StringNode>(new StringNode("__constant")));
+        res.push_back(shared_ptr<StringNode>(
+            new StringNode(loc.getLine(), loc.getColumn(), "__constant")));
         break;
       default: {
         ostringstream o;
         o << "__attribute__((address_space(";
         o << addressSpace;
         o << ")))";
-        res.push_back(shared_ptr<StringNode>(new StringNode(o.str())));
+        res.push_back(shared_ptr<StringNode>(
+            new StringNode(loc.getLine(), loc.getColumn(), o.str())));
       }
       }
     }
     return res;
   }
-  shared_ptr<TypeNode> toNode(const Type *ty) {
+  shared_ptr<TypeNode> toNode(const PresumedLoc &loc, const Type *ty) {
     if (const BuiltinType *bty = dyn_cast<const BuiltinType>(ty)) {
       StringRef s = bty->getName(PrintingPolicy(ctx->getLangOpts()));
-      return shared_ptr<TypeNode>(new TypeNode(s));
+      return shared_ptr<TypeNode>(
+          new TypeNode(loc.getLine(), loc.getColumn(), s));
     } else {
-      return shared_ptr<TypeNode>(new TypeNode("unsupported"));
+      return shared_ptr<TypeNode>(
+          new TypeNode(loc.getLine(), loc.getColumn(), "unsupported"));
     }
   }
 
-  shared_ptr<TypeNode> toNode(const QualType &typ) {
+  shared_ptr<TypeNode> toNode(const PresumedLoc &loc, const QualType &typ) {
     shared_ptr<TypeNode> res;
-    res = toNode(typ.getTypePtr());
+    res = toNode(loc, typ.getTypePtr());
     if (typ.hasQualifiers()) {
-      auto quals = toNode(typ.getQualifiers());
+      auto quals = toNode(loc, typ.getQualifiers());
       for (auto q : quals) {
         res->addQualifyer(q);
       }
     }
     return res;
   }
-  shared_ptr<IdentifierNode> toNode(const Decl *decl) {
+  shared_ptr<IdentifierNode> toNode(const PresumedLoc &loc, const Decl *decl) {
     const NamedDecl *ND = dyn_cast<NamedDecl>(decl);
-    shared_ptr<IdentifierNode> nd(new IdentifierNode());
+    shared_ptr<IdentifierNode> nd(
+        new IdentifierNode(loc.getLine(), loc.getColumn()));
     if (ND) {
       nd->setName(ND->getNameAsString());
       nd->isHidden(ND->isHidden());
     }
     if (const ValueDecl *VD = dyn_cast<ValueDecl>(decl)) {
-      nd->setType(toNode(VD->getType()));
+      nd->setType(toNode(loc, VD->getType()));
     }
     return nd;
   }
@@ -268,11 +281,14 @@ public:
     if (canIgnoreCurrentASTNode()) {
       return true;
     }
+    PresumedLoc loc = SM.getPresumedLoc(decl->getPointOfInstantiation());
     shared_ptr<Node> tmp = current_node;
-    shared_ptr<FunctionNode> func(new FunctionNode());
-    shared_ptr<TypeNode> returnType = toNode(decl->getReturnType());
+    shared_ptr<FunctionNode> func(
+        new FunctionNode(loc.getLine(), loc.getColumn()));
+    shared_ptr<TypeNode> returnType = toNode(loc, decl->getReturnType());
     shared_ptr<IdentifierNode> name(
-        new IdentifierNode(decl->getNameInfo().getName().getAsString()));
+        new IdentifierNode(loc.getLine(), loc.getColumn(),
+                           decl->getNameInfo().getName().getAsString()));
 
     func->setReturnType(returnType);
     func->setName(name);
@@ -296,11 +312,12 @@ public:
     if (canIgnoreCurrentASTNode()) {
       return true;
     }
+    PresumedLoc loc = SM.getPresumedLoc(decl->getSourceRange().getBegin());
     shared_ptr<Node> tmp = current_node;
-    shared_ptr<DeclareNode> nd(new DeclareNode());
-    shared_ptr<TypeNode> typ = toNode(decl->getType());
-    shared_ptr<IdentifierNode> id(new IdentifierNode(decl->getNameAsString()));
-    PresumedLoc PLoc = SM.getPresumedLoc(decl->getSourceRange().getBegin());
+    shared_ptr<DeclareNode> nd(new DeclareNode(loc.getLine(), loc.getColumn()));
+    shared_ptr<TypeNode> typ = toNode(loc, decl->getType());
+    shared_ptr<IdentifierNode> id(new IdentifierNode(
+        loc.getLine(), loc.getColumn(), decl->getNameAsString()));
 
     nd->setType(typ);
     nd->setIdentifier(id);
@@ -319,8 +336,10 @@ public:
     if (canIgnoreCurrentASTNode()) {
       return true;
     }
+    PresumedLoc loc = SM.getPresumedLoc(decl->getSourceRange().getBegin());
     shared_ptr<Node> tmp = current_node;
-    shared_ptr<CompoundNode> nd(new CompoundNode());
+    shared_ptr<CompoundNode> nd(
+        new CompoundNode(loc.getLine(), loc.getColumn()));
     for (auto init = decl->decl_begin(), end = decl->decl_end(); init != end;
          ++init) {
       current_node = tmp;
@@ -332,23 +351,28 @@ public:
   }
 
   virtual bool TraverseWhileStmt(WhileStmt *stmt) {
-    shared_ptr<WhileNode> nd(new WhileNode());
-
-    PresumedLoc PLoc = SM.getPresumedLoc(stmt->getWhileLoc());
+    if (canIgnoreCurrentASTNode()) {
+      return true;
+    }
+    PresumedLoc loc = SM.getPresumedLoc(stmt->getWhileLoc());
+    shared_ptr<WhileNode> nd(new WhileNode(loc.getLine(), loc.getColumn()));
 
     current_node = nd;
     TraverseStmt(stmt->getCond());
 
-    current_node = shared_ptr<BlockNode>(new BlockNode());
+    current_node =
+        shared_ptr<BlockNode>(new BlockNode(loc.getLine(), loc.getColumn()));
     TraverseStmt(stmt->getBody());
     *nd <<= current_node;
 
     current_node = nd;
     return true;
   }
+
   virtual bool TraverseIfStmt(IfStmt *stmt) {
     shared_ptr<Node> tmp = current_node;
-    shared_ptr<IfNode> nd(new IfNode());
+    PresumedLoc loc = SM.getPresumedLoc(stmt->getIfLoc());
+    shared_ptr<IfNode> nd(new IfNode(loc.getLine(), loc.getColumn()));
 
     current_node = nd;
     TraverseStmt(stmt->getCond());
@@ -357,7 +381,7 @@ public:
     current_node = nd;
     TraverseStmt(stmt->getThen());
     if (!current_node->isBlock()) {
-      shared_ptr<BlockNode> blk(new BlockNode());
+      shared_ptr<BlockNode> blk(new BlockNode(loc.getLine(), loc.getColumn()));
       *blk <<= current_node;
       current_node = blk;
     }
@@ -367,7 +391,8 @@ public:
       current_node = nd;
       TraverseStmt(stmt->getElse());
       if (!current_node->isBlock()) {
-        shared_ptr<BlockNode> blk(new BlockNode());
+        shared_ptr<BlockNode> blk(
+            new BlockNode(loc.getLine(), loc.getColumn()));
         *blk <<= current_node;
         current_node = blk;
       }
@@ -377,9 +402,12 @@ public:
 
     return true;
   }
+
   virtual bool TraverseCompoundStmt(CompoundStmt *stmt) {
     shared_ptr<Node> tmp = current_node;
-    shared_ptr<CompoundNode> nd(new CompoundNode());
+    PresumedLoc loc = SM.getPresumedLoc(stmt->getLocStart());
+    shared_ptr<CompoundNode> nd(
+        new CompoundNode(loc.getLine(), loc.getColumn()));
 
     for (auto init = stmt->body_begin(), end = stmt->body_end(); init != end;
          ++init) {
@@ -390,10 +418,10 @@ public:
     current_node = nd;
     return true;
   }
-  virtual bool TraverseReturnStmt(ReturnStmt *stmt) {
-    shared_ptr<ReturnNode> nd(new ReturnNode());
 
-    PresumedLoc PLoc = SM.getPresumedLoc(stmt->getReturnLoc());
+  virtual bool TraverseReturnStmt(ReturnStmt *stmt) {
+    PresumedLoc loc = SM.getPresumedLoc(stmt->getReturnLoc());
+    shared_ptr<ReturnNode> nd(new ReturnNode(loc.getLine(), loc.getColumn()));
 
     current_node = nd;
     if (stmt->getRetValue()) {
@@ -408,7 +436,9 @@ public:
 
 #define OPERATOR(NAME)                                                         \
   bool TraverseUnary##NAME(UnaryOperator *E) {                                 \
-    shared_ptr<UnaryOperatorNode> nd(new UnaryOperatorNode());                 \
+    PresumedLoc loc = SM.getPresumedLoc(E->getExprLoc());                      \
+    shared_ptr<UnaryOperatorNode> nd(                                          \
+        new UnaryOperatorNode(loc.getLine(), loc.getColumn()));                \
     current_node = nd;                                                         \
     nd->setOperator(string(#NAME));                                            \
     TraverseStmt(E->getSubExpr());                                             \
@@ -422,7 +452,9 @@ public:
 
 #define GENERAL_BINOP_FALLBACK(NAME, BINOP_TYPE)                               \
   bool TraverseBin##NAME(BINOP_TYPE *E) {                                      \
-    shared_ptr<BinaryOperatorNode> nd(new BinaryOperatorNode());               \
+    PresumedLoc loc = SM.getPresumedLoc(E->getExprLoc());                      \
+    shared_ptr<BinaryOperatorNode> nd(                                         \
+        new BinaryOperatorNode(loc.getLine(), loc.getColumn()));               \
     current_node = nd;                                                         \
     nd->setOperator(E->getOpcodeStr());                                        \
     TraverseStmt(E->getLHS());                                                 \
@@ -444,9 +476,9 @@ public:
 #undef OPERATOR
 
   virtual bool TraverseBinaryOperator(BinaryOperator *E) {
-    PresumedLoc PLoc = SM.getPresumedLoc(E->getOperatorLoc());
+    PresumedLoc loc = SM.getPresumedLoc(E->getOperatorLoc());
     if (E->isAssignmentOp()) {
-      shared_ptr<AssignNode> nd(new AssignNode());
+      shared_ptr<AssignNode> nd(new AssignNode(loc.getLine(), loc.getColumn()));
       current_node = nd;
       TraverseStmt(E->getLHS());
       nd->setLHS(current_node);
@@ -455,7 +487,8 @@ public:
       nd->setRHS(current_node);
       current_node = nd;
     } else {
-      shared_ptr<BinaryOperatorNode> nd(new BinaryOperatorNode());
+      shared_ptr<BinaryOperatorNode> nd(
+          new BinaryOperatorNode(loc.getLine(), loc.getColumn()));
       current_node = nd;
       nd->setOperator(E->getOpcodeStr());
       TraverseStmt(E->getLHS());
@@ -469,23 +502,28 @@ public:
   }
   virtual bool TraverseDeclRefExpr(DeclRefExpr *E) {
     const ValueDecl *D = E->getDecl();
-    current_node = shared_ptr<IdentifierNode>(new IdentifierNode("unkownid"));
+    PresumedLoc loc = SM.getPresumedLoc(E->getLocation());
+
+    current_node = shared_ptr<IdentifierNode>(
+        new IdentifierNode(loc.getLine(), loc.getColumn(), "unkownid"));
     if (D) {
-      current_node = toNode(D);
+      current_node = toNode(loc, D);
     }
 
     const NamedDecl *FD = E->getFoundDecl();
     if (FD && D != FD) {
-      current_node = toNode(FD);
+      current_node = toNode(loc, FD);
     }
     return true;
   }
   virtual bool TraverseCallExpr(CallExpr *E) {
     const FunctionDecl *F = E->getDirectCallee();
-    shared_ptr<CallNode> call(new CallNode());
+    PresumedLoc loc = SM.getPresumedLoc(F->getLocation());
+    shared_ptr<CallNode> call(new CallNode(loc.getLine(), loc.getColumn()));
     current_node = call;
     call->setFunction(shared_ptr<IdentifierNode>(
-        new IdentifierNode(F->getNameInfo().getName().getAsString())));
+        new IdentifierNode(loc.getLine(), loc.getColumn(),
+                           F->getNameInfo().getName().getAsString())));
     for (auto arg : E->arguments()) {
       TraverseStmt(arg);
       call->addArg(current_node);
@@ -503,20 +541,26 @@ public:
     if (E->getType()->isUnsignedIntegerType()) {
       std::clog << "TODO;;;" << std::endl;
     } else if (E->getValue().getNumWords() == 1) {
-      current_node = toNode(E->getValue());
+
+      PresumedLoc loc = SM.getPresumedLoc(E->getExprLoc());
+      current_node = toNode(loc, E->getValue());
     } else {
       std::clog << "TODO;;;" << std::endl;
     }
     return true;
   }
   virtual bool TraverseCharacterLiteral(CharacterLiteral *E) {
-    current_node = shared_ptr<CharacterNode>(new CharacterNode(E->getValue()));
+    PresumedLoc loc = SM.getPresumedLoc(E->getExprLoc());
+    current_node = shared_ptr<CharacterNode>(
+        new CharacterNode(loc.getLine(), loc.getColumn(), E->getValue()));
     return true;
   }
 
   virtual bool TraverseStringLiteral(StringLiteral *E) {
     // cout << "striiiing" << endl;
-    current_node = shared_ptr<StringNode>(new StringNode(E->getString().str()));
+    PresumedLoc loc = SM.getPresumedLoc(E->getExprLoc());
+    current_node = shared_ptr<StringNode>(
+        new StringNode(loc.getLine(), loc.getColumn(), E->getString().str()));
     return true;
   }
 
@@ -696,9 +740,9 @@ std::string GetExecutablePath(const char *Argv0) {
 }
 class SFrontendAction : public ASTFrontendAction {
 public:
-  SFrontendAction(const string &exe) : ASTFrontendAction() {
+  SFrontendAction() : ASTFrontendAction() {
     // exe_path = GetExecutablePath(exe);
-    exe_path = exe;
+    // exe_path = exe;
   }
   std::unique_ptr<ASTConsumer> CreateASTConsumer(CompilerInstance &CI,
                                                  StringRef file) {
@@ -759,7 +803,7 @@ public:
     if (CI.getHeaderSearchOpts().UseBuiltinIncludes &&
         CI.getHeaderSearchOpts().ResourceDir.empty()) {
       CI.getHeaderSearchOpts().ResourceDir =
-          CompilerInvocation::GetResourcesPath(exe_path, main_addr);
+          CompilerInvocation::GetResourcesPath(exe_path.c_str(), main_addr);
     }
 
     astcons = std::unique_ptr<SASTConsumer>(new SASTConsumer(CI));
@@ -825,8 +869,7 @@ void parse(int argc, const char **argv) {
   o << "}" << std::endl;
   o << "}" << std::endl;
 
-  runToolOnCodeWithArgs(newFrontendActionFactory<SFrontendAction>(
-                            GetExecutablePath(argv[0]))->create(),
+  runToolOnCodeWithArgs(newFrontendActionFactory<SFrontendAction>()->create(),
                         o.str(), args);
   // print out the rewritten source code ("rewriter" is a global var.)
   // rewriter.getEditBuffer(rewriter.getSourceMgr().getMainFileID()).write(errs());

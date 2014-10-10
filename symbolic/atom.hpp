@@ -5,7 +5,7 @@
 
 template <typename T> class AtomNode : public Node {
 public:
-  AtomNode(const int &row, const int &col) : Node(row, col) {  }
+  AtomNode(const int &row, const int &col) : Node(row, col) {}
   AtomNode(const int &row, const int &col, const T &v) : Node(row, col) {
     val_ = v;
   }

@@ -5,7 +5,7 @@
 
 class ProgramNode : public CompoundNode {
 public:
-  ProgramNode() : CompoundNode() {}
+  ProgramNode() : CompoundNode(0, 0) {}
   ~ProgramNode() {}
   string getHead() { return head_; }
   bool isProgram() const { return true; }

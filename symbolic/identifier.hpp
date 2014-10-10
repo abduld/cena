@@ -36,6 +36,15 @@ public:
   void isHidden(bool val) { hidden_ = val; }
   string getHead() const { return head_; }
 
+  virtual void toCCode_(ostringstream &o) { o << getConstant(); }
+  virtual void toString_(ostringstream &o) { toCCode_(o); }
+  virtual void toJSON_(ostringstream &o) { toCCode_(o); }
+  virtual void toEsprima_(ostringstream &o) {
+    o << "{\"type\": \"Literal\", \"value\": ";
+    toCCode_(o);
+    o << "}";
+  }
+
 private:
   string head_ = "Identifier";
   shared_ptr<TypeNode> typ_ = nullptr;

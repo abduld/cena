@@ -4,7 +4,9 @@
 
 class FunctionNode : public Node {
 public:
-  FunctionNode(const int &row, const int &col) : Node(row, col) {}
+  FunctionNode(const int &row, const int &col)
+      : Node(row, col),
+        body_(shared_ptr<BlockNode>(new BlockNode(row_, col_))) {}
   void setReturnType(const shared_ptr<TypeNode> &typ) { ret_ = typ; }
   shared_ptr<TypeNode> getReturnType() const { return ret_; }
   void setName(const shared_ptr<IdentifierNode> &id) { name_ = id; }
@@ -16,12 +18,7 @@ public:
     *params_ <<= nd;
   }
   void setBody(const shared_ptr<BlockNode> &blk) { body_ = blk; }
-  shared_ptr<BlockNode> getBody() const {
-    if (body_ == nullptr) {
-      body_ = shared_ptr<BlockNode>(new BlockNode());
-    }
-    return body_;
-  }
+  shared_ptr<BlockNode> getBody() const { return body_; }
 
   void toCCode_(ostringstream &o) {
     assert(ret_ != nullptr);
