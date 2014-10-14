@@ -2,6 +2,8 @@
 #ifndef __IDENTIFIER_H__
 #define __IDENTIFIER_H__
 
+class TypeNode;
+
 class IdentifierNode : public virtual AtomNode<string> {
 public:
   IdentifierNode(const int &row, const int &col)
@@ -37,7 +39,7 @@ public:
   string getHead() const { return head_; }
 
   virtual void toCCode_(ostringstream &o) { o << getConstant(); }
-  virtual void toString_(ostringstream &o) { toCCode_(o); }
+  virtual void toString_(ostringstream &o) { o << getConstant(); }
   virtual void toJSON_(ostringstream &o) { toCCode_(o); }
   virtual void toEsprima_(ostringstream &o) {
     o << "{\"type\": \"Literal\", \"value\": ";

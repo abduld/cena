@@ -21,8 +21,8 @@
 #include "llvm/Support/Signals.h"
 #include "clang/Lex/Lexer.h"
 #include "clang/Lex/Preprocessor.h"
-#include "symbolic/ast.hpp"
-//#include "external/backward_cpp/backward.hpp"
+#include "ast/node/ast.hpp"
+#include "external/backward_cpp/backward.hpp"
 
 #include <string>
 #include <vector>
@@ -34,7 +34,7 @@ using namespace clang;
 using namespace comments;
 using namespace driver;
 using namespace tooling;
-//using namespace backward;
+using namespace backward;
 
 #define DEBUG printf("DEBUG :: >>> %s %d ... \n", __PRETTY_FUNCTION__, __LINE__)
 
@@ -61,10 +61,8 @@ OPERATOR(LOr) OPERATOR(Assign) OPERATOR(Comma)
 OPERATOR(Mul) OPERATOR(Div) OPERATOR(Rem) OPERATOR(Add) OPERATOR(Sub) \
 OPERATOR(Shl) OPERATOR(Shr) OPERATOR(And) OPERATOR(Or) OPERATOR(Xor)
 
-/*
 StackTrace st;
 void collect_trace() { st.load_here(); }
-*/
 
 class SVisitor : public RecursiveASTVisitor<SVisitor> {
 public:
@@ -101,39 +99,39 @@ public:
     vector<shared_ptr<Node>> res;
 
     if (quals.hasConst()) {
-      res.push_back(shared_ptr<StringNode>(
-          new StringNode(loc.getLine(), loc.getColumn(), "const")));
+      res.push_back(shared_ptr<IdentifierNode>(
+          new IdentifierNode(loc.getLine(), loc.getColumn(), "const")));
     }
     if (quals.hasVolatile()) {
-      res.push_back(shared_ptr<StringNode>(
-          new StringNode(loc.getLine(), loc.getColumn(), "volatile")));
+      res.push_back(shared_ptr<IdentifierNode>(
+          new IdentifierNode(loc.getLine(), loc.getColumn(), "volatile")));
     }
     if (quals.hasRestrict()) {
-      res.push_back(shared_ptr<StringNode>(
-          new StringNode(loc.getLine(), loc.getColumn(), "restrict")));
+      res.push_back(shared_ptr<IdentifierNode>(
+          new IdentifierNode(loc.getLine(), loc.getColumn(), "restrict")));
     }
     if (quals.hasAddressSpace()) {
       unsigned addressSpace = quals.getAddressSpace();
       switch (addressSpace) {
       case LangAS::opencl_global:
-        res.push_back(shared_ptr<StringNode>(
-            new StringNode(loc.getLine(), loc.getColumn(), "__global")));
+        res.push_back(shared_ptr<IdentifierNode>(
+            new IdentifierNode(loc.getLine(), loc.getColumn(), "__global")));
         break;
       case LangAS::opencl_local:
-        res.push_back(shared_ptr<StringNode>(
-            new StringNode(loc.getLine(), loc.getColumn(), "__local")));
+        res.push_back(shared_ptr<IdentifierNode>(
+            new IdentifierNode(loc.getLine(), loc.getColumn(), "__local")));
         break;
       case LangAS::opencl_constant:
-        res.push_back(shared_ptr<StringNode>(
-            new StringNode(loc.getLine(), loc.getColumn(), "__constant")));
+        res.push_back(shared_ptr<IdentifierNode>(
+            new IdentifierNode(loc.getLine(), loc.getColumn(), "__constant")));
         break;
       default: {
         ostringstream o;
         o << "__attribute__((address_space(";
         o << addressSpace;
         o << ")))";
-        res.push_back(shared_ptr<StringNode>(
-            new StringNode(loc.getLine(), loc.getColumn(), o.str())));
+        res.push_back(shared_ptr<IdentifierNode>(
+            new IdentifierNode(loc.getLine(), loc.getColumn(), o.str())));
       }
       }
     }
@@ -176,13 +174,13 @@ public:
   }
 
 #if 0
-    
+
     SymbolicExpr toSymbolicExpr(const Expr * e) {
         SymbolicExpr expr = SymbolicExpr(this);
         expr <<= toSymbolicLiteral(e);
         return expr;
     }
-    
+
     SymbolicExpr toSymbolicExpr(const Type * ty) {
         if (const ConstantArrayType* arryT =
             dyn_cast<const ConstantArrayType>(ty)) {
@@ -206,7 +204,7 @@ public:
             } else if (arryT->getSizeModifier() == VariableArrayType::Star) {
                 arry <<= "*";
             }
-            
+
             arry <<= SymbolicArraySizeExpr(this, toSymbolicLiteral(arryT->getSizeExpr()));
             return arry;
         }
@@ -437,49 +435,35 @@ public:
     current_node = nd;
     return true;
   }
+  virtual bool handleUnaryOperator(UnaryOperator *E) {
+    PresumedLoc loc = SM.getPresumedLoc(E->getExprLoc());
+    shared_ptr<UnaryOperatorNode> nd(
+        new UnaryOperatorNode(loc.getLine(), loc.getColumn()));
+    current_node = nd;
+    nd->setOperator(E->getOpcodeStr(E->getOpcode()));
+    TraverseStmt(E->getSubExpr());
+    nd->setArg(current_node);
+    current_node = nd;
+  }
 
 #define OPERATOR(NAME)                                                         \
   bool TraverseUnary##NAME(UnaryOperator *E) {                                 \
-    PresumedLoc loc = SM.getPresumedLoc(E->getExprLoc());                      \
-    shared_ptr<UnaryOperatorNode> nd(                                          \
-        new UnaryOperatorNode(loc.getLine(), loc.getColumn()));                \
-    current_node = nd;                                                         \
-    nd->setOperator(string(#NAME));                                            \
-    TraverseStmt(E->getSubExpr());                                             \
-    nd->setArg(current_node);                                                  \
-    current_node = nd;                                                         \
-    return true;                                                               \
+    return handleUnaryOperator(E);                                                               \
   }
 
   UNARYOP_LIST()
 #undef OPERATOR
-
-#define GENERAL_BINOP_FALLBACK(NAME, BINOP_TYPE)                               \
-  bool TraverseBin##NAME(BINOP_TYPE *E) {                                      \
-    PresumedLoc loc = SM.getPresumedLoc(E->getExprLoc());                      \
-    shared_ptr<BinaryOperatorNode> nd(                                         \
-        new BinaryOperatorNode(loc.getLine(), loc.getColumn()));               \
-    current_node = nd;                                                         \
-    nd->setOperator(E->getOpcodeStr());                                        \
-    TraverseStmt(E->getLHS());                                                 \
-    nd->setLHS(current_node);                                                  \
-    current_node = nd;                                                         \
-    TraverseStmt(E->getRHS());                                                 \
-    nd->setRHS(current_node);                                                  \
-    current_node = nd;                                                         \
-    return true;                                                               \
+  virtual bool TraverseUnaryOperator(UnaryOperator * op) {
+      return handleUnaryOperator(op);
   }
-#define OPERATOR(NAME) GENERAL_BINOP_FALLBACK(NAME, BinaryOperator)
-  BINOP_LIST()
-#undef OPERATOR
+  virtual bool TraverseUnaryExprOrTypeTraitExpr(UnaryExprOrTypeTraitExpr * E) {
+      DEBUG;
+      E->dumpColor();
+      current_node = shared_ptr<StringNode>(new StringNode(-1, -1, string("TODOXXUnaryExprOrTypeTraitExpr")));
+      return true;
+  }
 
-#define OPERATOR(NAME)                                                         \
-  GENERAL_BINOP_FALLBACK(NAME##Assign, CompoundAssignOperator)
-  CAO_LIST()
-#undef GENERAL_BINOP_FALLBACK
-#undef OPERATOR
-
-  virtual bool TraverseBinaryOperator(BinaryOperator *E) {
+  virtual bool handleBinaryOperator(BinaryOperator *E) {
     PresumedLoc loc = SM.getPresumedLoc(E->getOperatorLoc());
     if (E->isAssignmentOp()) {
       shared_ptr<AssignNode> nd(new AssignNode(loc.getLine(), loc.getColumn()));
@@ -499,11 +483,33 @@ public:
       nd->setLHS(current_node);
       current_node = nd;
       TraverseStmt(E->getRHS());
+      if (current_node == nd) {
+          std::cout << "Something has went wrong " << E->getOpcodeStr().str() << std::endl;
+          E->dumpColor();
+      }
       nd->setRHS(current_node);
       current_node = nd;
     }
     return true;
   }
+  virtual bool TraverseBinaryOperator(BinaryOperator * op) {
+      return handleBinaryOperator(op);
+  }
+
+#define GENERAL_BINOP_FALLBACK(NAME, BINOP_TYPE)                               \
+  bool TraverseBin##NAME(BINOP_TYPE *E) {                                      \
+    return handleBinaryOperator(E);                                                               \
+  }
+#define OPERATOR(NAME) GENERAL_BINOP_FALLBACK(NAME, BinaryOperator)
+  BINOP_LIST()
+#undef OPERATOR
+
+#define OPERATOR(NAME)                                                         \
+  GENERAL_BINOP_FALLBACK(NAME##Assign, CompoundAssignOperator)
+  CAO_LIST()
+#undef GENERAL_BINOP_FALLBACK
+#undef OPERATOR
+
   virtual bool TraverseDeclRefExpr(DeclRefExpr *E) {
     const ValueDecl *D = E->getDecl();
     PresumedLoc loc = SM.getPresumedLoc(E->getLocation());
@@ -542,15 +548,8 @@ public:
   /*******************************************************************************************************/
 
   virtual bool TraverseIntegerLiteral(IntegerLiteral *E) {
-    if (E->getType()->isUnsignedIntegerType()) {
-      std::clog << "TODO;;;" << std::endl;
-    } else if (E->getValue().getNumWords() == 1) {
-
-      PresumedLoc loc = SM.getPresumedLoc(E->getExprLoc());
-      current_node = toNode(loc, E->getValue());
-    } else {
-      std::clog << "TODO;;;" << std::endl;
-    }
+    PresumedLoc loc = SM.getPresumedLoc(E->getExprLoc());
+    current_node = toNode(loc, E->getValue());
     return true;
   }
   virtual bool TraverseCharacterLiteral(CharacterLiteral *E) {
@@ -677,21 +676,23 @@ struct SDiagnosticConsumer : DiagnosticConsumer {
 };
 class SASTConsumer : public ASTConsumer {
 private:
-  SVisitor *visitor;
-  CompilerInstance &ci;
+  SVisitor *Visitor;
+  CompilerInstance &CI;
+    ASTContext &Ctx;
+    FileID mainFileID;
+    SourceManager &SM;
 
 public:
   explicit SASTConsumer(CompilerInstance &CI)
-      : ci(CI), visitor(new SVisitor(CI)) {
+      : CI(CI), Visitor(new SVisitor(CI)),
+      Ctx(CI.getASTContext()),
+      SM(CI.getASTContext().getSourceManager()) {
     // ci.getPreprocessor().enableIncrementalProcessing();
   }
-  virtual void Initialize(ASTContext &Ctx) override {}
+  virtual void Initialize(ASTContext &Ctx) override {
+      mainFileID = SM.getMainFileID();
+  }
 
-  /*
-      virtual void HandleTranslationUnit(ctx &Ctx) {
-              visitor->TraverseDecl(Ctx.getTranslationUnitDecl());
-      }
-   */
 
   // override this to call our SVisitor on each top-level Decl
   virtual void HandleTranslationUnit(ASTContext &context) {
@@ -720,20 +721,22 @@ public:
     return;
   }
   virtual bool HandleTopLevelDecl(DeclGroupRef dg) {
-    if (ci.getDiagnostics().hasFatalErrorOccurred()) {
+    if (CI.getDiagnostics().hasFatalErrorOccurred()) {
       // Reset errors: (Hack to ignore the fatal errors.)
-      ci.getDiagnostics().Reset();
+      CI.getDiagnostics().Reset();
       // When there was fatal error, processing the warnings may cause crashes
     }
-    for (auto iter : dg) {
+    for (auto decl : dg) {
+      //(*iter).dump();
+      if (SM.getFileID(SM.getExpansionLoc(decl->getLocation()))!=mainFileID)
+        continue;
       DEBUG;
-      (*iter).dump();
-      visitor->TraverseDecl(iter);
-      visitor->addCurrent();
+      Visitor->TraverseDecl(decl);
+      Visitor->addCurrent();
     }
     return true;
   }
-  shared_ptr<ProgramNode> getProgram() { return visitor->getProgram(); }
+  shared_ptr<ProgramNode> getProgram() { return Visitor->getProgram(); }
 };
 
 std::string GetExecutablePath(const char *Argv0) {
@@ -775,6 +778,7 @@ public:
 
     HeaderSearchOptions &HSO = CI.getHeaderSearchOpts();
     HSO.UseBuiltinIncludes = true;
+    HSO.UseStandardSystemIncludes = true;
     HSO.UseStandardCXXIncludes = true;
 
     CodeGenOptions &codeGenOpts = CI.getCodeGenOpts();
@@ -828,9 +832,9 @@ private:
 
 void parse(int argc, const char **argv) {
   llvm::sys::PrintStackTraceOnErrorSignal();
-  //collect_trace();
-  //Printer printer;
-  //printer.print(st, stdout);
+  collect_trace();
+  Printer printer;
+  printer.print(st, stdout);
 
   std::vector<string> args;
   args.emplace_back("-x");
@@ -839,6 +843,11 @@ void parse(int argc, const char **argv) {
   args.emplace_back("-E");
   args.emplace_back("-fPIE");
   args.emplace_back("-std=c++11");
+  args.emplace_back("-Ibuiltin");
+  args.emplace_back("-isystem");
+  args.emplace_back("/usr/include");
+  args.emplace_back("-isystem");
+  args.emplace_back("/usr/local/include");
   // args.push_back(" -O0  ");
   // args.push_back("-fsyntax-only ");
   // args.push_back("-x cpp-output ");
@@ -868,8 +877,8 @@ void parse(int argc, const char **argv) {
   o << "int main() {" << std::endl;
   o << "const char v = 'g', s = 2; int g; return g + v;" << std::endl;
   o << "if (v == g) { return ; }" << std::endl;
-  o << "for (int dev = 0; dev < 10; dev++) {" << std::endl;
-  o << "printf(\"%s\", 1,2,3);" << std::endl;
+  o << "for (int dev = 0; dev < 100; dev++) {" << std::endl;
+  o << "printf(\"%d %d %d \", 1,2,3);" << std::endl;
   o << "}" << std::endl;
   o << "}" << std::endl;
 

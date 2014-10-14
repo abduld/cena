@@ -2,6 +2,7 @@
 *.slo
 *.lo
 *.o
+*.pyc
 
 # Compiled Dynamic libraries
 *.so
@@ -20,3 +21,4 @@ install_manifest.txt
 build*
 .idea
 ast
+clang_ast

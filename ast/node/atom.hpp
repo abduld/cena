@@ -5,8 +5,8 @@
 
 template <typename T> class AtomNode : public Node {
 public:
-  AtomNode(const int &row, const int &col) : Node(row, col) {}
-  AtomNode(const int &row, const int &col, const T &v) : Node(row, col) {
+  AtomNode(const int &row, const int &col) : Node(row, col), init_(true) {}
+  AtomNode(const int &row, const int &col, const T &v) : Node(row, col), init_(true) {
     val_ = v;
   }
   vector<shared_ptr<Node>> getValues() {
@@ -22,7 +22,7 @@ public:
     // std::cout << getHead() << "   ::  " << getConstant() << std::endl;
     o << getConstant();
   }
-  virtual void toString_(ostringstream &o) { toCCode_(o); }
+  virtual void toString_(ostringstream &o) { if (init_) { toCCode_(o); } else { o << "uninitialized..."; } }
   virtual void toJSON_(ostringstream &o) { toCCode_(o); }
   virtual void toEsprima_(ostringstream &o) {
     o << "{\"type\": \"Literal\", \"value\": ";
@@ -31,6 +31,7 @@ public:
   }
 
 private:
+  bool init_ = false;
   T val_{};
 };
 

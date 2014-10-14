@@ -25,6 +25,7 @@ SET(CLANG_LIBS
     clangAST
     clangLex
     clangBasic
+    clangTooling
 )
 
 FUNCTION(clang_map_components_to_libnames out_libs)
