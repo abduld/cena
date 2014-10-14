@@ -22,10 +22,11 @@
 #include "clang/Lex/Lexer.h"
 #include "clang/Lex/Preprocessor.h"
 #include "symbolic/ast.hpp"
-#include "external/backward_cpp/backward.hpp"
+//#include "external/backward_cpp/backward.hpp"
 
 #include <string>
 #include <vector>
+#include <memory>
 
 using namespace std;
 using namespace llvm;
@@ -33,7 +34,7 @@ using namespace clang;
 using namespace comments;
 using namespace driver;
 using namespace tooling;
-using namespace backward;
+//using namespace backward;
 
 #define DEBUG printf("DEBUG :: >>> %s %d ... \n", __PRETTY_FUNCTION__, __LINE__)
 
@@ -60,8 +61,11 @@ OPERATOR(LOr) OPERATOR(Assign) OPERATOR(Comma)
 OPERATOR(Mul) OPERATOR(Div) OPERATOR(Rem) OPERATOR(Add) OPERATOR(Sub) \
 OPERATOR(Shl) OPERATOR(Shr) OPERATOR(And) OPERATOR(Or) OPERATOR(Xor)
 
+/*
 StackTrace st;
 void collect_trace() { st.load_here(); }
+*/
+
 class SVisitor : public RecursiveASTVisitor<SVisitor> {
 public:
   explicit SVisitor(CompilerInstance &CI)
@@ -824,9 +828,9 @@ private:
 
 void parse(int argc, const char **argv) {
   llvm::sys::PrintStackTraceOnErrorSignal();
-  collect_trace();
-  Printer printer;
-  printer.print(st, stdout);
+  //collect_trace();
+  //Printer printer;
+  //printer.print(st, stdout);
 
   std::vector<string> args;
   args.emplace_back("-x");
