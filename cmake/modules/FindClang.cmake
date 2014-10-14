@@ -1,66 +1,41 @@
-# Find Clang
+# Find the native Clang binary and libraries
 #
-# It defines the following variables
-# CLANG_FOUND        - True if Clang found.
-# CLANG_INCLUDE_DIRS - where to find Clang include files
-# CLANG_LIBS         - list of clang libs
+#  CLANG_EXECUTABLE       - clang binary
+#  LLVM_CONFIG_EXECUTABLE - llvm-config binary
+#  CLANG_FOUND            - True if clang is found
 
+FIND_PACKAGE(LLVM REQUIRED CONFIG)
+FIND_PACKAGE(PackageHandleStandardArgs)
 
-Find_Package(LLVM REQUIRED)
+FIND_PROGRAM(LLVM_CONFIG_EXECUTABLE CACHE NAMES llvm-config DOC "llvm-config executable")
+FIND_PROGRAM(CLANG_EXECUTABLE CACHE NAMES clang DOC "clang executable")
 
-if (NOT LLVM_INCLUDE_DIRS OR NOT LLVM_LIBRARY_DIRS)
-   message(FATAL_ERROR "No LLVM and Clang support requires LLVM")
-else (NOT LLVM_INCLUDE_DIRS OR NOT LLVM_LIBRARY_DIRS)
+SET(CLANG_LIBS
+    clangFrontendTool
+    clangFrontend
+    clangDriver
+    clangSerialization
+    clangCodeGen
+    clangParse
+    clangSema
+    clangRewriteFrontend
+    clangRewrite
+    clangAnalysis
+    clangEdit
+    clangAST
+    clangLex
+    clangBasic
+)
 
-MACRO(FIND_AND_ADD_CLANG_LIB _libname_)
-find_library(CLANG_${_libname_}_LIB ${_libname_} ${LLVM_LIBRARY_DIRS} ${CLANG_LIBRARY_DIRS})
-if (CLANG_${_libname_}_LIB)
-   set(CLANG_LIBS ${CLANG_LIBS} ${CLANG_${_libname_}_LIB})
-else  (CLANG_${_libname_}_LIB)
-  MESSAGE(STATUS "ERROR Cannot find libs: ${_libname_}" )
-endif (CLANG_${_libname_}_LIB)
-ENDMACRO(FIND_AND_ADD_CLANG_LIB)
+FUNCTION(clang_map_components_to_libnames out_libs)
+    FOREACH(l ${CLANG_LIBS})
+        FIND_LIBRARY(LIB_${l} NAMES ${l} HINTS ${LLVM_LIBRARY_DIRS} )
+        MARK_AS_ADVANCED(LIB_${l})
+        LIST(APPEND clang_libs ${LIB_${l}})
+    ENDFOREACH(l)
 
+    SET(${out_libs} ${clang_libs} PARENT_SCOPE)
+ENDFUNCTION()
 
-# Clang shared library provides just the limited C interface, so it
-# can not be used.  We look for the static libraries.
+FIND_PACKAGE_HANDLE_STANDARD_ARGS(CLANG DEFAULT_MSG CLANG_EXECUTABLE LLVM_CONFIG_EXECUTABLE)
 
-
-FIND_AND_ADD_CLANG_LIB(clang)
-FIND_AND_ADD_CLANG_LIB(clangRename)
-FIND_AND_ADD_CLANG_LIB(clangBasic)
-FIND_AND_ADD_CLANG_LIB(clangDriver)
-FIND_AND_ADD_CLANG_LIB(clangEdit)
-FIND_AND_ADD_CLANG_LIB(clangAnalysis)
-FIND_AND_ADD_CLANG_LIB(clangParse)
-FIND_AND_ADD_CLANG_LIB(clangLex)
-FIND_AND_ADD_CLANG_LIB(clangAST)
-FIND_AND_ADD_CLANG_LIB(clangTooling)
-FIND_AND_ADD_CLANG_LIB(clangSema)
-FIND_AND_ADD_CLANG_LIB(clangSerialization)
-FIND_AND_ADD_CLANG_LIB(clangStaticAnalyzerCheckers)
-FIND_AND_ADD_CLANG_LIB(clangStaticAnalyzerCore)
-FIND_AND_ADD_CLANG_LIB(clangStaticAnalyzerFrontend)
-
-FIND_AND_ADD_CLANG_LIB(clangASTMatchers)
-FIND_AND_ADD_CLANG_LIB(clangDynamicASTMatchers)
-FIND_AND_ADD_CLANG_LIB(clangRewrite)
-FIND_AND_ADD_CLANG_LIB(clangRewriteFrontend)
-FIND_AND_ADD_CLANG_LIB(clangFrontend)
-FIND_AND_ADD_CLANG_LIB(clangFrontendTool)
-
-set(CLANG_INCLUDE_DIRS ${LLVM_INCLUDE_DIRS}/../tools/clang/include)
-if (CLANG_LIBS AND CLANG_INCLUDE_DIRS)
-  MESSAGE(STATUS "Clang libs: " ${CLANG_LIBS})
-  set(CLANG_FOUND TRUE)
-endif (CLANG_LIBS AND CLANG_INCLUDE_DIRS)
-
-if (CLANG_FOUND)
-  message(STATUS "Found Clang: ${CLANG_INCLUDE_DIRS}")
-else (CLANG_FOUND)
-  if (CLANG_FIND_REQUIRED)
-    message(FATAL_ERROR "Could NOT find Clang")
-  endif (CLANG_FIND_REQUIRED)
-endif (CLANG_FOUND)
-
-endif (NOT LLVM_INCLUDE_DIRS OR NOT LLVM_LIBRARY_DIRS)
