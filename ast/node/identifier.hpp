@@ -4,19 +4,19 @@
 
 class TypeNode;
 
-class IdentifierNode : public virtual AtomNode<string> {
+class IdentifierNode : public virtual SymbolNode {
 public:
   IdentifierNode(const int &row, const int &col)
-      : AtomNode<string>(row, col, "unknownid") {}
+      : SymbolNode(row, col, "unknownid") {}
   IdentifierNode(const int &row, const int &col, const string &v)
-      : AtomNode<string>(row, col, v) {}
+      : SymbolNode(row, col, v) {}
   IdentifierNode(const int &row, const int &col,
                  const shared_ptr<StringNode> &s)
-      : AtomNode<string>(row, col) {
+      : SymbolNode(row, col) {
     setName(s);
   }
   IdentifierNode(const int &row, const int &col, const shared_ptr<Node> &s)
-      : AtomNode<string>(row, col) {
+      : SymbolNode(row, col) {
     setName(s);
   }
   void setName(const string &name) { setConstant(name); }

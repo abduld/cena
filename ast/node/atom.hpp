@@ -83,13 +83,27 @@ private:
   string head_ = "Real";
 };
 
-class StringNode : public AtomNode<string> {
+class SymbolNode : public AtomNode<string> {
 public:
-  StringNode(const int &row, const int &col) : AtomNode<string>(row, col) {}
-  StringNode(const int &row, const int &col, const string &v)
+  SymbolNode(const int &row, const int &col) : AtomNode<string>(row, col) {}
+  SymbolNode(const int &row, const int &col, const string &v)
       : AtomNode<string>(row, col, v) {}
-  StringNode(const int &row, const int &col, const char *v)
+  SymbolNode(const int &row, const int &col, const char *v)
       : AtomNode<string>(row, col, string(v)) {}
+  string getHead() const { return head_; }
+
+
+private:
+  string head_ = "Symbol";
+};
+
+class StringNode : public SymbolNode {
+public:
+  StringNode(const int &row, const int &col) : SymbolNode(row, col) {}
+  StringNode(const int &row, const int &col, const string &v)
+      : SymbolNode(row, col, v) {}
+  StringNode(const int &row, const int &col, const char *v)
+      : SymbolNode(row, col, string(v)) {}
   string getHead() const { return head_; }
 
   void toCCode_(ostringstream &o) { o << "\"" << getConstant() << "\""; }

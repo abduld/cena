@@ -72,7 +72,7 @@ public:
     return *this;
   }
   virtual Node &operator<<=(Node *c) { return *this; }
-  virtual string getHead() { return "unknown"; }
+  virtual string getHead() const { return "unknown"; }
   virtual bool isNode() const { return false; }
   virtual bool isStatement() const { return false; }
   virtual bool isCompound() const { return false; }

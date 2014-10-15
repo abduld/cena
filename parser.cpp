@@ -371,6 +371,33 @@ public:
     return true;
   }
 
+  virtual bool TraverseForStmt(ForStmt *stmt) {
+    PresumedLoc loc = SM.getPresumedLoc(stmt->getLocStart());
+    shared_ptr<ForNode> nd(new ForNode(loc.getLine(), loc.getColumn()));
+      if (stmt->getInit()) {
+    current_node = nd;
+      TraverseStmt(stmt->getInit());
+      nd->setInit(current_node);
+  }
+      if (stmt->getCond()) {
+    current_node = nd;
+      TraverseStmt(stmt->getCond());
+      nd->setCond(current_node);
+
+  }
+      if (stmt->getInc()) {
+    current_node = nd;
+      TraverseStmt(stmt->getInc());
+      nd->setInc(current_node);
+  }
+      if (stmt->getBody()) {
+    current_node = nd;
+      TraverseStmt(stmt->getBody());
+      nd->setBody(current_node);
+  }
+    current_node = nd;
+    return true;
+  }
   virtual bool TraverseIfStmt(IfStmt *stmt) {
     shared_ptr<Node> tmp = current_node;
     PresumedLoc loc = SM.getPresumedLoc(stmt->getIfLoc());
@@ -529,6 +556,7 @@ public:
   virtual bool TraverseCallExpr(CallExpr *E) {
     const FunctionDecl *F = E->getDirectCallee();
     PresumedLoc loc = SM.getPresumedLoc(F->getLocation());
+    DEBUG;
     shared_ptr<CallNode> call(new CallNode(loc.getLine(), loc.getColumn()));
     current_node = call;
     call->setFunction(shared_ptr<IdentifierNode>(
@@ -813,6 +841,9 @@ public:
       CI.getHeaderSearchOpts().ResourceDir =
           CompilerInvocation::GetResourcesPath(exe_path.c_str(), main_addr);
     }
+    // eventually I would have to create a new CI and this would not be an issue3
+   // CI.createDiagnostics();
+     // CI.getDiagnosticOpts().ShowColors = 1;
 
     astcons = std::unique_ptr<SASTConsumer>(new SASTConsumer(CI));
 
@@ -839,7 +870,7 @@ void parse(int argc, const char **argv) {
   std::vector<string> args;
   args.emplace_back("-x");
   args.emplace_back("c++");
-  args.emplace_back("-v");
+  // args.emplace_back("-v");
   args.emplace_back("-E");
   args.emplace_back("-fPIE");
   args.emplace_back("-std=c++11");
@@ -878,6 +909,7 @@ void parse(int argc, const char **argv) {
   o << "const char v = 'g', s = 2; int g; return g + v;" << std::endl;
   o << "if (v == g) { return ; }" << std::endl;
   o << "for (int dev = 0; dev < 100; dev++) {" << std::endl;
+  o << "f(1,2,3);" << std::endl;
   o << "printf(\"%d %d %d \", 1,2,3);" << std::endl;
   o << "}" << std::endl;
   o << "}" << std::endl;

@@ -12,7 +12,7 @@ public:
   IfNode(const int &row, const int &col, const shared_ptr<Node> &cond,
          const shared_ptr<Node> &thenPart, const shared_ptr<Node> &elsePart)
       : Node(row, col), cond_(cond), then_(thenPart), else_(elsePart) {}
-  string getHead() { return head_; }
+  string getHead() const { return head_; }
   void setCondition(const shared_ptr<Node> &cond) { cond_ = cond; }
   void setThen(const shared_ptr<Node> &nd) { then_ = nd; }
   void setElse(const shared_ptr<Node> &nd) { else_ = nd; }
