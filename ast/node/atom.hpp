@@ -6,7 +6,8 @@
 template <typename T> class AtomNode : public Node {
 public:
   AtomNode(const int &row, const int &col) : Node(row, col), init_(true) {}
-  AtomNode(const int &row, const int &col, const T &v) : Node(row, col), init_(true) {
+  AtomNode(const int &row, const int &col, const T &v)
+      : Node(row, col), init_(true) {
     val_ = v;
   }
   vector<shared_ptr<Node>> getValues() {
@@ -22,12 +23,19 @@ public:
     // std::cout << getHead() << "   ::  " << getConstant() << std::endl;
     o << getConstant();
   }
-  virtual void toString_(ostringstream &o) { if (init_) { toCCode_(o); } else { o << "uninitialized..."; } }
+  virtual void toString_(ostringstream &o) {
+    if (init_) {
+      toCCode_(o);
+    } else {
+      o << "uninitialized...";
+    }
+  }
   virtual void toJSON_(ostringstream &o) { toCCode_(o); }
-  virtual void toEsprima_(ostringstream &o) {
-    o << "{\"type\": \"Literal\", \"value\": ";
-    toCCode_(o);
-    o << "}";
+  virtual Json toEsprima_() {
+      Json::object obj;
+      obj["type"] = Json("literal");
+      obj["value"] = Json(val_);
+      return obj;
   }
 
 private:
@@ -91,7 +99,6 @@ public:
   SymbolNode(const int &row, const int &col, const char *v)
       : AtomNode<string>(row, col, string(v)) {}
   string getHead() const { return head_; }
-
 
 private:
   string head_ = "Symbol";

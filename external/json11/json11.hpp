@@ -76,6 +76,7 @@ public:
     Json(std::nullptr_t) noexcept;  // NUL
     Json(double value);             // NUMBER
     Json(int value);                // NUMBER
+    Json(int64_t value);            // NUMBER
     Json(bool value);               // BOOL
     Json(const std::string &value); // STRING
     Json(std::string &&value);      // STRING

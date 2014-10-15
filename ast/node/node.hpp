@@ -16,8 +16,8 @@ public:
   virtual void toString_(ostringstream &o) {
     o << "unkown(" << this->getHead() << ")";
   }
-  virtual void toJSON_(ostringstream &o) { o << "{\"type\": \"unknown\"}"; }
-  virtual void toEsprima_(ostringstream &o) { o << "{\"type\": \"unknown\"}"; }
+  virtual Json toJSON_() { return Json(); }
+  virtual Json toEsprima_() { return Json(); }
   string toCCode() {
     ostringstream o;
     toCCode_(o);
@@ -28,15 +28,17 @@ public:
     toString_(o);
     return o.str();
   }
-  string toJSON() {
-    ostringstream o;
-    toJSON_(o);
-    return o.str();
+  Json toJSON() {
+    return toJSON_();
   }
-  string toEsprima() {
-    ostringstream o;
-    toEsprima_(o);
-    return o.str();
+  string toJSONString() {
+    return toJSON().dump();
+  }
+  Json toEsprima() {
+    return toEsprima_();
+  }
+  string toEsprimaString() {
+    return toEsprima().dump();
   }
 
   virtual Node *operator<<=(const bool &val) {

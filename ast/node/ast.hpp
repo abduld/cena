@@ -15,7 +15,9 @@
 #include <functional>
 #include "stdio.h"
 #include "stdlib.h"
+#include "json11/json11.hpp"
 
+using namespace json11;
 using std::int64_t;
 using std::shared_ptr;
 using std::string;

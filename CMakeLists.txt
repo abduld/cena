@@ -19,6 +19,7 @@ add_executable(${PROJECT_TARGET}
   parser.cpp
   main.cpp
   external/backward_cpp/backward.cpp
+  external/json11/json11.cpp
   ${PROJECT_HPP}
 )
 

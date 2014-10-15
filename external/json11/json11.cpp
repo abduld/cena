@@ -21,6 +21,7 @@
 
 #include "json11.hpp"
 #include <cassert>
+#include <inttypes.h>
 #include <cstdlib>
 #include <cstdio>
 #include <limits>
@@ -50,9 +51,9 @@ static void dump(double value, string &out) {
     out += buf;
 }
 
-static void dump(int value, string &out) {
-    char buf[32];
-    snprintf(buf, sizeof buf, "%d", value);
+static void dump(int64_t value, string &out) {
+    char buf[64];
+    snprintf(buf, sizeof buf, "%" PRIi64, value);
     out += buf;
 }
 
@@ -165,13 +166,13 @@ public:
     explicit JsonDouble(double value) : Value(value) {}
 };
 
-class JsonInt final : public Value<Json::NUMBER, int> {
+class JsonInt final : public Value<Json::NUMBER, int64_t> {
     double number_value() const override { return m_value; }
     int int_value() const override { return m_value; }
     bool equals(const JsonValue * other) const override { return m_value == other->number_value(); }
     bool less(const JsonValue * other)   const override { return m_value <  other->number_value(); }
 public:
-    explicit JsonInt(int value) : Value(value) {}
+    explicit JsonInt(int64_t value) : Value(value) {}
 };
 
 class JsonBoolean final : public Value<Json::BOOL, bool> {
@@ -240,6 +241,7 @@ Json::Json() noexcept                  : m_ptr(statics().null) {}
 Json::Json(std::nullptr_t) noexcept    : m_ptr(statics().null) {}
 Json::Json(double value)               : m_ptr(make_shared<JsonDouble>(value)) {}
 Json::Json(int value)                  : m_ptr(make_shared<JsonInt>(value)) {}
+Json::Json(int64_t value)              : m_ptr(make_shared<JsonInt>(value)) {}
 Json::Json(bool value)                 : m_ptr(value ? statics().t : statics().f) {}
 Json::Json(const string &value)        : m_ptr(make_shared<JsonString>(value)) {}
 Json::Json(string &&value)             : m_ptr(make_shared<JsonString>(move(value))) {}

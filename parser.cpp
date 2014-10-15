@@ -374,27 +374,26 @@ public:
   virtual bool TraverseForStmt(ForStmt *stmt) {
     PresumedLoc loc = SM.getPresumedLoc(stmt->getLocStart());
     shared_ptr<ForNode> nd(new ForNode(loc.getLine(), loc.getColumn()));
-      if (stmt->getInit()) {
-    current_node = nd;
+    if (stmt->getInit()) {
+      current_node = nd;
       TraverseStmt(stmt->getInit());
       nd->setInit(current_node);
-  }
-      if (stmt->getCond()) {
-    current_node = nd;
+    }
+    if (stmt->getCond()) {
+      current_node = nd;
       TraverseStmt(stmt->getCond());
       nd->setCond(current_node);
-
-  }
-      if (stmt->getInc()) {
-    current_node = nd;
+    }
+    if (stmt->getInc()) {
+      current_node = nd;
       TraverseStmt(stmt->getInc());
       nd->setInc(current_node);
-  }
-      if (stmt->getBody()) {
-    current_node = nd;
+    }
+    if (stmt->getBody()) {
+      current_node = nd;
       TraverseStmt(stmt->getBody());
       nd->setBody(current_node);
-  }
+    }
     current_node = nd;
     return true;
   }
@@ -474,20 +473,19 @@ public:
   }
 
 #define OPERATOR(NAME)                                                         \
-  bool TraverseUnary##NAME(UnaryOperator *E) {                                 \
-    return handleUnaryOperator(E);                                                               \
-  }
+  bool TraverseUnary##NAME(UnaryOperator *E) { return handleUnaryOperator(E); }
 
   UNARYOP_LIST()
 #undef OPERATOR
-  virtual bool TraverseUnaryOperator(UnaryOperator * op) {
-      return handleUnaryOperator(op);
+  virtual bool TraverseUnaryOperator(UnaryOperator *op) {
+    return handleUnaryOperator(op);
   }
-  virtual bool TraverseUnaryExprOrTypeTraitExpr(UnaryExprOrTypeTraitExpr * E) {
-      DEBUG;
-      E->dumpColor();
-      current_node = shared_ptr<StringNode>(new StringNode(-1, -1, string("TODOXXUnaryExprOrTypeTraitExpr")));
-      return true;
+  virtual bool TraverseUnaryExprOrTypeTraitExpr(UnaryExprOrTypeTraitExpr *E) {
+    DEBUG;
+    E->dumpColor();
+    current_node = shared_ptr<StringNode>(
+        new StringNode(-1, -1, string("TODOXXUnaryExprOrTypeTraitExpr")));
+    return true;
   }
 
   virtual bool handleBinaryOperator(BinaryOperator *E) {
@@ -511,22 +509,21 @@ public:
       current_node = nd;
       TraverseStmt(E->getRHS());
       if (current_node == nd) {
-          std::cout << "Something has went wrong " << E->getOpcodeStr().str() << std::endl;
-          E->dumpColor();
+        std::cout << "Something has went wrong " << E->getOpcodeStr().str()
+                  << std::endl;
+        E->dumpColor();
       }
       nd->setRHS(current_node);
       current_node = nd;
     }
     return true;
   }
-  virtual bool TraverseBinaryOperator(BinaryOperator * op) {
-      return handleBinaryOperator(op);
+  virtual bool TraverseBinaryOperator(BinaryOperator *op) {
+    return handleBinaryOperator(op);
   }
 
 #define GENERAL_BINOP_FALLBACK(NAME, BINOP_TYPE)                               \
-  bool TraverseBin##NAME(BINOP_TYPE *E) {                                      \
-    return handleBinaryOperator(E);                                                               \
-  }
+  bool TraverseBin##NAME(BINOP_TYPE *E) { return handleBinaryOperator(E); }
 #define OPERATOR(NAME) GENERAL_BINOP_FALLBACK(NAME, BinaryOperator)
   BINOP_LIST()
 #undef OPERATOR
@@ -600,8 +597,8 @@ public:
     current_node = prog_;
   }
 
-  bool shouldVisitTemplateInstantiations() const { return false; }
-  bool shouldVisitImplicitCode() const { return false; }
+  bool shouldVisitTemplateInstantiations() const { return true; }
+  bool shouldVisitImplicitCode() const { return true; }
 
 private:
   ASTContext *ctx; // used for getting additional AST info
@@ -706,21 +703,19 @@ class SASTConsumer : public ASTConsumer {
 private:
   SVisitor *Visitor;
   CompilerInstance &CI;
-    ASTContext &Ctx;
-    FileID mainFileID;
-    SourceManager &SM;
+  ASTContext &Ctx;
+  FileID mainFileID;
+  SourceManager &SM;
 
 public:
   explicit SASTConsumer(CompilerInstance &CI)
-      : CI(CI), Visitor(new SVisitor(CI)),
-      Ctx(CI.getASTContext()),
-      SM(CI.getASTContext().getSourceManager()) {
+      : CI(CI), Visitor(new SVisitor(CI)), Ctx(CI.getASTContext()),
+        SM(CI.getASTContext().getSourceManager()) {
     // ci.getPreprocessor().enableIncrementalProcessing();
   }
   virtual void Initialize(ASTContext &Ctx) override {
-      mainFileID = SM.getMainFileID();
+    mainFileID = SM.getMainFileID();
   }
-
 
   // override this to call our SVisitor on each top-level Decl
   virtual void HandleTranslationUnit(ASTContext &context) {
@@ -756,9 +751,10 @@ public:
     }
     for (auto decl : dg) {
       //(*iter).dump();
-      if (SM.getFileID(SM.getExpansionLoc(decl->getLocation()))!=mainFileID)
+      if (SM.getFileID(SM.getExpansionLoc(decl->getLocation())) != mainFileID)
         continue;
       DEBUG;
+      decl->dumpColor();
       Visitor->TraverseDecl(decl);
       Visitor->addCurrent();
     }
@@ -841,9 +837,10 @@ public:
       CI.getHeaderSearchOpts().ResourceDir =
           CompilerInvocation::GetResourcesPath(exe_path.c_str(), main_addr);
     }
-    // eventually I would have to create a new CI and this would not be an issue3
-   // CI.createDiagnostics();
-     // CI.getDiagnosticOpts().ShowColors = 1;
+    HSO.AddPath(CI.getHeaderSearchOpts().ResourceDir + "/include",
+                frontend::Angled, true, false);
+    //   CI.getDiagnostics().setClient(new IgnoringDiagConsumer, true);
+    //  CI.getDiagnostics().setIgnoreAllWarnings(true);
 
     astcons = std::unique_ptr<SASTConsumer>(new SASTConsumer(CI));
 
@@ -865,7 +862,7 @@ void parse(int argc, const char **argv) {
   llvm::sys::PrintStackTraceOnErrorSignal();
   collect_trace();
   Printer printer;
-  printer.print(st, stdout);
+  // printer.print(st, stdout);
 
   std::vector<string> args;
   args.emplace_back("-x");
@@ -901,6 +898,7 @@ void parse(int argc, const char **argv) {
     */
 
   ostringstream o;
+  /*
   o << "#include <cstdio>" << std::endl;
   o << "void f(int x, int y, int z) {" << std::endl;
   o << "return ;" << std::endl;
@@ -909,10 +907,12 @@ void parse(int argc, const char **argv) {
   o << "const char v = 'g', s = 2; int g; return g + v;" << std::endl;
   o << "if (v == g) { return ; }" << std::endl;
   o << "for (int dev = 0; dev < 100; dev++) {" << std::endl;
-  o << "f(1,2,3);" << std::endl;
+  o << "g(1,2,3);" << std::endl;
   o << "printf(\"%d %d %d \", 1,2,3);" << std::endl;
   o << "}" << std::endl;
   o << "}" << std::endl;
+  */
+  o << "int main() {return 1;}";
 
   runToolOnCodeWithArgs(newFrontendActionFactory<SFrontendAction>()->create(),
                         o.str(), args);
