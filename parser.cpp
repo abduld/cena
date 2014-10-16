@@ -897,25 +897,19 @@ void parse(int argc, const char **argv) {
     args.emplace_back("-fsyntax-only");
     */
 
-  ostringstream o;
-  /*
-  o << "#include <cstdio>" << std::endl;
-  o << "void f(int x, int y, int z) {" << std::endl;
-  o << "return ;" << std::endl;
-  o << "}" << std::endl;
-  o << "int main() {" << std::endl;
-  o << "const char v = 'g', s = 2; int g; return g + v;" << std::endl;
-  o << "if (v == g) { return ; }" << std::endl;
-  o << "for (int dev = 0; dev < 100; dev++) {" << std::endl;
-  o << "g(1,2,3);" << std::endl;
-  o << "printf(\"%d %d %d \", 1,2,3);" << std::endl;
-  o << "}" << std::endl;
-  o << "}" << std::endl;
-  */
-  o << "int main() {return 1;}";
+  std::ifstream file;
+  file.open(argv[1]);
+  string prog{};
+  string line;
+  while (std::getline(file, line)) {
+      prog += string("\n") + line;
+  }
+
+  std::cout << "input file = " << argv[1];
+  std::cout << "input code = " << prog;
 
   runToolOnCodeWithArgs(newFrontendActionFactory<SFrontendAction>()->create(),
-                        o.str(), args);
+                        prog, args);
   // print out the rewritten source code ("rewriter" is a global var.)
   // rewriter.getEditBuffer(rewriter.getSourceMgr().getMainFileID()).write(errs());
 
