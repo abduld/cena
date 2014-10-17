@@ -22,6 +22,7 @@
 #include "clang/Lex/Lexer.h"
 #include "clang/Lex/Preprocessor.h"
 #include "ast/visitor.hpp"
+#include "ast/macro_handeler.hpp"
 #include "external/backward_cpp/backward.hpp"
 
 #include <string>
@@ -38,69 +39,6 @@ using namespace backward;
 
 StackTrace st;
 void collect_trace() { st.load_here(); }
-class PreprocessorCallback : public PPCallbacks {
-  Preprocessor &PP;
-  bool disabled = false; // To prevent recurstion
-
-public:
-  PreprocessorCallback(Preprocessor &PP) : PP(PP) {}
-  ~PreprocessorCallback() {}
-
-  void MacroExpands(const Token &MacroNameTok, const MacroInfo *MI,
-                    SourceRange Range) {}
-
-  void MacroExpands(const Token &MacroNameTok, const MacroDirective *MD,
-                    SourceRange Range, const MacroArgs *Args) {
-    MacroExpands(MacroNameTok, MD->getMacroInfo(), Range);
-  }
-
-  void InclusionDirective(SourceLocation HashLoc, const Token &IncludeTok,
-                          llvm::StringRef FileName, bool IsAngled,
-                          CharSourceRange FilenameRange, const FileEntry *File,
-                          llvm::StringRef SearchPath,
-                          llvm::StringRef RelativePath,
-                          const Module *Imported) {
-
-    std::cout << "This is an include" << std::endl;
-  }
-  void If(SourceLocation Loc, SourceRange ConditionRange,
-                  ConditionValueKind ConditionValue) {
-    HandlePPCond(Loc, Loc);
-  }
-  void Ifndef(SourceLocation Loc, const Token &MacroNameTok,
-                      const MacroDirective *MD) {
-    HandlePPCond(Loc, Loc);
-  }
-  void Ifdef(SourceLocation Loc, const Token &MacroNameTok,
-                     const MacroDirective *MD) {
-    HandlePPCond(Loc, Loc);
-  }
-  void Elif(SourceLocation Loc, SourceRange ConditionRange,
-                    ConditionValueKind ConditionValue,
-                    SourceLocation IfLoc) {
-    ElifMapping[Loc] = IfLoc;
-    HandlePPCond(Loc, IfLoc);
-  }
-  void Else(SourceLocation Loc, SourceLocation IfLoc) {
-    HandlePPCond(Loc, IfLoc);
-  }
-  void Endif(SourceLocation Loc, SourceLocation IfLoc) {
-    HandlePPCond(Loc, IfLoc);
-  }
-  bool FileNotFound(llvm::StringRef FileName,
-                            llvm::SmallVectorImpl<char> &RecoveryPath) {
-    if (!PP.GetSuppressIncludeNotFoundError()) {
-      PP.SetSuppressIncludeNotFoundError(true);
-    }
-    return false;
-  }
-
-private:
-  std::map<SourceLocation, SourceLocation>
-      ElifMapping; // Map an elif location to the real if;
-  void HandlePPCond(SourceLocation Loc, SourceLocation IfLoc) {}
-};
-
 struct SDiagnosticConsumer : DiagnosticConsumer {
   SDiagnosticConsumer() {}
   int HadRealError = 0;

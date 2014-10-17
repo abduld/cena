@@ -28,18 +28,10 @@ public:
     toString_(o);
     return o.str();
   }
-  Json toJSON() {
-    return toJSON_();
-  }
-  string toJSONString() {
-    return toJSON().dump();
-  }
-  Json toEsprima() {
-    return toEsprima_();
-  }
-  string toEsprimaString() {
-    return toEsprima().dump();
-  }
+  Json toJSON() { return toJSON_(); }
+  string toJSONString() { return toJSON().dump(); }
+  Json toEsprima() { return toEsprima_(); }
+  string toEsprimaString() { return toEsprima().dump(); }
 
   virtual Node *operator<<=(const bool &val) {
     std::cerr << "undefined <<= \n" << std::endl;

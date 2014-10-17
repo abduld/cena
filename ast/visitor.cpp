@@ -3,8 +3,8 @@
 
 #define DEBUG printf("DEBUG :: >>> %s %d ... \n", __PRETTY_FUNCTION__, __LINE__)
 
-
-static shared_ptr<Node> toNode(const ASTContext * ctx, const PresumedLoc &loc, const APInt &ii) {
+static shared_ptr<Node> toNode(const ASTContext *ctx, const PresumedLoc &loc,
+                               const APInt &ii) {
   if (ii.getBitWidth() <= 64) {
     return shared_ptr<IntegerNode>(
         new IntegerNode(loc.getLine(), loc.getColumn(), ii.getSExtValue()));
@@ -14,7 +14,8 @@ static shared_ptr<Node> toNode(const ASTContext * ctx, const PresumedLoc &loc, c
   }
 }
 
-static shared_ptr<SymbolNode> toNode(const ASTContext * ctx, const PresumedLoc &loc, const Expr *e) {
+static shared_ptr<SymbolNode> toNode(const ASTContext *ctx,
+                                     const PresumedLoc &loc, const Expr *e) {
   LangOptions LO;
   std::string str;
   raw_string_ostream ros(str);
@@ -23,8 +24,8 @@ static shared_ptr<SymbolNode> toNode(const ASTContext * ctx, const PresumedLoc &
       new SymbolNode(loc.getLine(), loc.getColumn(), str));
 }
 
-static vector<shared_ptr<Node>> toNode(const ASTContext * ctx, const PresumedLoc &loc,
-                                const Qualifiers &quals) {
+static vector<shared_ptr<Node>>
+toNode(const ASTContext *ctx, const PresumedLoc &loc, const Qualifiers &quals) {
   vector<shared_ptr<Node>> res;
 
   if (quals.hasConst()) {
@@ -67,7 +68,8 @@ static vector<shared_ptr<Node>> toNode(const ASTContext * ctx, const PresumedLoc
   return res;
 }
 
-static shared_ptr<TypeNode> toNode(const ASTContext * ctx, const PresumedLoc &loc, const Type *ty) {
+static shared_ptr<TypeNode> toNode(const ASTContext *ctx,
+                                   const PresumedLoc &loc, const Type *ty) {
   if (const BuiltinType *bty = dyn_cast<const BuiltinType>(ty)) {
     StringRef s = bty->getName(PrintingPolicy(ctx->getLangOpts()));
     return shared_ptr<TypeNode>(
@@ -78,7 +80,8 @@ static shared_ptr<TypeNode> toNode(const ASTContext * ctx, const PresumedLoc &lo
   }
 }
 
-static shared_ptr<TypeNode> toNode(const ASTContext * ctx, const PresumedLoc &loc, const QualType &typ) {
+static shared_ptr<TypeNode>
+toNode(const ASTContext *ctx, const PresumedLoc &loc, const QualType &typ) {
   shared_ptr<TypeNode> res;
   res = toNode(ctx, loc, typ.getTypePtr());
   if (typ.hasQualifiers()) {
@@ -89,7 +92,8 @@ static shared_ptr<TypeNode> toNode(const ASTContext * ctx, const PresumedLoc &lo
   }
   return res;
 }
-static shared_ptr<IdentifierNode> toNode(const ASTContext * ctx, const PresumedLoc &loc, const Decl *decl) {
+static shared_ptr<IdentifierNode>
+toNode(const ASTContext *ctx, const PresumedLoc &loc, const Decl *decl) {
   const NamedDecl *ND = dyn_cast<NamedDecl>(decl);
   shared_ptr<IdentifierNode> nd(
       new IdentifierNode(loc.getLine(), loc.getColumn()));
@@ -191,13 +195,11 @@ static shared_ptr<IdentifierNode> toNode(const ASTContext * ctx, const PresumedL
   }
 
 #endif
-  /*******************************************************************************************************/
-  /*******************************************************************************************************/
-  /*******************************************************************************************************/
-  /*******************************************************************************************************/
-  /*******************************************************************************************************/
-
-
+/*******************************************************************************************************/
+/*******************************************************************************************************/
+/*******************************************************************************************************/
+/*******************************************************************************************************/
+/*******************************************************************************************************/
 
 SVisitor::SVisitor(CompilerInstance &CI)
     : ctx(&(CI.getASTContext())), Traits(ctx->getCommentCommandTraits()),
@@ -280,8 +282,7 @@ bool SVisitor::TraverseDeclStmt(DeclStmt *decl) {
   }
   PresumedLoc loc = SM.getPresumedLoc(decl->getSourceRange().getBegin());
   shared_ptr<Node> tmp = current_node;
-  shared_ptr<CompoundNode> nd(
-      new CompoundNode(loc.getLine(), loc.getColumn()));
+  shared_ptr<CompoundNode> nd(new CompoundNode(loc.getLine(), loc.getColumn()));
   for (auto init = decl->decl_begin(), end = decl->decl_end(); init != end;
        ++init) {
     current_node = tmp;
@@ -359,8 +360,7 @@ bool SVisitor::TraverseIfStmt(IfStmt *stmt) {
     current_node = nd;
     SVisitor::TraverseStmt(stmt->getElse());
     if (!current_node->isBlock()) {
-      shared_ptr<BlockNode> blk(
-          new BlockNode(loc.getLine(), loc.getColumn()));
+      shared_ptr<BlockNode> blk(new BlockNode(loc.getLine(), loc.getColumn()));
       *blk <<= current_node;
       current_node = blk;
     }
@@ -374,8 +374,7 @@ bool SVisitor::TraverseIfStmt(IfStmt *stmt) {
 bool SVisitor::TraverseCompoundStmt(CompoundStmt *stmt) {
   shared_ptr<Node> tmp = current_node;
   PresumedLoc loc = SM.getPresumedLoc(stmt->getLocStart());
-  shared_ptr<CompoundNode> nd(
-      new CompoundNode(loc.getLine(), loc.getColumn()));
+  shared_ptr<CompoundNode> nd(new CompoundNode(loc.getLine(), loc.getColumn()));
 
   for (auto init = stmt->body_begin(), end = stmt->body_end(); init != end;
        ++init) {
@@ -414,7 +413,9 @@ bool SVisitor::handleUnaryOperator(UnaryOperator *E) {
 }
 
 #define OPERATOR(NAME)                                                         \
-bool SVisitor::TraverseUnary##NAME(UnaryOperator *E) { return handleUnaryOperator(E); }
+  bool SVisitor::TraverseUnary##NAME(UnaryOperator *E) {                       \
+    return handleUnaryOperator(E);                                             \
+  }
 
 UNARYOP_LIST()
 #undef OPERATOR
@@ -464,13 +465,15 @@ bool SVisitor::TraverseBinaryOperator(BinaryOperator *op) {
 }
 
 #define GENERAL_BINOP_FALLBACK(NAME, BINOP_TYPE)                               \
-bool SVisitor::TraverseBin##NAME(BINOP_TYPE *E) { return handleBinaryOperator(E); }
+  bool SVisitor::TraverseBin##NAME(BINOP_TYPE *E) {                            \
+    return handleBinaryOperator(E);                                            \
+  }
 #define OPERATOR(NAME) GENERAL_BINOP_FALLBACK(NAME, BinaryOperator)
 BINOP_LIST()
 #undef OPERATOR
 
 #define OPERATOR(NAME)                                                         \
-GENERAL_BINOP_FALLBACK(NAME##Assign, CompoundAssignOperator)
+  GENERAL_BINOP_FALLBACK(NAME##Assign, CompoundAssignOperator)
 CAO_LIST()
 #undef GENERAL_BINOP_FALLBACK
 #undef OPERATOR
@@ -532,5 +535,3 @@ void SVisitor::addCurrent() {
   *prog_ <<= current_node;
   current_node = prog_;
 }
-
-
