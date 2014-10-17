@@ -9,18 +9,18 @@ static shared_ptr<Node> toNode(const ASTContext * ctx, const PresumedLoc &loc, c
     return shared_ptr<IntegerNode>(
         new IntegerNode(loc.getLine(), loc.getColumn(), ii.getSExtValue()));
   } else {
-    return shared_ptr<StringNode>(new StringNode(
+    return shared_ptr<SymbolNode>(new SymbolNode(
         loc.getLine(), loc.getColumn(), ii.toString(10, ii.isSignBit())));
   }
 }
 
-static shared_ptr<StringNode> toNode(const ASTContext * ctx, const PresumedLoc &loc, const Expr *e) {
+static shared_ptr<SymbolNode> toNode(const ASTContext * ctx, const PresumedLoc &loc, const Expr *e) {
   LangOptions LO;
   std::string str;
   raw_string_ostream ros(str);
   e->printPretty(ros, nullptr, ctx->getLangOpts());
-  return shared_ptr<StringNode>(
-      new StringNode(loc.getLine(), loc.getColumn(), str));
+  return shared_ptr<SymbolNode>(
+      new SymbolNode(loc.getLine(), loc.getColumn(), str));
 }
 
 static vector<shared_ptr<Node>> toNode(const ASTContext * ctx, const PresumedLoc &loc,
@@ -28,39 +28,39 @@ static vector<shared_ptr<Node>> toNode(const ASTContext * ctx, const PresumedLoc
   vector<shared_ptr<Node>> res;
 
   if (quals.hasConst()) {
-    res.push_back(shared_ptr<IdentifierNode>(
-        new IdentifierNode(loc.getLine(), loc.getColumn(), "const")));
+    res.push_back(shared_ptr<SymbolNode>(
+        new SymbolNode(loc.getLine(), loc.getColumn(), "const")));
   }
   if (quals.hasVolatile()) {
-    res.push_back(shared_ptr<IdentifierNode>(
-        new IdentifierNode(loc.getLine(), loc.getColumn(), "volatile")));
+    res.push_back(shared_ptr<SymbolNode>(
+        new SymbolNode(loc.getLine(), loc.getColumn(), "volatile")));
   }
   if (quals.hasRestrict()) {
-    res.push_back(shared_ptr<IdentifierNode>(
-        new IdentifierNode(loc.getLine(), loc.getColumn(), "restrict")));
+    res.push_back(shared_ptr<SymbolNode>(
+        new SymbolNode(loc.getLine(), loc.getColumn(), "restrict")));
   }
   if (quals.hasAddressSpace()) {
     unsigned addressSpace = quals.getAddressSpace();
     switch (addressSpace) {
     case LangAS::opencl_global:
-      res.push_back(shared_ptr<IdentifierNode>(
-          new IdentifierNode(loc.getLine(), loc.getColumn(), "__global")));
+      res.push_back(shared_ptr<SymbolNode>(
+          new SymbolNode(loc.getLine(), loc.getColumn(), "__global")));
       break;
     case LangAS::opencl_local:
-      res.push_back(shared_ptr<IdentifierNode>(
-          new IdentifierNode(loc.getLine(), loc.getColumn(), "__local")));
+      res.push_back(shared_ptr<SymbolNode>(
+          new SymbolNode(loc.getLine(), loc.getColumn(), "__local")));
       break;
     case LangAS::opencl_constant:
-      res.push_back(shared_ptr<IdentifierNode>(
-          new IdentifierNode(loc.getLine(), loc.getColumn(), "__constant")));
+      res.push_back(shared_ptr<SymbolNode>(
+          new SymbolNode(loc.getLine(), loc.getColumn(), "__constant")));
       break;
     default: {
       ostringstream o;
       o << "__attribute__((address_space(";
       o << addressSpace;
       o << ")))";
-      res.push_back(shared_ptr<IdentifierNode>(
-          new IdentifierNode(loc.getLine(), loc.getColumn(), o.str())));
+      res.push_back(shared_ptr<SymbolNode>(
+          new SymbolNode(loc.getLine(), loc.getColumn(), o.str())));
     }
     }
   }
