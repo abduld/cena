@@ -356,7 +356,7 @@ bool SVisitor::TraverseIfStmt(IfStmt *stmt) {
   }
   nd->setThen(current_node);
 
-  if (stmt->getElse() != NULL) {
+  if (stmt->getElse() != nullptr) {
     current_node = nd;
     SVisitor::TraverseStmt(stmt->getElse());
     if (!current_node->isBlock()) {

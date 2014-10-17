@@ -4,19 +4,18 @@
 
 class AssignNode : public Node {
 public:
-  AssignNode(const int &row, const int &col) : Node(row, col) {}
+  AssignNode(const int &row, const int &col);
   AssignNode(const int &row, const int &col, const shared_ptr<Node> &lhs,
-             const shared_ptr<Node> &rhs)
-      : Node(row, col), lhs_(lhs), rhs_(rhs) {}
-  ~AssignNode() {}
-  void setLHS(const shared_ptr<Node> &lhs) { lhs_ = lhs; }
-  void setRHS(const shared_ptr<Node> &rhs) { rhs_ = rhs; }
-  shared_ptr<Node> getLHS() const { return lhs_; }
-  shared_ptr<Node> getRHS() const { return rhs_; }
-  string getHead() { return head_; }
+             const shared_ptr<Node> &rhs);
+  ~AssignNode();
+  void setLHS(const shared_ptr<Node> &lhs);
+  void setRHS(const shared_ptr<Node> &rhs);
+  shared_ptr<Node> getLHS() const;
+  shared_ptr<Node> getRHS() const;
+  string getHead() const override;
 
 private:
-  string head_ = "Assign";
+  static string head_;
   shared_ptr<Node> lhs_;
   shared_ptr<Node> rhs_;
 };

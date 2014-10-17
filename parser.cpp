@@ -43,7 +43,7 @@ struct SDiagnosticConsumer : DiagnosticConsumer {
   SDiagnosticConsumer() {}
   int HadRealError = 0;
   void HandleDiagnostic(DiagnosticsEngine::Level DiagLevel,
-                                const Diagnostic &Info) {
+                                const Diagnostic &Info) override {
     std::string clas;
     llvm::SmallString<1000> diag;
     Info.FormatDiagnostic(diag);
@@ -80,12 +80,12 @@ public:
         SM(CI.getASTContext().getSourceManager()) {
     // ci.getPreprocessor().enableIncrementalProcessing();
   }
-  void Initialize(ASTContext &Ctx) {
+  void Initialize(ASTContext &Ctx) override {
     mainFileID = SM.getMainFileID();
   }
 
   // this to call our SVisitor on each top-level Decl
-  void HandleTranslationUnit(ASTContext &context) {
+  void HandleTranslationUnit(ASTContext &context) override {
     DEBUG;
     // visitor->TraverseDecl(context.getTranslationUnitDecl());
     // find all C++ #include needed for the converted C++ types
@@ -110,7 +110,7 @@ public:
     std::cout << getProgram()->toCCode() << std::endl;
     return;
   }
-  bool HandleTopLevelDecl(DeclGroupRef dg) {
+  bool HandleTopLevelDecl(DeclGroupRef dg) override {
     if (CI.getDiagnostics().hasFatalErrorOccurred()) {
       // Reset errors: (Hack to ignore the fatal errors.)
       CI.getDiagnostics().Reset();
@@ -143,7 +143,7 @@ public:
     // exe_path = exe;
   }
   std::unique_ptr<ASTConsumer> CreateASTConsumer(CompilerInstance &CI,
-                                                 StringRef file) {
+                                                 StringRef file) override {
 
     void *main_addr = (void *)(intptr_t)GetExecutablePath;
     /* http://code.woboq.org/mocng/src/main.cpp.html */
