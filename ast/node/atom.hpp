@@ -31,10 +31,10 @@ public:
     }
   }
   virtual void toJSON_(ostringstream &o) { toCCode_(o); }
-  virtual Json toEsprima_() {
+  virtual Json toEsprima_() override {
     Json::object obj;
     obj["type"] = Json("literal");
-    obj["value"] = Json(val_);
+    obj["value"] = val_->toEsprima_();
     return obj;
   }
 

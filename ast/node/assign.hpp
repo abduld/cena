@@ -13,6 +13,10 @@ public:
   shared_ptr<Node> getLHS() const;
   shared_ptr<Node> getRHS() const;
   string getHead() const override;
+  virtual void toCCode_(ostringstream &o) override;
+  virtual void toString_(ostringstream &o) override;
+  virtual Json toJSON_() override;
+  virtual Json toEsprima_() override;
 
 private:
   static string head_;
