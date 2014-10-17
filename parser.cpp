@@ -21,7 +21,7 @@
 #include "llvm/Support/Signals.h"
 #include "clang/Lex/Lexer.h"
 #include "clang/Lex/Preprocessor.h"
-#include "ast/node/ast.hpp"
+#include "ast/visitor.hpp"
 #include "external/backward_cpp/backward.hpp"
 
 #include <string>
@@ -50,7 +50,7 @@ public:
                     SourceRange Range) {}
 
   void MacroExpands(const Token &MacroNameTok, const MacroDirective *MD,
-                    SourceRange Range, const MacroArgs *Args) override {
+                    SourceRange Range, const MacroArgs *Args) {
     MacroExpands(MacroNameTok, MD->getMacroInfo(), Range);
   }
 
@@ -59,35 +59,35 @@ public:
                           CharSourceRange FilenameRange, const FileEntry *File,
                           llvm::StringRef SearchPath,
                           llvm::StringRef RelativePath,
-                          const Module *Imported) override {
+                          const Module *Imported) {
 
     std::cout << "This is an include" << std::endl;
   }
-  virtual void If(SourceLocation Loc, SourceRange ConditionRange,
-                  ConditionValueKind ConditionValue) override {
+  void If(SourceLocation Loc, SourceRange ConditionRange,
+                  ConditionValueKind ConditionValue) {
     HandlePPCond(Loc, Loc);
   }
-  virtual void Ifndef(SourceLocation Loc, const Token &MacroNameTok,
-                      const MacroDirective *MD) override {
+  void Ifndef(SourceLocation Loc, const Token &MacroNameTok,
+                      const MacroDirective *MD) {
     HandlePPCond(Loc, Loc);
   }
-  virtual void Ifdef(SourceLocation Loc, const Token &MacroNameTok,
-                     const MacroDirective *MD) override {
+  void Ifdef(SourceLocation Loc, const Token &MacroNameTok,
+                     const MacroDirective *MD) {
     HandlePPCond(Loc, Loc);
   }
-  virtual void Elif(SourceLocation Loc, SourceRange ConditionRange,
+  void Elif(SourceLocation Loc, SourceRange ConditionRange,
                     ConditionValueKind ConditionValue,
-                    SourceLocation IfLoc) override {
+                    SourceLocation IfLoc) {
     ElifMapping[Loc] = IfLoc;
     HandlePPCond(Loc, IfLoc);
   }
-  virtual void Else(SourceLocation Loc, SourceLocation IfLoc) override {
+  void Else(SourceLocation Loc, SourceLocation IfLoc) {
     HandlePPCond(Loc, IfLoc);
   }
-  virtual void Endif(SourceLocation Loc, SourceLocation IfLoc) override {
+  void Endif(SourceLocation Loc, SourceLocation IfLoc) {
     HandlePPCond(Loc, IfLoc);
   }
-  virtual bool FileNotFound(llvm::StringRef FileName,
+  bool FileNotFound(llvm::StringRef FileName,
                             llvm::SmallVectorImpl<char> &RecoveryPath) {
     if (!PP.GetSuppressIncludeNotFoundError()) {
       PP.SetSuppressIncludeNotFoundError(true);
@@ -104,8 +104,8 @@ private:
 struct SDiagnosticConsumer : DiagnosticConsumer {
   SDiagnosticConsumer() {}
   int HadRealError = 0;
-  virtual void HandleDiagnostic(DiagnosticsEngine::Level DiagLevel,
-                                const Diagnostic &Info) override {
+  void HandleDiagnostic(DiagnosticsEngine::Level DiagLevel,
+                                const Diagnostic &Info) {
     std::string clas;
     llvm::SmallString<1000> diag;
     Info.FormatDiagnostic(diag);
@@ -142,12 +142,12 @@ public:
         SM(CI.getASTContext().getSourceManager()) {
     // ci.getPreprocessor().enableIncrementalProcessing();
   }
-  virtual void Initialize(ASTContext &Ctx) override {
+  void Initialize(ASTContext &Ctx) {
     mainFileID = SM.getMainFileID();
   }
 
-  // override this to call our SVisitor on each top-level Decl
-  virtual void HandleTranslationUnit(ASTContext &context) {
+  // this to call our SVisitor on each top-level Decl
+  void HandleTranslationUnit(ASTContext &context) {
     DEBUG;
     // visitor->TraverseDecl(context.getTranslationUnitDecl());
     // find all C++ #include needed for the converted C++ types
@@ -172,7 +172,7 @@ public:
     std::cout << getProgram()->toCCode() << std::endl;
     return;
   }
-  virtual bool HandleTopLevelDecl(DeclGroupRef dg) {
+  bool HandleTopLevelDecl(DeclGroupRef dg) {
     if (CI.getDiagnostics().hasFatalErrorOccurred()) {
       // Reset errors: (Hack to ignore the fatal errors.)
       CI.getDiagnostics().Reset();

@@ -15,13 +15,19 @@ include(ast/sources.cmake)
 
 set(PROJECT_TARGET "clang_ast")
 
-add_executable(${PROJECT_TARGET}
+set(PROJECT_SRC
   parser.cpp
   main.cpp
   external/backward_cpp/backward.cpp
   external/json11/json11.cpp
-  ${PROJECT_HPP}
+  #  ${PROJECT_HPP}
+  ${PROJECT_CPP}
 )
+add_executable(${PROJECT_TARGET}
+  ${PROJECT_SRC}
+)
+
+MESSAGE(STATUS "Source files = ${PROJECT_SRC}")
 
 link_directories(${LLVM_LIBRARY_DIRS})
 
@@ -38,8 +44,6 @@ add_definitions(-Wno-unused-function)
 add_definitions(-Wfatal-errors)
 add_definitions(-g)
 add_definitions(-O0)
-
-MESSAGE(STATUS "Target exe  = $(PROJECT_TARGET)")
 
 
 target_link_libraries(${PROJECT_TARGET} ${CLANG_LIBS} ${LLVM_LDFLAGS} ${LLVM_MODULE_LIBS} )
