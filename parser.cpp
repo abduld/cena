@@ -43,7 +43,7 @@ struct SDiagnosticConsumer : DiagnosticConsumer {
   SDiagnosticConsumer() {}
   int HadRealError = 0;
   void HandleDiagnostic(DiagnosticsEngine::Level DiagLevel,
-                                const Diagnostic &Info) override {
+                        const Diagnostic &Info) override {
     std::string clas;
     llvm::SmallString<1000> diag;
     Info.FormatDiagnostic(diag);
@@ -80,9 +80,7 @@ public:
         SM(CI.getASTContext().getSourceManager()) {
     // ci.getPreprocessor().enableIncrementalProcessing();
   }
-  void Initialize(ASTContext &Ctx) override {
-    mainFileID = SM.getMainFileID();
-  }
+  void Initialize(ASTContext &Ctx) override { mainFileID = SM.getMainFileID(); }
 
   // this to call our SVisitor on each top-level Decl
   void HandleTranslationUnit(ASTContext &context) override {
@@ -93,7 +91,7 @@ public:
         [&](clang::ASTContext &i_ctx, const clang::QualType &i_type) {
       auto decl = i_type->getAsCXXRecordDecl();
       if (decl != nullptr) {
-        decl->dump();
+        //decl->dump();
         /*
         auto loc = decl->clang::Decl::getLocStart();
           clang::PresumedLoc ploc = i_ctx.getSourceManager().getPresumedLoc( loc
@@ -121,7 +119,7 @@ public:
       if (SM.getFileID(SM.getExpansionLoc(decl->getLocation())) != mainFileID)
         continue;
       DEBUG;
-      decl->dumpColor();
+      //decl->dumpColor();
       Visitor->TraverseDecl(decl);
       Visitor->addCurrent();
     }
@@ -243,6 +241,8 @@ void parse(int argc, const char **argv) {
   args.emplace_back("/usr/include");
   args.emplace_back("-isystem");
   args.emplace_back("/usr/local/include");
+  args.emplace_back("-Itest/wbHeaders");
+  args.emplace_back("-Itest/intrinHeaders");
   // args.push_back(" -O0  ");
   // args.push_back("-fsyntax-only ");
   // args.push_back("-x cpp-output ");
@@ -269,7 +269,7 @@ void parse(int argc, const char **argv) {
   string prog{};
   string line;
   while (std::getline(file, line)) {
-      prog += string("\n") + line;
+    prog += string("\n") + line;
   }
 
   std::cout << "input file = " << argv[1];

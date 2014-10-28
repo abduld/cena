@@ -51,6 +51,7 @@ target_link_libraries(${PROJECT_TARGET} pthread)
 target_link_libraries(${PROJECT_TARGET} curses)
 target_link_libraries(${PROJECT_TARGET} z)
 target_link_libraries(${PROJECT_TARGET} clang)
+target_link_libraries(${PROJECT_TARGET} dl)
 
 # ADD_DEFINITIONS("-std=c++11")
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${LLVM_COMPILE_FLAGS} -std=c++11 ")

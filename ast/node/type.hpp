@@ -31,7 +31,7 @@ public:
   vector<shared_ptr<Node>> getBase() const { return base_; }
   vector<shared_ptr<Node>> getAddressSpace() const { return address_space_; }
 
-  void toCCode_(ostringstream &o) {
+  virtual void toCCode_(ostringstream &o) {
     for (auto addr : address_space_) {
       addr->toCCode_(o);
       o << " ";
@@ -45,9 +45,9 @@ public:
       o << " ";
     }
   }
-  void toString_(ostringstream &o) { toCCode_(o); }
-  void toJSON_(ostringstream &o) { o << "{\"type\": \"unknown\"}"; }
-  string getHead() const { return head_; }
+  virtual void toString_(ostringstream &o) { toCCode_(o); }
+  virtual void toJSON_(ostringstream &o) { o << "{\"type\": \"unknown\"}"; }
+  virtual string getHead() const { return head_; }
 
 private:
   string head_ = "Type";

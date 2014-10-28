@@ -112,9 +112,10 @@ public:
           continue;
         }
         if (v->isStatement() || isBlock()) {
-          o << "; /* " << v->getHead() << "*/\n";
+          o << ";\n"; // o << " /* " << v->getHead() << "*/\n";
         } else if (!isProgram() && len > 0) {
-          o << " /* " << v->getHead() << "*/, ";
+          // o << " /* " << v->getHead() << "*/\n";
+	  o << ", ";
         }
       }
     }

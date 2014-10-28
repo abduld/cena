@@ -59,5 +59,7 @@ using std::transform;
 #include "typedef.hpp"
 #include "while.hpp"
 #include "declare.hpp"
+//#include "reference.hpp"
+#include "reference_type.hpp"
 
 #endif /* __AST_H__ */

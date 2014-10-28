@@ -94,6 +94,10 @@ public:
   bool TraverseStringLiteral(StringLiteral *E);
   bool shouldVisitTemplateInstantiations() const { return true; }
   bool shouldVisitImplicitCode() const { return true; }
+	bool TraverseCXXConstructExpr(CXXConstructExpr *E);
+	bool TraverseCXXBindTemporaryExpr(CXXBindTemporaryExpr *E);
+
+bool TraverseMaterializeTemporaryExpr(MaterializeTemporaryExpr *nd);
 
   void addCurrent();
 

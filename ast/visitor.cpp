@@ -68,15 +68,21 @@ toNode(const ASTContext *ctx, const PresumedLoc &loc, const Qualifiers &quals) {
   return res;
 }
 
+static shared_ptr<TypeNode>
+toNode(const ASTContext *ctx, const PresumedLoc &loc, const QualType &typ);
 static shared_ptr<TypeNode> toNode(const ASTContext *ctx,
                                    const PresumedLoc &loc, const Type *ty) {
   if (const BuiltinType *bty = dyn_cast<const BuiltinType>(ty)) {
     StringRef s = bty->getName(PrintingPolicy(ctx->getLangOpts()));
     return shared_ptr<TypeNode>(
         new TypeNode(loc.getLine(), loc.getColumn(), s));
+ } else if (ty->isPointerType()) {
+  auto t = toNode(ctx, loc, ty->getPointeeType());
+  return shared_ptr<TypeNode>(new ReferenceTypeNode(loc.getLine(), loc.getColumn(), t));
   } else {
+	  auto typ = QualType::getAsString(QualType(ty, 0).getSplitDesugaredType());
     return shared_ptr<TypeNode>(
-        new TypeNode(loc.getLine(), loc.getColumn(), "unsupported"));
+        new TypeNode(loc.getLine(), loc.getColumn(), typ));
   }
 }
 
@@ -269,6 +275,7 @@ bool SVisitor::TraverseVarDecl(VarDecl *decl) {
   if (decl->hasInit()) {
     current_node = nd;
     SVisitor::TraverseStmt(decl->getInit());
+    //decl->getInit()->dump();
     assert(current_node != nd);
     nd->setInitializer(current_node);
   }
@@ -424,7 +431,7 @@ bool SVisitor::TraverseUnaryOperator(UnaryOperator *op) {
 }
 bool SVisitor::TraverseUnaryExprOrTypeTraitExpr(UnaryExprOrTypeTraitExpr *E) {
   DEBUG;
-  E->dumpColor();
+  //E->dumpColor();
   current_node = shared_ptr<StringNode>(
       new StringNode(-1, -1, string("TODOXXUnaryExprOrTypeTraitExpr")));
   return true;
@@ -453,7 +460,7 @@ bool SVisitor::handleBinaryOperator(BinaryOperator *E) {
     if (current_node == nd) {
       std::cout << "Something has went wrong " << E->getOpcodeStr().str()
                 << std::endl;
-      E->dumpColor();
+      //E->dumpColor();
     }
     nd->setRHS(current_node);
     current_node = nd;
@@ -530,6 +537,32 @@ bool SVisitor::TraverseStringLiteral(StringLiteral *E) {
       new StringNode(loc.getLine(), loc.getColumn(), E->getString().str()));
   return true;
 }
+
+bool SVisitor::TraverseCXXBindTemporaryExpr(CXXBindTemporaryExpr *E) {
+	auto temp = E->getSubExpr();
+  PresumedLoc loc = SM.getPresumedLoc(E->getExprLoc());
+  TraverseStmt(temp);
+	return true;
+}
+bool SVisitor::TraverseCXXConstructExpr(CXXConstructExpr *E) {
+	if (E->getNumArgs() == 1) {
+		return TraverseStmt(E->getArg(0));
+	} else {
+  PresumedLoc loc = SM.getPresumedLoc(E->getExprLoc());
+  CXXConstructorDecl * decl = E->getConstructor();
+  current_node = toNode(ctx, loc, decl->getType());
+  DEBUG;
+  return true;
+	}
+}
+
+bool SVisitor::TraverseMaterializeTemporaryExpr(MaterializeTemporaryExpr *nd) {
+nd->dumpColor();	 
+TraverseStmt(nd->GetTemporaryExpr());
+	  return true;
+}
+
+
 
 void SVisitor::addCurrent() {
   *prog_ <<= current_node;

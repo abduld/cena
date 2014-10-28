@@ -21,3 +21,4 @@ install_manifest.txt
 build*
 .idea
 clang_ast
+*.swp
