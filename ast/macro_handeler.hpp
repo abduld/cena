@@ -64,8 +64,8 @@ public:
                     llvm::SmallVectorImpl<char> &RecoveryPath);
 
 private:
-  std::map<SourceLocation, SourceLocation>
-      ElifMapping; // Map an elif location to the real if;
+  std::map<SourceLocation, SourceLocation> ElifMapping; // Map an elif location
+                                                        // to the real if;
   void HandlePPCond(SourceLocation Loc, SourceLocation IfLoc) {}
 };
 

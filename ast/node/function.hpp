@@ -28,7 +28,7 @@ public:
     name_->toCCode_(o);
     o << "(";
     if (params_ != nullptr) {
-	params_->toCCode_(o);
+      params_->toCCode_(o);
     }
     o << ")";
     if (body_ != nullptr) {
@@ -43,27 +43,29 @@ public:
     name_->toString_(o);
     o << "(";
     if (params_ != nullptr) {
-	    params_->toString_(o);
+      params_->toString_(o);
     }
     o << ")";
     if (body_ != nullptr) {
       body_->toString_(o);
     }
   }
-Json toEsprima_() {
-  Json::object obj;
-  vector<Json> params;
-  obj["type"] = "Function";
-  obj["id"] = name_->getName();
-	  if (params_ != nullptr ) {
-		  for (auto arg : params_->getValues()) {
-			  params.push_back(arg->toEsprima_());
-		  }
-	  }
-	  obj["params"] = params_->toEsprima_();
-  obj["body"] = body_->toEsprima_();
-  return obj;
-}
+  Json toEsprima_() {
+    Json::object obj;
+    vector<Json> params;
+    obj["type"] = "Function";
+    obj["line"] = row;
+    obj["column"] = column;
+    obj["id"] = name_->getName();
+    if (params_ != nullptr) {
+      for (auto arg : params_->getValues()) {
+        params.push_back(arg->toEsprima_());
+      }
+    }
+    obj["params"] = params_->toEsprima_();
+    obj["body"] = body_->toEsprima_();
+    return obj;
+  }
   void toJSON_(ostringstream &o) { o << "{\"type\": \"unknown\"}"; }
 
 private:

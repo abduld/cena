@@ -44,15 +44,17 @@ public:
   bool isBlock() const { return true; }
   void toJSON_(ostringstream &o) { o << "{\"type\": \"unknown\"}"; }
   Json toEsprima_() override {
-	  Json::object obj;
-	  vector<Json> args;
-	  obj["type"] = "IfStatement";
-	  obj["test"] = cond_->toEsprima_();
-	  obj["consequent"] = then_->toEsprima_();
-	  if (else_ != nullptr) {
-		  obj["alternate"] = else_->toEsprima_();
-	  }
-	  return obj;
+    Json::object obj;
+    vector<Json> args;
+    obj["type"] = "IfStatement";
+    obj["line"] = row;
+    obj["column"] = column;
+    obj["test"] = cond_->toEsprima_();
+    obj["consequent"] = then_->toEsprima_();
+    if (else_ != nullptr) {
+      obj["alternate"] = else_->toEsprima_();
+    }
+    return obj;
   }
 
 private:

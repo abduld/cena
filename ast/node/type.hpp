@@ -3,7 +3,6 @@
 #ifndef __TYPE_H__
 #define __TYPE_H__
 
-
 class TypeNode : public Node {
 public:
   TypeNode(const int &row, const int &col) : Node(row, col) {}
@@ -28,22 +27,24 @@ public:
   void addAddressSpace(const shared_ptr<Node> &addr) {
     address_space_.push_back(addr);
   }
-  vector<shared_ptr<Node>> getQualifiers() const { return qualifiers_; }
-  vector<shared_ptr<Node>> getBase() const { return base_; }
-  vector<shared_ptr<Node>> getAddressSpace() const { return address_space_; }
+  vector<shared_ptr<Node> > getQualifiers() const { return qualifiers_; }
+  vector<shared_ptr<Node> > getBase() const { return base_; }
+  vector<shared_ptr<Node> > getAddressSpace() const { return address_space_; }
   virtual Json toEsprima_() override {
-	  Json::object obj;
-	  vector<Json> addrs, quals, bases;
-	  obj["type"] = "TypeSpecification";
+    Json::object obj;
+    vector<Json> addrs, quals, bases;
+    obj["type"] = "TypeSpecification";
     for (auto addr : address_space_) {
-	    addrs.push_back(addr->toEsprima_());
+      addrs.push_back(addr->toEsprima_());
     }
     for (auto qual : qualifiers_) {
-	    quals.push_back(qual->toEsprima_());
+      quals.push_back(qual->toEsprima_());
     }
     for (auto base : base_) {
-	    bases.push_back(base->toEsprima_());
+      bases.push_back(base->toEsprima_());
     }
+    obj["line"] = row;
+    obj["column"] = column;
     obj["address_spaces"] = addrs;
     obj["qualifiers"] = quals;
     obj["bases"] = bases;
@@ -54,19 +55,19 @@ public:
     for (auto addr : address_space_) {
       addr->toCCode_(o);
       if (addr != *address_space_.end()) {
-      o << " ";
+        o << " ";
       }
     }
     for (auto qual : qualifiers_) {
       qual->toCCode_(o);
       if (qual != *qualifiers_.end()) {
-      o << " ";
+        o << " ";
       }
     }
     for (auto base : base_) {
       base->toCCode_(o);
       if (base != *base_.end()) {
-      o << " ";
+        o << " ";
       }
     }
   }
@@ -76,8 +77,8 @@ public:
 
 private:
   string head_ = "Type";
-  vector<shared_ptr<Node>> qualifiers_{};
-  vector<shared_ptr<Node>> base_{};
-  vector<shared_ptr<Node>> address_space_{};
+  vector<shared_ptr<Node> > qualifiers_{};
+  vector<shared_ptr<Node> > base_{};
+  vector<shared_ptr<Node> > address_space_{};
 };
 #endif /* __TYPE_H__ */

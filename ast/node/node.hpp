@@ -74,20 +74,20 @@ public:
   virtual bool isBlock() const { return false; }
   virtual bool isProgram() const { return false; }
   virtual bool isEmpty() const { return false; }
-  virtual vector<shared_ptr<Node>> getValues() {
-    vector<shared_ptr<Node>> vec;
+  virtual vector<shared_ptr<Node> > getValues() {
+    vector<shared_ptr<Node> > vec;
     return vec;
   }
   void setParent(shared_ptr<Node> parent) { parent_ = parent; }
   virtual bool hasChildren() const { return false; }
-  virtual vector<shared_ptr<Node>> getChildren() { return children_; }
+  virtual vector<shared_ptr<Node> > getChildren() { return children_; }
   virtual void unlink() { return; }
   virtual void insertChild() { return; }
   virtual void rename() { return; }
 
 protected:
   size_t id_;
-  vector<shared_ptr<Node>> children_{};
+  vector<shared_ptr<Node> > children_{};
   shared_ptr<Node> parent_ = nullptr;
   int row_{};
   int col_{};

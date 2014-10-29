@@ -39,6 +39,22 @@ public:
   }
   void toJSON_(ostringstream &o) { o << "{\"type\": \"unknown\"}"; }
   bool isStatement() const { return true; }
+  Json toEsprima_() override {
+    Json::object obj;
+    Json::object decl;
+    decl["type"] = "VariableDeclarator";
+    decl["line"] = line;
+    decl["column"] = column;
+    decl["id"] = id_->toEsprima_();
+    if (hasInitializer()) {
+      decl["init"] = init_->toEsprima_();
+    }
+    obj["type"] = "VariableDeclaration";
+    obj["line"] = row;
+    obj["column"] = column;
+    obj["declarations"] = vector<Json>{ decl };
+    return obj;
+  }
 
 private:
   string head_ = "Declare";

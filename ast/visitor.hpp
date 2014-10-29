@@ -36,18 +36,17 @@ using namespace clang;
                                                                                \
   OPERATOR(PostInc) OPERATOR(PostDec) OPERATOR(PreInc) OPERATOR(PreDec)        \
       OPERATOR(AddrOf) OPERATOR(Deref) OPERATOR(Plus) OPERATOR(Minus)          \
-          OPERATOR(Not) OPERATOR(LNot) OPERATOR(Real) OPERATOR(Imag)           \
-              OPERATOR(Extension)
+      OPERATOR(Not) OPERATOR(LNot) OPERATOR(Real) OPERATOR(Imag)               \
+      OPERATOR(Extension)
 
 // All binary operators (excluding compound assign operators).
 #define BINOP_LIST()                                                           \
                                                                                \
   OPERATOR(PtrMemD) OPERATOR(PtrMemI) OPERATOR(Mul) OPERATOR(Div)              \
       OPERATOR(Rem) OPERATOR(Add) OPERATOR(Sub) OPERATOR(Shl) OPERATOR(Shr)    \
-          OPERATOR(LT) OPERATOR(GT) OPERATOR(LE) OPERATOR(GE) OPERATOR(EQ)     \
-              OPERATOR(NE) OPERATOR(And) OPERATOR(Xor) OPERATOR(Or)            \
-                  OPERATOR(LAnd) OPERATOR(LOr) OPERATOR(Assign)                \
-                      OPERATOR(Comma)
+      OPERATOR(LT) OPERATOR(GT) OPERATOR(LE) OPERATOR(GE) OPERATOR(EQ)         \
+      OPERATOR(NE) OPERATOR(And) OPERATOR(Xor) OPERATOR(Or) OPERATOR(LAnd)     \
+      OPERATOR(LOr) OPERATOR(Assign) OPERATOR(Comma)
 
 // All compound assign operators.
 #define CAO_LIST()                                                             \
@@ -94,11 +93,11 @@ public:
   bool TraverseStringLiteral(StringLiteral *E);
   bool shouldVisitTemplateInstantiations() const { return true; }
   bool shouldVisitImplicitCode() const { return true; }
-	bool TraverseCXXConstructExpr(CXXConstructExpr *E);
-	bool TraverseCXXBindTemporaryExpr(CXXBindTemporaryExpr *E);
-bool TraverseParmVarDecl(ParmVarDecl *decl);
+  bool TraverseCXXConstructExpr(CXXConstructExpr *E);
+  bool TraverseCXXBindTemporaryExpr(CXXBindTemporaryExpr *E);
+  bool TraverseParmVarDecl(ParmVarDecl *decl);
 
-bool TraverseMaterializeTemporaryExpr(MaterializeTemporaryExpr *nd);
+  bool TraverseMaterializeTemporaryExpr(MaterializeTemporaryExpr *nd);
 
   void addCurrent();
 

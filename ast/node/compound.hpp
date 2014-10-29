@@ -6,10 +6,10 @@
 class CompoundNode : public Node {
 public:
   CompoundNode(const int &row, const int &col) : Node(row, col) {
-    vals_ = vector<shared_ptr<Node>>();
+    vals_ = vector<shared_ptr<Node> >();
   }
   CompoundNode(const int &row, const int &col,
-               const vector<shared_ptr<Node>> &vals)
+               const vector<shared_ptr<Node> > &vals)
       : Node(row, col), vals_(vals) {}
   virtual ~CompoundNode() { vals_.clear(); }
   virtual bool isCompound() const { return true; }
@@ -58,14 +58,14 @@ public:
     return *this;
   }
   CompoundNode &operator<<=(CompoundNode *c) {
-    vector<shared_ptr<Node>> vals = c->getValues();
+    vector<shared_ptr<Node> > vals = c->getValues();
     for (auto iter = vals.begin(); iter != vals.end(); iter++) {
       vals_.push_back(*iter);
     }
     return *this;
   }
   CompoundNode &operator<<=(const shared_ptr<CompoundNode> &c) {
-    vector<shared_ptr<Node>> vals = c->getValues();
+    vector<shared_ptr<Node> > vals = c->getValues();
     for (auto iter = vals.begin(); iter != vals.end(); iter++) {
       vals_.push_back(*iter);
     }
@@ -80,7 +80,7 @@ public:
     vals_.push_back(var);
     return;
   }
-  void push_back(const vector<shared_ptr<Node>> &var) {
+  void push_back(const vector<shared_ptr<Node> > &var) {
     for (auto iter : var) {
       push_back(iter);
     }
@@ -96,7 +96,7 @@ public:
     return;
   }
   virtual string getHead() const { return head_; }
-  vector<shared_ptr<Node>> getValues() { return vals_; }
+  vector<shared_ptr<Node> > getValues() { return vals_; }
 
   virtual void toCCode_(ostringstream &o) {
     auto vals = getValues();
@@ -113,11 +113,11 @@ public:
         }
         if (v->isStatement() && isBlock()) {
           o << ";";
-	  o << " /* " << v->getHead() << "*/\n";
-	  o << "\n";
+          o << " /* " << v->getHead() << "*/\n";
+          o << "\n";
         } else if (!isProgram() && len > 0) {
           o << " /* " << v->getHead() << "*/";
-	  o << ", ";
+          o << ", ";
         }
       }
     }
@@ -125,13 +125,13 @@ public:
       o << "}\n";
     }
   }
-virtual Json toEsprima_() {
-  std::vector<Json> lst;
-  for (auto elem : vals_) {
-	  lst.push_back(elem->toEsprima_());
+  virtual Json toEsprima_() {
+    std::vector<Json> lst;
+    for (auto elem : vals_) {
+      lst.push_back(elem->toEsprima_());
+    }
+    return Json(lst);
   }
-  return Json(lst);
-}
   virtual void toString_(ostringstream &o) {
     auto vals = getValues();
     auto len = vals.size();
@@ -160,7 +160,7 @@ virtual Json toEsprima_() {
 
 protected:
   string head_ = "CompoundNode";
-  vector<shared_ptr<Node>> vals_;
+  vector<shared_ptr<Node> > vals_;
 };
 
 #endif /* __COMPOUND_H__ */

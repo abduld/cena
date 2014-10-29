@@ -8,7 +8,7 @@ TEST(CompoundNode, CanAdd) {
   shared_ptr<CompoundNode> nd(new CompoundNode());
   *nd <<= 99.0;
   *nd <<= 3;
-  vector<shared_ptr<Node>> vals = nd->getValues();
+  vector<shared_ptr<Node> > vals = nd->getValues();
   shared_ptr<Node> real_val = vals[0];
   shared_ptr<Node> int_val = vals[1];
   ASSERT_STREQ(real_val->getHead().c_str(), "Real");

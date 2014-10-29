@@ -26,6 +26,8 @@ void AssignNode::toString_(ostringstream &o) {
 Json AssignNode::toEsprima_() {
   Json::object obj;
   obj["type"] = "AssignmentExpression";
+  obj["line"] = row;
+  obj["column"] = column;
   obj["operator"] = "=";
   obj["left"] = lhs_->toEsprima_();
   obj["right"] = rhs_->toEsprima_();

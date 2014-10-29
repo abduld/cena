@@ -53,7 +53,7 @@ struct SDiagnosticConsumer : DiagnosticConsumer {
       std::cerr << "FATAL ";
     case DiagnosticsEngine::Error:
       std::cerr << "Error: " //<< locationToString(Info.getLocation(),
-                // annotator.getSourceMgr())
+          // annotator.getSourceMgr())
                 << ": " << diag.c_str() << std::endl;
       clas = "error";
       break;
@@ -87,11 +87,11 @@ public:
     DEBUG;
     // visitor->TraverseDecl(context.getTranslationUnitDecl());
     // find all C++ #include needed for the converted C++ types
-    auto collectInclude =
-        [&](clang::ASTContext &i_ctx, const clang::QualType &i_type) {
+    auto collectInclude = [&](clang::ASTContext &i_ctx,
+                              const clang::QualType &i_type) {
       auto decl = i_type->getAsCXXRecordDecl();
       if (decl != nullptr) {
-        //decl->dump();
+        // decl->dump();
         /*
         auto loc = decl->clang::Decl::getLocStart();
           clang::PresumedLoc ploc = i_ctx.getSourceManager().getPresumedLoc( loc
@@ -120,7 +120,7 @@ public:
       if (SM.getFileID(SM.getExpansionLoc(decl->getLocation())) != mainFileID)
         continue;
       DEBUG;
-      //decl->dumpColor();
+      // decl->dumpColor();
       Visitor->TraverseDecl(decl);
       Visitor->addCurrent();
     }

@@ -35,6 +35,17 @@ public:
   void toString_(ostringstream &o) { toCCode_(o); }
   bool isBlock() const { return true; }
   void toJSON_(ostringstream &o) { o << "{\"type\": \"unknown\"}"; }
+  Json toEsprima_() override {
+    Json::object obj;
+    obj["type"] = "ForStatement";
+    obj["line"] = row;
+    obj["column"] = column;
+    obj["init"] = init_->toEsprima_();
+    obj["test"] = cond_->toEsprima_();
+    obj["update"] = inc_->toEsprima_();
+    obj["body"] = body_->toEsprima_();
+    return obj;
+  }
 
 private:
   string head_ = "For";

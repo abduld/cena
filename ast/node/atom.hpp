@@ -10,8 +10,8 @@ public:
       : Node(row, col), init_(true) {
     val_ = v;
   }
-  vector<shared_ptr<Node>> getValues() {
-    vector<shared_ptr<Node>> vec;
+  vector<shared_ptr<Node> > getValues() {
+    vector<shared_ptr<Node> > vec;
     shared_ptr<Node> v(this);
     vec.push_back(v);
     return vec;
@@ -35,6 +35,8 @@ public:
     Json::object obj;
     ostringstream o;
     obj["type"] = Json("literal");
+    obj["line"] = row;
+    obj["column"] = column;
     o << val_;
     obj["value"] = o.str();
     return obj;
