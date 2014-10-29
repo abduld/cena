@@ -106,6 +106,7 @@ public:
 
     std::cout << "Program : " << std::endl;
     std::cout << getProgram()->toEsprimaString() << std::endl;
+    std::cout << getProgram()->toCCode() << std::endl;
     return;
   }
   bool HandleTopLevelDecl(DeclGroupRef dg) override {

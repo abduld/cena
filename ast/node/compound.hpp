@@ -111,10 +111,12 @@ public:
         if (v->isBlock()) {
           continue;
         }
-        if (v->isStatement() || isBlock()) {
-          o << ";\n"; // o << " /* " << v->getHead() << "*/\n";
+        if (v->isStatement() && isBlock()) {
+          o << ";";
+	  o << " /* " << v->getHead() << "*/\n";
+	  o << "\n";
         } else if (!isProgram() && len > 0) {
-          // o << " /* " << v->getHead() << "*/\n";
+          o << " /* " << v->getHead() << "*/";
 	  o << ", ";
         }
       }
@@ -124,15 +126,11 @@ public:
     }
   }
 virtual Json toEsprima_() {
-  Json::object obj;
   std::vector<Json> lst;
-  obj["type"] = "Block";
   for (auto elem : vals_) {
 	  lst.push_back(elem->toEsprima_());
   }
-
-  obj["body"] = lst;
-  return Json(obj);
+  return Json(lst);
 }
   virtual void toString_(ostringstream &o) {
     auto vals = getValues();

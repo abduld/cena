@@ -26,6 +26,12 @@ public:
     o << " ";
     id_->toString_(o);
   }
+  Json toEsprima_() override {
+	  Json::object obj;
+	  obj["type"] = "ParameterExpression";
+	  obj["data"] = id_->toEsprima_();
+	  return obj;
+  }
   void toJSON_(ostringstream &o) { o << "{\"type\": \"unknown\"}"; }
 
 private:

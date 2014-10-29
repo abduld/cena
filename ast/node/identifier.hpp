@@ -41,12 +41,7 @@ public:
   virtual void toCCode_(ostringstream &o) { o << getConstant(); }
   virtual void toString_(ostringstream &o) { o << getConstant(); }
   virtual void toJSON_(ostringstream &o) { toCCode_(o); }
-  virtual Json toEsprima_() override {
-  Json::object obj;
-  obj["type"] = "Identifier";
-  obj["name"] = getName();
-  return obj;
-  }
+  virtual Json toEsprima_() override;
 
 private:
   string head_ = "Identifier";

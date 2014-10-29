@@ -2,12 +2,12 @@
 #ifndef __UNARY_OP_H__
 #define __UNARY_OP_H__
 
-class UnaryOp : public StringNode {
+class UnaryOp : public SymbolNode {
 public:
   UnaryOp(const int &row, const int &col, const char *s)
-      : StringNode(row, col, s) {}
+      : SymbolNode(row, col, s) {}
   UnaryOp(const int &row, const int &col, const string &s)
-      : StringNode(row, col, s) {}
+      : SymbolNode(row, col, s) {}
   string getHead() const { return head_; }
 
 private:

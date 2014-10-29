@@ -3,6 +3,7 @@
 #ifndef __TYPE_H__
 #define __TYPE_H__
 
+
 class TypeNode : public Node {
 public:
   TypeNode(const int &row, const int &col) : Node(row, col) {}
@@ -30,6 +31,24 @@ public:
   vector<shared_ptr<Node>> getQualifiers() const { return qualifiers_; }
   vector<shared_ptr<Node>> getBase() const { return base_; }
   vector<shared_ptr<Node>> getAddressSpace() const { return address_space_; }
+  virtual Json toEsprima_() override {
+	  Json::object obj;
+	  vector<Json> addrs, quals, bases;
+	  obj["type"] = "TypeSpecification";
+    for (auto addr : address_space_) {
+	    addrs.push_back(addr->toEsprima_());
+    }
+    for (auto qual : qualifiers_) {
+	    quals.push_back(qual->toEsprima_());
+    }
+    for (auto base : base_) {
+	    bases.push_back(base->toEsprima_());
+    }
+    obj["address_spaces"] = addrs;
+    obj["qualifiers"] = quals;
+    obj["bases"] = bases;
+    return obj;
+  }
 
   virtual void toCCode_(ostringstream &o) {
     for (auto addr : address_space_) {

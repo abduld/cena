@@ -60,9 +60,9 @@ Json toEsprima_() {
 			  params.push_back(arg->toEsprima_());
 		  }
 	  }
-	  obj["params"] = params;
+	  obj["params"] = params_->toEsprima_();
   obj["body"] = body_->toEsprima_();
-  return Json(obj);
+  return obj;
 }
   void toJSON_(ostringstream &o) { o << "{\"type\": \"unknown\"}"; }
 

@@ -12,6 +12,17 @@ public:
   ~BlockNode() {}
   string getHead() const { return head_; }
   bool isBlock() const { return true; }
+  Json toEsprima_() override {
+	  Json::object obj;
+	  vector<Json> body;
+	  obj["type"] = "BlockStatement";
+	  for (auto stmt : getValues()) {
+		  body.push_back(stmt->toEsprima_());
+	  }
+	  obj["body"] = body;
+	  return obj;
+  }
+
 
 private:
   string head_ = "Block";

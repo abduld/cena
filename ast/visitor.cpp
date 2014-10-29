@@ -588,7 +588,7 @@ bool SVisitor::TraverseCXXConstructExpr(CXXConstructExpr *E) {
 }
 
 bool SVisitor::TraverseMaterializeTemporaryExpr(MaterializeTemporaryExpr *nd) {
-nd->dumpColor();	 
+//nd->dumpColor();	 
 TraverseStmt(nd->GetTemporaryExpr());
 	  return true;
 }
