@@ -36,6 +36,19 @@ public:
     }
     o << ")";
   }
+  Json toEsprima_() override {
+	  Json::object obj;
+	  vector<Json> args;
+	  obj["type"] = "CallExpression";
+	  obj["callee"] = fun_->toString();
+	  if (args_ != nullptr ) {
+		  for (auto arg : args_->getValues()) {
+			  args.push_back(arg->toEsprima_());
+		  }
+	  }
+	  obj["arguments"] = args;
+	  return obj;
+  }
 
 private:
   string head_ = "Call";
