@@ -29,6 +29,12 @@ public:
     }
   }
   void toJSON_(ostringstream &o) { o << "{\"type\": \"unknown\"}"; }
+  Json toEsprima_() override {
+	  Json::object obj;
+	  obj["type"] = "ReturnStatement";
+	  obj["argument"] = ret_->toEsprima_();
+	  return obj;
+  }
 
 private:
   string head_ = "Return";
