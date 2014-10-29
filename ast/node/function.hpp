@@ -28,6 +28,7 @@ public:
     name_->toCCode_(o);
     o << "(";
     if (params_ != nullptr) {
+	params_->toCCode_(o);
     }
     o << ")";
     if (body_ != nullptr) {
@@ -42,12 +43,21 @@ public:
     name_->toString_(o);
     o << "(";
     if (params_ != nullptr) {
+	    params_->toString_(o);
     }
     o << ")";
     if (body_ != nullptr) {
       body_->toString_(o);
     }
   }
+Json toEsprima_() {
+  Json::object obj;
+  obj["type"] = "Function";
+  obj["id"] = name_->getName();
+  obj["params"] = params_->toEsprima_();;
+  obj["body"] = body_->toEsprima_();
+  return Json(obj);
+}
   void toJSON_(ostringstream &o) { o << "{\"type\": \"unknown\"}"; }
 
 private:
@@ -55,6 +65,7 @@ private:
   shared_ptr<IdentifierNode> name_ = nullptr;
   shared_ptr<CompoundNode> params_ = nullptr;
   shared_ptr<BlockNode> body_ = nullptr;
+  shared_ptr<TypeNode> qualifiers_ = nullptr;
 };
 
 #endif /* __FUNCTION_H__ */

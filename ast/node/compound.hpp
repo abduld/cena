@@ -123,6 +123,17 @@ public:
       o << "}\n";
     }
   }
+virtual Json toEsprima_() {
+  Json::object obj;
+  std::vector<Json> lst;
+  obj["type"] = "Block";
+  for (auto elem : vals_) {
+	  lst.push_back(elem->toEsprima_());
+  }
+
+  obj["body"] = lst;
+  return Json(obj);
+}
   virtual void toString_(ostringstream &o) {
     auto vals = getValues();
     auto len = vals.size();

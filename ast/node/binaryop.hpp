@@ -59,6 +59,14 @@ public:
     o << " ";
     rhs_->toString_(o);
   }
+  Json toEsprima_() override {
+	  Json::object obj;
+	  obj["type"] = "BinaryExpression";
+	  obj["left"] = lhs_->toEsprima_();
+	  obj["right"] = rhs_->toEsprima_();
+	  obj["operator"] = op_->toString();
+	  return obj;
+  }
   void toJSON_(ostringstream &o) { o << "{\"type\": \"unknown\"}"; }
 
 private:

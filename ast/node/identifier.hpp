@@ -41,10 +41,11 @@ public:
   virtual void toCCode_(ostringstream &o) { o << getConstant(); }
   virtual void toString_(ostringstream &o) { o << getConstant(); }
   virtual void toJSON_(ostringstream &o) { toCCode_(o); }
-  virtual void toEsprima_(ostringstream &o) {
-    o << "{\"type\": \"Literal\", \"value\": ";
-    toCCode_(o);
-    o << "}";
+  virtual Json toEsprima_() override {
+  Json::object obj;
+  obj["type"] = "Identifier";
+  obj["name"] = getName();
+  return obj;
   }
 
 private:

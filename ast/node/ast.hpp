@@ -61,5 +61,6 @@ using std::transform;
 #include "declare.hpp"
 //#include "reference.hpp"
 #include "reference_type.hpp"
+#include "parameter.hpp"
 
 #endif /* __AST_H__ */

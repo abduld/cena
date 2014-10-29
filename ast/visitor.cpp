@@ -55,7 +55,23 @@ toNode(const ASTContext *ctx, const PresumedLoc &loc, const Qualifiers &quals) {
       res.push_back(shared_ptr<SymbolNode>(
           new SymbolNode(loc.getLine(), loc.getColumn(), "__constant")));
       break;
+    case LangAS::cuda_constant:
+      DEBUG;
+      res.push_back(shared_ptr<SymbolNode>(
+          new SymbolNode(loc.getLine(), loc.getColumn(), "__constant__")));
+      break;
+    case LangAS::cuda_device:
+      DEBUG;
+      res.push_back(shared_ptr<SymbolNode>(
+          new SymbolNode(loc.getLine(), loc.getColumn(), "__device__")));
+      break;
+    case LangAS::cuda_shared:
+      DEBUG;
+      res.push_back(shared_ptr<SymbolNode>(
+          new SymbolNode(loc.getLine(), loc.getColumn(), "__shared__")));
+      break;
     default: {
+      DEBUG;
       ostringstream o;
       o << "__attribute__((address_space(";
       o << addressSpace;
@@ -228,9 +244,9 @@ bool SVisitor::canIgnoreCurrentASTNode() const {
   return true;
 }
 bool SVisitor::TraverseFunctionDecl(FunctionDecl *decl) {
-  if (canIgnoreCurrentASTNode()) {
-    return true;
-  }
+//  if (canIgnoreCurrentASTNode()) {
+ //   return true;
+  //}
   PresumedLoc loc = SM.getPresumedLoc(decl->getPointOfInstantiation());
   shared_ptr<Node> tmp = current_node;
   shared_ptr<FunctionNode> func(
@@ -244,8 +260,9 @@ bool SVisitor::TraverseFunctionDecl(FunctionDecl *decl) {
   func->setName(name);
   current_node = tmp;
   unsigned paramCount = decl->getNumParams();
+  std::cout << "paramCount = " << paramCount << std::endl;
   for (unsigned i = 0; i < paramCount; i++) {
-    SVisitor::TraverseDecl(decl->getParamDecl(i));
+    TraverseDecl(decl->getParamDecl(i));
     func->addParameter(current_node);
   }
   if (decl->doesThisDeclarationHaveABody()) {
@@ -255,6 +272,20 @@ bool SVisitor::TraverseFunctionDecl(FunctionDecl *decl) {
     *body <<= current_node;
   }
   current_node = func;
+  return true;
+}
+bool SVisitor::TraverseParmVarDecl(ParmVarDecl *decl) {
+  PresumedLoc loc = SM.getPresumedLoc(decl->getSourceRange().getBegin());
+  shared_ptr<Node> tmp = current_node;
+  shared_ptr<ParameterNode> nd(new ParameterNode(loc.getLine(), loc.getColumn()));
+  shared_ptr<TypeNode> typ = toNode(ctx, loc, decl->getType());
+  shared_ptr<IdentifierNode> id(new IdentifierNode(
+      loc.getLine(), loc.getColumn(), decl->getNameAsString()));
+
+  nd->setType(typ);
+  nd->setIdentifier(id);
+
+  current_node = nd;
   return true;
 }
 

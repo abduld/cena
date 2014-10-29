@@ -105,7 +105,7 @@ public:
     };
 
     std::cout << "Program : " << std::endl;
-    std::cout << getProgram()->toCCode() << std::endl;
+    std::cout << getProgram()->toEsprimaString() << std::endl;
     return;
   }
   bool HandleTopLevelDecl(DeclGroupRef dg) override {
@@ -231,7 +231,7 @@ void parse(int argc, const char **argv) {
 
   std::vector<string> args;
   args.emplace_back("-x");
-  args.emplace_back("c++");
+  args.emplace_back("cuda");
   // args.emplace_back("-v");
   args.emplace_back("-E");
   args.emplace_back("-fPIE");
@@ -243,6 +243,7 @@ void parse(int argc, const char **argv) {
   args.emplace_back("/usr/local/include");
   args.emplace_back("-Itest/wbHeaders");
   args.emplace_back("-Itest/intrinHeaders");
+  args.emplace_back("-Itest/");
   // args.push_back(" -O0  ");
   // args.push_back("-fsyntax-only ");
   // args.push_back("-x cpp-output ");

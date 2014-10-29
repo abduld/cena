@@ -96,6 +96,7 @@ public:
   bool shouldVisitImplicitCode() const { return true; }
 	bool TraverseCXXConstructExpr(CXXConstructExpr *E);
 	bool TraverseCXXBindTemporaryExpr(CXXBindTemporaryExpr *E);
+bool TraverseParmVarDecl(ParmVarDecl *decl);
 
 bool TraverseMaterializeTemporaryExpr(MaterializeTemporaryExpr *nd);
 

@@ -34,15 +34,21 @@ public:
   virtual void toCCode_(ostringstream &o) {
     for (auto addr : address_space_) {
       addr->toCCode_(o);
+      if (addr != *address_space_.end()) {
       o << " ";
+      }
     }
     for (auto qual : qualifiers_) {
       qual->toCCode_(o);
+      if (qual != *qualifiers_.end()) {
       o << " ";
+      }
     }
     for (auto base : base_) {
       base->toCCode_(o);
+      if (base != *base_.end()) {
       o << " ";
+      }
     }
   }
   virtual void toString_(ostringstream &o) { toCCode_(o); }

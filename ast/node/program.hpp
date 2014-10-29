@@ -9,6 +9,17 @@ public:
   ~ProgramNode() {}
   string getHead() { return head_; }
   bool isProgram() const { return true; }
+Json toEsprima_() {
+  Json::object obj;
+  std::vector<Json> lst;
+  obj["type"] = "Program";
+  for (auto elem : vals_) {
+	  lst.push_back(elem->toEsprima_());
+  }
+
+  obj["body"] = lst;
+  return Json(obj);
+}
 
 private:
   string head_ = "Program";
