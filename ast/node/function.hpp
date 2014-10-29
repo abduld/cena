@@ -52,9 +52,15 @@ public:
   }
 Json toEsprima_() {
   Json::object obj;
+  vector<Json> params;
   obj["type"] = "Function";
   obj["id"] = name_->getName();
-  obj["params"] = params_->toEsprima_();;
+	  if (params_ != nullptr ) {
+		  for (auto arg : params_->getValues()) {
+			  params.push_back(arg->toEsprima_());
+		  }
+	  }
+	  obj["params"] = params;
   obj["body"] = body_->toEsprima_();
   return Json(obj);
 }
