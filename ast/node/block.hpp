@@ -7,7 +7,7 @@ public:
   BlockNode(const int &row, const int &col) : CompoundNode(row, col) {}
   BlockNode(const int &row, const int &col, const shared_ptr<Node> &nd)
       : CompoundNode(row, col) {
-    vals_.push_back(nd);
+    push_back(nd);
   }
   ~BlockNode() {}
   string getHead() const { return head_; }
@@ -16,8 +16,8 @@ public:
     Json::object obj;
     vector<Json> body;
     obj["type"] = "BlockStatement";
-    obj["line"] = row;
-    obj["column"] = column;
+    obj["line"] = row_;
+    obj["column"] = col_;
     for (auto stmt : getValues()) {
       body.push_back(stmt->toEsprima_());
     }

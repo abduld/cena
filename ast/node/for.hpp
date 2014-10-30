@@ -7,12 +7,14 @@ class ForNode : public Node {
 public:
   ForNode(const int &row, const int &col) : Node(row, col) {}
   string getHead() const { return head_; }
-  void setInit(const shared_ptr<Node> &cond) { init_ = cond; }
-  void setCond(const shared_ptr<Node> &nd) { cond_ = nd; }
-  void setInc(const shared_ptr<Node> &nd) { inc_ = nd; }
+  void setInit(const shared_ptr<Node> &nd) { init_ = nd; init_->setParent(this); addChild(init_);}
+  void setCond(const shared_ptr<Node> &nd) { cond_ = nd; cond_->setParent(this); addChild(cond_);}
+  void setInc(const shared_ptr<Node> &nd) { inc_ = nd; inc_->setParent(this); addChild(inc_); }
   void setBody(const shared_ptr<Node> &nd) {
     if (body_ == nullptr) {
       body_ = shared_ptr<BlockNode>(new BlockNode(row_, col_));
+      body_->setParent(this);
+      addChild(body_);
     }
     *body_ <<= nd;
   }
@@ -38,8 +40,8 @@ public:
   Json toEsprima_() override {
     Json::object obj;
     obj["type"] = "ForStatement";
-    obj["line"] = row;
-    obj["column"] = column;
+    obj["line"] = row_;
+    obj["column"] = col_;
     obj["init"] = init_->toEsprima_();
     obj["test"] = cond_->toEsprima_();
     obj["update"] = inc_->toEsprima_();

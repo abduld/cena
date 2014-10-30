@@ -21,7 +21,7 @@
 #include "llvm/Support/Signals.h"
 #include "clang/Lex/Lexer.h"
 #include "clang/Lex/Preprocessor.h"
-#include "ast/visitor.hpp"
+#include "ast/clang_visitor.hpp"
 #include "ast/macro_handeler.hpp"
 #include "external/backward_cpp/backward.hpp"
 

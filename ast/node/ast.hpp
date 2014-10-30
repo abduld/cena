@@ -27,9 +27,15 @@ using std::transform;
 
 #define DEBUG printf("DEBUG :: >>> %s %d ... \n", __PRETTY_FUNCTION__, __LINE__)
 
+#include "asttype.hpp"
+#include "visitor.hpp"
 #include "node.hpp"
 #include "utilities.hpp"
 #include "atom.hpp"
+#include "charlit.hpp"
+#include "stringlit.hpp"
+#include "integerlit.hpp"
+#include "floatlit.hpp"
 #include "identifier.hpp"
 #include "type.hpp"
 #include "keyword.hpp"

@@ -35,11 +35,15 @@ public:
     Json::object obj;
     ostringstream o;
     obj["type"] = Json("literal");
-    obj["line"] = row;
-    obj["column"] = column;
+    obj["line"] = row_;
+    obj["column"] = col_;
     o << val_;
     obj["value"] = o.str();
     return obj;
+  }
+  bool hasChildren() const override { return false;}
+  vector<shared_ptr<Node> > getChildren() override {
+    return vector<shared_ptr<Node> > {};
   }
 
 private:
@@ -59,41 +63,6 @@ private:
   string head_ = "Boolean";
 };
 
-class CharacterNode : public AtomNode<unsigned char> {
-public:
-  CharacterNode(const int &row, const int &col)
-      : AtomNode<unsigned char>(row, col) {}
-  CharacterNode(const int &row, const int &col, const unsigned char &v)
-      : AtomNode<unsigned char>(row, col, v) {}
-  string getHead() const { return head_; }
-  void toCCode_(ostringstream &o) {
-    o << "'" << string(1, getConstant()) << "'";
-  }
-
-private:
-  string head_ = "Character";
-};
-class IntegerNode : public virtual AtomNode<int64_t> {
-public:
-  IntegerNode(const int &row, const int &col) : AtomNode<int64_t>(row, col) {}
-  IntegerNode(const int &row, const int &col, const int64_t &v)
-      : AtomNode<int64_t>(row, col, v) {}
-  string getHead() const { return head_; }
-
-private:
-  string head_ = "Integer";
-};
-
-class RealNode : public AtomNode<double> {
-public:
-  RealNode(const int &row, const int &col) : AtomNode<double>(row, col) {}
-  RealNode(const int &row, const int &col, const double &v)
-      : AtomNode<double>(row, col, v) {}
-  string getHead() { return head_; }
-
-private:
-  string head_ = "Real";
-};
 
 class SymbolNode : public AtomNode<string> {
 public:

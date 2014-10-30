@@ -1,6 +1,6 @@
 
-#ifndef __VISITOR_H__
-#define __VISITOR_H__
+#ifndef __CLANG_VISITOR_H__
+#define __CLANG_VISITOR_H__
 
 #include "clang/Driver/Options.h"
 #include "clang/AST/AST.h"
@@ -113,4 +113,4 @@ private:
   bool canIgnoreCurrentASTNode() const;
 };
 
-#endif /* __VISITOR_H__ */
+#endif /* __CLANG_VISITOR_H__ */

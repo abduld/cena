@@ -54,8 +54,8 @@ public:
     Json::object obj;
     vector<Json> params;
     obj["type"] = "Function";
-    obj["line"] = row;
-    obj["column"] = column;
+    obj["line"] = row_;
+    obj["column"] = col_;
     obj["id"] = name_->getName();
     if (params_ != nullptr) {
       for (auto arg : params_->getValues()) {

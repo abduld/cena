@@ -62,8 +62,8 @@ public:
   Json toEsprima_() override {
     Json::object obj;
     obj["type"] = "BinaryExpression";
-    obj["line"] = row;
-    obj["column"] = column;
+    obj["line"] = row_;
+    obj["column"] = col_;
     obj["left"] = lhs_->toEsprima_();
     obj["right"] = rhs_->toEsprima_();
     obj["operator"] = op_->toString();
@@ -71,6 +71,22 @@ public:
   }
   void toJSON_(ostringstream &o) { o << "{\"type\": \"unknown\"}"; }
 
+  bool hasChildren() const override { return lhs_ != nullptr || rhs_ != nullptr; }
+vector<shared_ptr<Node> > getChildren() override {
+  assert(op_ != nullptr);
+  if (hasChildren() == false) {
+    return vector<shared_ptr<Node> > {};
+  } else if (lhs_ != nullptr && rhs_ != nullptr) {
+    return vector<shared_ptr<Node> > {lhs_, op_, rhs_};
+  } else if (lhs_ != nullptr ) {
+    return vector<shared_ptr<Node> > {lhs_, op_};
+  } else if (rhs_ != nullptr) {
+    return vector<shared_ptr<Node> > {rhs_, op_};
+  } else {
+    assert(false);
+    return vector<shared_ptr<Node> > {};
+  }
+}
 private:
   string head_ = "BinaryOperatorNode";
   shared_ptr<BinaryOp> op_ = nullptr;

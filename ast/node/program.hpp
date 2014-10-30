@@ -13,8 +13,8 @@ public:
     Json::object obj;
     std::vector<Json> lst;
     obj["type"] = "Program";
-    obj["line"] = row;
-    obj["column"] = column;
+    obj["line"] = row_;
+    obj["column"] = col_;
     for (auto elem : vals_) {
       lst.push_back(elem->toEsprima_());
     }

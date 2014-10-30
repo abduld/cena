@@ -16,36 +16,50 @@ public:
   virtual bool isEmpty() const { return getArgCount() == 0; }
   CompoundNode *operator<<=(const bool &val) {
     shared_ptr<BooleanNode> var(new BooleanNode(row_, col_, val));
+      var->setParent(this);
+      addChild(var);
     vals_.push_back(var);
     return this;
   }
   CompoundNode &operator<<=(const int &val) {
     shared_ptr<IntegerNode> var(new IntegerNode(row_, col_, val));
+      var->setParent(this);
+      addChild(var);
     vals_.push_back(var);
     return *this;
   }
   CompoundNode &operator<<=(const int64_t &val) {
     shared_ptr<IntegerNode> var(new IntegerNode(row_, col_, val));
+      var->setParent(this);
+      addChild(var);
     vals_.push_back(var);
     return *this;
   }
   CompoundNode &operator<<=(const float &val) {
     shared_ptr<RealNode> var(new RealNode(row_, col_, val));
+      var->setParent(this);
+      addChild(var);
     vals_.push_back(var);
     return *this;
   }
   CompoundNode &operator<<=(const double &val) {
     shared_ptr<RealNode> var(new RealNode(row_, col_, val));
+      var->setParent(this);
+      addChild(var);
     vals_.push_back(var);
     return *this;
   }
   CompoundNode &operator<<=(const char *val) {
     shared_ptr<StringNode> var(new StringNode(row_, col_, val));
+      var->setParent(this);
+      addChild(var);
     vals_.push_back(var);
     return *this;
   }
   CompoundNode &operator<<=(const string &val) {
     shared_ptr<StringNode> var(new StringNode(row_, col_, val));
+      var->setParent(this);
+      addChild(var);
     vals_.push_back(var);
     return *this;
   }
@@ -53,6 +67,8 @@ public:
     if (c->isCompound()) {
       *this <<= std::static_pointer_cast<CompoundNode>(c);
     } else {
+      c->setParent(this);
+      addChild(c);
       vals_.push_back(c);
     }
     return *this;
@@ -73,15 +89,21 @@ public:
   }
   void push_back(Node *v) {
     shared_ptr<Node> var(v);
+      var->setParent(this);
+      addChild(var);
     vals_.push_back(var);
     return;
   }
   void push_back(const shared_ptr<Node> &var) {
+      var->setParent(this);
+      addChild(var);
     vals_.push_back(var);
     return;
   }
   void push_back(const vector<shared_ptr<Node> > &var) {
     for (auto iter : var) {
+      iter->setParent(this);
+      addChild(iter);
       push_back(iter);
     }
     return;
@@ -95,7 +117,7 @@ public:
     vals_[idx] = var;
     return;
   }
-  virtual string getHead() const { return head_; }
+  virtual string getHead() const override { return head_; }
   vector<shared_ptr<Node> > getValues() { return vals_; }
 
   virtual void toCCode_(ostringstream &o) {

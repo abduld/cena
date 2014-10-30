@@ -32,8 +32,8 @@ public:
   Json toEsprima_() override {
     Json::object obj;
     obj["type"] = "ReturnStatement";
-    obj["line"] = row;
-    obj["column"] = column;
+    obj["line"] = row_;
+    obj["column"] = col_;
     obj["argument"] = ret_->toEsprima_();
     return obj;
   }

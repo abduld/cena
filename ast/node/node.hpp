@@ -78,20 +78,22 @@ public:
     vector<shared_ptr<Node> > vec;
     return vec;
   }
-  void setParent(shared_ptr<Node> parent) { parent_ = parent; }
-  virtual bool hasChildren() const { return false; }
+  void setParent(Node * parent) { parent_ = parent; }
+  bool hasParent() {return parent_ != nullptr; }
+  virtual bool hasChildren() const { return children_.size() != 0; }
   virtual vector<shared_ptr<Node> > getChildren() { return children_; }
-  virtual void unlink() { return; }
-  virtual void insertChild() { return; }
-  virtual void rename() { return; }
+  void addChild(const shared_ptr<Node> & child) { children_.push_back(child); }
 
 protected:
   size_t id_;
   vector<shared_ptr<Node> > children_{};
-  shared_ptr<Node> parent_ = nullptr;
+  Node * parent_ = nullptr;
   int row_{};
   int col_{};
   string label_{};
+  virtual void accept(ASTVisitor * visitor) {
+    visitor->visit(this);
+  } 
 };
 
 #endif /* __NODE_H__ */

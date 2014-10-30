@@ -43,8 +43,8 @@ public:
     for (auto base : base_) {
       bases.push_back(base->toEsprima_());
     }
-    obj["line"] = row;
-    obj["column"] = column;
+    obj["line"] = row_;
+    obj["column"] = col_;
     obj["address_spaces"] = addrs;
     obj["qualifiers"] = quals;
     obj["bases"] = bases;
