@@ -7,4 +7,3 @@ class Node;
 class AssignNode;
 
 #endif /* __AST_TYPE_H__ */
-

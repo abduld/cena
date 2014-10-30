@@ -7,9 +7,21 @@ class ForNode : public Node {
 public:
   ForNode(const int &row, const int &col) : Node(row, col) {}
   string getHead() const { return head_; }
-  void setInit(const shared_ptr<Node> &nd) { init_ = nd; init_->setParent(this); addChild(init_);}
-  void setCond(const shared_ptr<Node> &nd) { cond_ = nd; cond_->setParent(this); addChild(cond_);}
-  void setInc(const shared_ptr<Node> &nd) { inc_ = nd; inc_->setParent(this); addChild(inc_); }
+  void setInit(const shared_ptr<Node> &nd) {
+    init_ = nd;
+    init_->setParent(this);
+    addChild(init_);
+  }
+  void setCond(const shared_ptr<Node> &nd) {
+    cond_ = nd;
+    cond_->setParent(this);
+    addChild(cond_);
+  }
+  void setInc(const shared_ptr<Node> &nd) {
+    inc_ = nd;
+    inc_->setParent(this);
+    addChild(inc_);
+  }
   void setBody(const shared_ptr<Node> &nd) {
     if (body_ == nullptr) {
       body_ = shared_ptr<BlockNode>(new BlockNode(row_, col_));
@@ -47,6 +59,13 @@ public:
     obj["update"] = inc_->toEsprima_();
     obj["body"] = body_->toEsprima_();
     return obj;
+  }
+
+  void traverse(ASTVisitor * visitor) override {
+      init_->traverse(visitor);
+      cond_->traverse(visitor);
+      inc_->traverse(visitor);
+      body_->traverse(visitor);
   }
 
 private:

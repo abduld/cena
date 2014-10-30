@@ -11,6 +11,9 @@ public:
   string getHead() const { return head_; }
   void toCCode_(ostringstream &o) { o << getConstant(); }
   void toString_(ostringstream &o) { toCCode_(o); }
+  void traverse(ASTVisitor * visitor) override {
+      accept(visitor);
+  }
 
 private:
   string head_ = "BinaryOp";
@@ -71,22 +74,38 @@ public:
   }
   void toJSON_(ostringstream &o) { o << "{\"type\": \"unknown\"}"; }
 
-  bool hasChildren() const override { return lhs_ != nullptr || rhs_ != nullptr; }
-vector<shared_ptr<Node> > getChildren() override {
-  assert(op_ != nullptr);
-  if (hasChildren() == false) {
-    return vector<shared_ptr<Node> > {};
-  } else if (lhs_ != nullptr && rhs_ != nullptr) {
-    return vector<shared_ptr<Node> > {lhs_, op_, rhs_};
-  } else if (lhs_ != nullptr ) {
-    return vector<shared_ptr<Node> > {lhs_, op_};
-  } else if (rhs_ != nullptr) {
-    return vector<shared_ptr<Node> > {rhs_, op_};
-  } else {
-    assert(false);
-    return vector<shared_ptr<Node> > {};
+  bool hasChildren() const override {
+    return lhs_ != nullptr || rhs_ != nullptr;
   }
-}
+  vector<shared_ptr<Node> > getChildren() override {
+    assert(op_ != nullptr);
+    if (hasChildren() == false) {
+      return vector<shared_ptr<Node> >{};
+    } else if (lhs_ != nullptr && rhs_ != nullptr) {
+      return vector<shared_ptr<Node> >{ lhs_, op_, rhs_ };
+    } else if (lhs_ != nullptr) {
+      return vector<shared_ptr<Node> >{ lhs_, op_ };
+    } else if (rhs_ != nullptr) {
+      return vector<shared_ptr<Node> >{ rhs_, op_ };
+    } else {
+      assert(false);
+      return vector<shared_ptr<Node> >{};
+    }
+  }
+  void traverse(ASTVisitor * visitor) override {
+      accept(this);
+      if (lhs_ != nullptr) {
+          lhs_->traverse(visitor);
+      }
+      if (op_ != nullptr) {
+          op_->traverse(visitor);
+      }
+      if (rhs_ != nullptr) {
+          rhs_->traverse(visitor);
+      }
+
+  }
+
 private:
   string head_ = "BinaryOperatorNode";
   shared_ptr<BinaryOp> op_ = nullptr;

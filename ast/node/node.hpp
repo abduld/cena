@@ -6,7 +6,8 @@
 class Node {
 public:
   Node(const int &row, const int &col)
-      : id_(0), label_(""), children_(), parent_(nullptr), row_(row), col_(col) {}
+      : id_(0), label_(""), children_(), parent_(nullptr), row_(row),
+        col_(col) {}
   virtual ~Node() {}
   void setId(const size_t &id) { id_ = id; }
   size_t getId() const { return id_; }
@@ -78,24 +79,22 @@ public:
     vector<shared_ptr<Node> > vec;
     return vec;
   }
-  void setParent(Node * parent) { parent_ = parent; }
-  bool hasParent() {return parent_ != nullptr; }
+  void setParent(Node *parent) { parent_ = parent; }
+  bool hasParent() { return parent_ != nullptr; }
   virtual bool hasChildren() const { return children_.size() != 0; }
   virtual vector<shared_ptr<Node> > getChildren() { return children_; }
-  void addChild(const shared_ptr<Node> & child) { children_.push_back(child); }
+  void addChild(const shared_ptr<Node> &child) { children_.push_back(child); }
 
-  virtual void accept(ASTVisitor * visitor) {
-    visitor->visit(this);
-  }
+  virtual void accept(ASTVisitor *visitor) { visitor->visit(this); }
+  virtual void traverse(ASTVisitor *visitor) { accept(visitor); }
+
 protected:
   size_t id_;
   vector<shared_ptr<Node> > children_{};
-  Node * parent_ = nullptr;
+  Node *parent_ = nullptr;
   int row_{};
   int col_{};
   string label_{};
 };
-
-
 
 #endif /* __NODE_H__ */

@@ -12,6 +12,9 @@ public:
   void toCCode_(ostringstream &o) {
     o << "'" << string(1, getConstant()) << "'";
   }
+  void traverse(ASTVisitor * visitor) {
+      accept(visitor);
+  }
 
 private:
   string head_ = "Character";

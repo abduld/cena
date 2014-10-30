@@ -52,18 +52,26 @@ public:
     obj["arguments"] = args;
     return obj;
   }
-  bool hasChildren() const override { return fun_ != nullptr  && args_ != nullptr; }
-vector<shared_ptr<Node> > getChildren() override {
-  if (hasChildren() == false) {
-    return vector<shared_ptr<Node> > {};
-  } else if (fun_ != nullptr && args_ != nullptr) {
-    return vector<shared_ptr<Node> > {fun_, args_};
-  } else if (fun_ == nullptr) {
-    return vector<shared_ptr<Node> > {args_};
-  } else {
-    return vector<shared_ptr<Node> > {fun_};
+  bool hasChildren() const override {
+    return fun_ != nullptr && args_ != nullptr;
   }
-}
+  vector<shared_ptr<Node> > getChildren() override {
+    if (hasChildren() == false) {
+      return vector<shared_ptr<Node> >{};
+    } else if (fun_ != nullptr && args_ != nullptr) {
+      return vector<shared_ptr<Node> >{ fun_, args_ };
+    } else if (fun_ == nullptr) {
+      return vector<shared_ptr<Node> >{ args_ };
+    } else {
+      return vector<shared_ptr<Node> >{ fun_ };
+    }
+  }
+
+  void traverse(ASTVisitor * visitor) {
+      accept(visitor);
+        fun_->traverse(visitor);
+        args_->traverse(visitor);
+  }
 
 private:
   string head_ = "Call";

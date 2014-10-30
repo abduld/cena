@@ -55,6 +55,13 @@ public:
     obj["declarations"] = vector<Json>{ decl };
     return obj;
   }
+  void traverse(ASTVisitor * visitor) override {
+      id_->traverse(visitor);
+      typ_->traverse(visitor);
+      if (hasInitializer()) {
+          init_->traverse(visitor);
+      }
+  }
 
 private:
   string head_ = "Declare";

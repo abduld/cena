@@ -37,6 +37,11 @@ public:
     obj["argument"] = ret_->toEsprima_();
     return obj;
   }
+  void traverse(ASTVisitor * visitor) override {
+    if (ret_ != nullptr) {
+        ret_->traverse(visitor);
+    }
+  }
 
 private:
   string head_ = "Return";

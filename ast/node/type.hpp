@@ -74,6 +74,17 @@ public:
   virtual void toString_(ostringstream &o) { toCCode_(o); }
   virtual void toJSON_(ostringstream &o) { o << "{\"type\": \"unknown\"}"; }
   virtual string getHead() const { return head_; }
+  void traverse(ASTVisitor * visitor) override {
+      for (auto addr : address_space_) {
+          addr->traverse(visitor);
+      }
+      for (auto qual : qualifiers_) {
+          qual->traverse(visitor);
+      }
+      for (auto base : base_) {
+          base->traverse(visitor);
+      }
+  }
 
 private:
   string head_ = "Type";

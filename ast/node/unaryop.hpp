@@ -9,6 +9,9 @@ public:
   UnaryOp(const int &row, const int &col, const string &s)
       : SymbolNode(row, col, s) {}
   string getHead() const { return head_; }
+  void traverse(ASTVisitor * visitor) override {
+      accept(visitor);
+  }
 
 private:
   string head_ = "UnaryOperator";
@@ -46,6 +49,10 @@ public:
     arg_->toString_(o);
   }
   void toJSON_(ostringstream &o) { o << "{\"type\": \"unknown\"}"; }
+  void traverse(ASTVisitor * visitor) override {
+      op_->traverse(visitor);
+      arg_->traverse(visitor);
+  }
 
 private:
   string head_ = "UnaryOperator";

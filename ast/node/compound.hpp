@@ -16,50 +16,50 @@ public:
   virtual bool isEmpty() const { return getArgCount() == 0; }
   CompoundNode *operator<<=(const bool &val) {
     shared_ptr<BooleanNode> var(new BooleanNode(row_, col_, val));
-      var->setParent(this);
-      addChild(var);
+    var->setParent(this);
+    addChild(var);
     vals_.push_back(var);
     return this;
   }
   CompoundNode &operator<<=(const int &val) {
     shared_ptr<IntegerNode> var(new IntegerNode(row_, col_, val));
-      var->setParent(this);
-      addChild(var);
+    var->setParent(this);
+    addChild(var);
     vals_.push_back(var);
     return *this;
   }
   CompoundNode &operator<<=(const int64_t &val) {
     shared_ptr<IntegerNode> var(new IntegerNode(row_, col_, val));
-      var->setParent(this);
-      addChild(var);
+    var->setParent(this);
+    addChild(var);
     vals_.push_back(var);
     return *this;
   }
   CompoundNode &operator<<=(const float &val) {
     shared_ptr<RealNode> var(new RealNode(row_, col_, val));
-      var->setParent(this);
-      addChild(var);
+    var->setParent(this);
+    addChild(var);
     vals_.push_back(var);
     return *this;
   }
   CompoundNode &operator<<=(const double &val) {
     shared_ptr<RealNode> var(new RealNode(row_, col_, val));
-      var->setParent(this);
-      addChild(var);
+    var->setParent(this);
+    addChild(var);
     vals_.push_back(var);
     return *this;
   }
   CompoundNode &operator<<=(const char *val) {
     shared_ptr<StringNode> var(new StringNode(row_, col_, val));
-      var->setParent(this);
-      addChild(var);
+    var->setParent(this);
+    addChild(var);
     vals_.push_back(var);
     return *this;
   }
   CompoundNode &operator<<=(const string &val) {
     shared_ptr<StringNode> var(new StringNode(row_, col_, val));
-      var->setParent(this);
-      addChild(var);
+    var->setParent(this);
+    addChild(var);
     vals_.push_back(var);
     return *this;
   }
@@ -89,14 +89,14 @@ public:
   }
   void push_back(Node *v) {
     shared_ptr<Node> var(v);
-      var->setParent(this);
-      addChild(var);
+    var->setParent(this);
+    addChild(var);
     vals_.push_back(var);
     return;
   }
   void push_back(const shared_ptr<Node> &var) {
-      var->setParent(this);
-      addChild(var);
+    var->setParent(this);
+    addChild(var);
     vals_.push_back(var);
     return;
   }
@@ -179,6 +179,12 @@ public:
     }
   }
   virtual void toJSON_(ostringstream &o) { o << "{\"type\": \"unknown\"}"; }
+
+  virtual void traverse(ASTVisitor * visitor) override {
+      for (auto elem : vals_) {
+          elem->traverse(visitor);
+      }
+  }
 
 protected:
   string head_ = "CompoundNode";

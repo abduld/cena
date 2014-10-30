@@ -9,19 +9,29 @@ public:
   IfNode(const int &row, const int &col, const shared_ptr<Node> &cond,
          const shared_ptr<Node> &thenPart)
       : Node(row, col), cond_(cond), then_(thenPart) {
-      cond_->setParent(this);
-      then_->setParent(this);
-      }
+    cond_->setParent(this);
+    then_->setParent(this);
+  }
   IfNode(const int &row, const int &col, const shared_ptr<Node> &cond,
          const shared_ptr<Node> &thenPart, const shared_ptr<Node> &elsePart)
       : Node(row, col), cond_(cond), then_(thenPart), else_(elsePart) {
-      cond_->setParent(this);
-      then_->setParent(this);
-      else_->setParent(this);}
+    cond_->setParent(this);
+    then_->setParent(this);
+    else_->setParent(this);
+  }
   string getHead() const override { return head_; }
-  void setCondition(const shared_ptr<Node> &cond) { cond_ = cond; cond_->setParent(this); }
-  void setThen(const shared_ptr<Node> &nd) { then_ = nd; then_->setParent(this); }
-  void setElse(const shared_ptr<Node> &nd) { else_ = nd; else_->setParent(this); }
+  void setCondition(const shared_ptr<Node> &cond) {
+    cond_ = cond;
+    cond_->setParent(this);
+  }
+  void setThen(const shared_ptr<Node> &nd) {
+    then_ = nd;
+    then_->setParent(this);
+  }
+  void setElse(const shared_ptr<Node> &nd) {
+    else_ = nd;
+    else_->setParent(this);
+  }
   void toCCode_(ostringstream &o) {
     assert(cond_ != nullptr);
     assert(then_ != nullptr);
@@ -62,21 +72,31 @@ public:
     }
     return obj;
   }
-  bool hasChildren() const override { return cond_ != nullptr || then_ != nullptr || else_ != nullptr; }
-vector<shared_ptr<Node> > getChildren() override {
-  if (hasChildren() == false) {
-    return vector<shared_ptr<Node> > {};
-  } else if (cond_ != nullptr && then_ != nullptr && else_ != nullptr) {
-    return vector<shared_ptr<Node> > {cond_, then_, else_};
-  } else if (cond_ != nullptr && then_ != nullptr) {
-    return vector<shared_ptr<Node> > {cond_, then_};
-  } else if (cond_ != nullptr && else_ != nullptr) {
-    return vector<shared_ptr<Node> > {cond_, else_};
-  } else {
-    assert(then_ != nullptr && else_ != nullptr && cond_ == nullptr);
-    return vector<shared_ptr<Node> > {then_, else_};
+  bool hasChildren() const override {
+    return cond_ != nullptr || then_ != nullptr || else_ != nullptr;
   }
-}
+  vector<shared_ptr<Node> > getChildren() override {
+    if (hasChildren() == false) {
+      return vector<shared_ptr<Node> >{};
+    } else if (cond_ != nullptr && then_ != nullptr && else_ != nullptr) {
+      return vector<shared_ptr<Node> >{ cond_, then_, else_ };
+    } else if (cond_ != nullptr && then_ != nullptr) {
+      return vector<shared_ptr<Node> >{ cond_, then_ };
+    } else if (cond_ != nullptr && else_ != nullptr) {
+      return vector<shared_ptr<Node> >{ cond_, else_ };
+    } else {
+      assert(then_ != nullptr && else_ != nullptr && cond_ == nullptr);
+      return vector<shared_ptr<Node> >{ then_, else_ };
+    }
+  }
+  void traverse(ASTVisitor * visitor) override {
+      cond_->traverse(visitor);
+      then_->traverse(visitor);
+      if (else_) {
+          else_->traverse(visitor);
+      }
+  }
+
 private:
   string head_ = "If";
   shared_ptr<Node> cond_ = nullptr;

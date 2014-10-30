@@ -3,7 +3,7 @@
 #ifndef __ATOM_H__
 #define __ATOM_H__
 
-template <typename T> class AtomNode : public Node, NodeAcceptor<AtomNode<T>> {
+template <typename T> class AtomNode : public Node, NodeAcceptor<AtomNode<T> > {
 public:
   AtomNode(const int &row, const int &col) : Node(row, col), init_(true) {}
   AtomNode(const int &row, const int &col, const T &v)
@@ -41,9 +41,9 @@ public:
     obj["value"] = o.str();
     return obj;
   }
-  bool hasChildren() const override { return false;}
+  bool hasChildren() const override { return false; }
   vector<shared_ptr<Node> > getChildren() override {
-    return vector<shared_ptr<Node> > {};
+    return vector<shared_ptr<Node> >{};
   }
 
 private:
@@ -62,7 +62,6 @@ public:
 private:
   string head_ = "Boolean";
 };
-
 
 class SymbolNode : public AtomNode<string>, NodeAcceptor<SymbolNode> {
 public:

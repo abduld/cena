@@ -52,21 +52,25 @@ public:
   }
   Json toEsprima_() {
     Json::object obj;
-    vector<Json> params;
     obj["type"] = "Function";
     obj["line"] = row_;
     obj["column"] = col_;
     obj["id"] = name_->getName();
-    if (params_ != nullptr) {
-      for (auto arg : params_->getValues()) {
-        params.push_back(arg->toEsprima_());
-      }
-    }
     obj["params"] = params_->toEsprima_();
     obj["body"] = body_->toEsprima_();
     return obj;
   }
   void toJSON_(ostringstream &o) { o << "{\"type\": \"unknown\"}"; }
+  void traverse(ASTVisitor * visitor) override {
+      name_->traverse(visitor);
+      if (params_ != nullptr) {
+          params_->traverse(visitor);
+      }
+      body_->traverse(visitor);
+      if (qualifiers_ != nullptr) {
+          qualifiers_->traverse(visitor);
+      }
+  }
 
 private:
   shared_ptr<TypeNode> ret_ = nullptr;

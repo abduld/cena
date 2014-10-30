@@ -42,6 +42,12 @@ public:
   virtual void toString_(ostringstream &o) { o << getConstant(); }
   virtual void toJSON_(ostringstream &o) { toCCode_(o); }
   virtual Json toEsprima_() override;
+  void traverse(ASTVisitor * visitor) override {
+      if (typ_ != nullptr) {
+      typ_->traverse();
+  }
+      accept(make_shared<StringNode>(getConstant()));
+  }
 
 private:
   string head_ = "Identifier";
