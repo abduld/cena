@@ -6,7 +6,7 @@
 class Node {
 public:
   Node(const int &row, const int &col)
-      : id_(0), label_(""), children_(), parent_(nullptr), row_(0), col_(0) {}
+      : id_(0), label_(""), children_(), parent_(nullptr), row_(row), col_(col) {}
   virtual ~Node() {}
   void setId(const size_t &id) { id_ = id; }
   size_t getId() const { return id_; }
