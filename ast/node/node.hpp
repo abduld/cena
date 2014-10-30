@@ -93,7 +93,9 @@ protected:
   string label_{};
   virtual void accept(ASTVisitor * visitor) {
     visitor->visit(this);
-  } 
+  }
 };
+
+
 
 #endif /* __NODE_H__ */

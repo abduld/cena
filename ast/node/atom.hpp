@@ -3,7 +3,7 @@
 #ifndef __ATOM_H__
 #define __ATOM_H__
 
-template <typename T> class AtomNode : public Node {
+template <typename T> class AtomNode : public Node, NodeAcceptor<AtomNode<T>> {
 public:
   AtomNode(const int &row, const int &col) : Node(row, col), init_(true) {}
   AtomNode(const int &row, const int &col, const T &v)
@@ -51,7 +51,7 @@ private:
   T val_{};
 };
 
-class BooleanNode : public AtomNode<bool> {
+class BooleanNode : public AtomNode<bool>, NodeAcceptor<BooleanNode> {
 public:
   BooleanNode(const int &row, const int &col) : AtomNode<bool>(row, col) {}
   BooleanNode(const int &row, const int &col, const bool &v)
@@ -64,7 +64,7 @@ private:
 };
 
 
-class SymbolNode : public AtomNode<string> {
+class SymbolNode : public AtomNode<string>, NodeAcceptor<SymbolNode> {
 public:
   SymbolNode(const int &row, const int &col) : AtomNode<string>(row, col) {}
   SymbolNode(const int &row, const int &col, const string &v)
@@ -77,7 +77,7 @@ private:
   string head_ = "Symbol";
 };
 
-class StringNode : public SymbolNode {
+class StringNode : public SymbolNode, NodeAcceptor<StringNode> {
 public:
   StringNode(const int &row, const int &col) : SymbolNode(row, col) {}
   StringNode(const int &row, const int &col, const string &v)

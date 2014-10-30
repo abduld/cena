@@ -2,7 +2,7 @@
 #ifndef __BINARY_OP_H__
 #define __BINARY_OP_H__
 
-class BinaryOp : public StringNode {
+class BinaryOp : public StringNode, NodeAcceptor<BinaryOp> {
 public:
   BinaryOp(const int &row, const int &col, const char *s)
       : StringNode(row, col, s) {}
@@ -16,7 +16,7 @@ private:
   string head_ = "BinaryOp";
 };
 
-class BinaryOperatorNode : public Node {
+class BinaryOperatorNode : public Node, NodeAcceptor<BinaryOperatorNode> {
 public:
   BinaryOperatorNode(const int &row, const int &col) : Node(row, col) {}
   BinaryOperatorNode(const int &row, const int &col, const string &op,

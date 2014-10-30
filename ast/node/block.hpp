@@ -2,7 +2,7 @@
 #ifndef __BLOCK_H__
 #define __BLOCK_H__
 
-class BlockNode : public CompoundNode {
+class BlockNode : public CompoundNode, NodeAcceptor<BlockNode> {
 public:
   BlockNode(const int &row, const int &col) : CompoundNode(row, col) {}
   BlockNode(const int &row, const int &col, const shared_ptr<Node> &nd)
