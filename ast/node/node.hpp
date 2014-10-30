@@ -97,4 +97,19 @@ protected:
   string label_{};
 };
 
+template <typename T>
+static constexpr bool is_compound(const T & nd) {
+    return false;
+}
+
+template <typename T>
+static constexpr bool is_statement(const T & nd) {
+    return false;
+}
+
+template <typename T>
+static constexpr bool is_atomic(const T & nd) {
+    return false;
+}
+
 #endif /* __NODE_H__ */
