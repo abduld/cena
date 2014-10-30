@@ -6,9 +6,9 @@
   }
   void ASTVisitor::visit(const AssignNode * nd) {
   	if (nd->getLHS()) {
-  		visit(nd->getLHS());
+  		nd->getLHS()->accept(this);
   	}
   	if (nd->getRHS()) {
-  		visit(nd->getRHS());
+  		nd->getRHS()->accept(this);
   	}
   }

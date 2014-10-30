@@ -84,6 +84,9 @@ public:
   virtual vector<shared_ptr<Node> > getChildren() { return children_; }
   void addChild(const shared_ptr<Node> & child) { children_.push_back(child); }
 
+  virtual void accept(ASTVisitor * visitor) {
+    visitor->visit(this);
+  }
 protected:
   size_t id_;
   vector<shared_ptr<Node> > children_{};
@@ -91,9 +94,6 @@ protected:
   int row_{};
   int col_{};
   string label_{};
-  virtual void accept(ASTVisitor * visitor) {
-    visitor->visit(this);
-  }
 };
 
 
