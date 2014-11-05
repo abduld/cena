@@ -2,7 +2,7 @@
 #ifndef __ASSIGN_H__
 #define __ASSIGN_H__
 
-class AssignNode : public Node, NodeAcceptor<AssignNode> {
+class AssignNode : public Node, public NodeAcceptor<AssignNode> {
 public:
   AssignNode(const int &row, const int &col) : Node(row, col) {}
   AssignNode(const int &row, const int &col, const shared_ptr<Node> &lhs,

@@ -2,7 +2,7 @@
 #ifndef __BINARY_OP_H__
 #define __BINARY_OP_H__
 
-class BinaryOp : public StringNode, NodeAcceptor<BinaryOp> {
+class BinaryOp : public StringNode {
 public:
   BinaryOp(const int &row, const int &col, const char *s)
       : StringNode(row, col, s) {}
@@ -11,15 +11,12 @@ public:
   string getHead() const { return head_; }
   void toCCode_(ostringstream &o) { o << getConstant(); }
   void toString_(ostringstream &o) { toCCode_(o); }
-  void traverse(ASTVisitor * visitor) override {
-      accept(visitor);
-  }
 
 private:
   string head_ = "BinaryOp";
 };
 
-class BinaryOperatorNode : public Node, NodeAcceptor<BinaryOperatorNode> {
+class BinaryOperatorNode : public Node, public NodeAcceptor<BinaryOperatorNode> {
 public:
   BinaryOperatorNode(const int &row, const int &col) : Node(row, col) {}
   BinaryOperatorNode(const int &row, const int &col, const string &op,
@@ -93,7 +90,7 @@ public:
     }
   }
   void traverse(ASTVisitor * visitor) override {
-      accept(this);
+      accept(visitor);
       if (lhs_ != nullptr) {
           lhs_->traverse(visitor);
       }

@@ -3,7 +3,7 @@
 #ifndef __FOR_H__
 #define __FOR_H__
 
-class ForNode : public Node {
+class ForNode : public Node, public NodeAcceptor<ForNode> {
 public:
   ForNode(const int &row, const int &col) : Node(row, col) {}
   string getHead() const { return head_; }

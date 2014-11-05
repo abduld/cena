@@ -3,7 +3,7 @@
 #ifndef __COMPOUND_H__
 #define __COMPOUND_H__
 
-class CompoundNode : public Node {
+class CompoundNode : public Node, public NodeAcceptor<CompoundNode> {
 public:
   CompoundNode(const int &row, const int &col) : Node(row, col) {
     vals_ = vector<shared_ptr<Node> >();

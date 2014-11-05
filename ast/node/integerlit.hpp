@@ -2,7 +2,7 @@
 #ifndef __INTEGER_LIT_H__
 #define __INTEGER_LIT_H__
 
-class IntegerNode : public virtual AtomNode<int64_t> {
+class IntegerNode : public virtual AtomNode<int64_t>, public NodeAcceptor<IntegerNode> {
 public:
   IntegerNode(const int &row, const int &col) : AtomNode<int64_t>(row, col) {}
   IntegerNode(const int &row, const int &col, const int64_t &v)

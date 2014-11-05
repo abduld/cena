@@ -12,3 +12,10 @@ Json IdentifierNode::toEsprima_() {
   }
   return obj;
 }
+void IdentifierNode::traverse(ASTVisitor * visitor) {
+	if (typ_ != nullptr) {
+      typ_->traverse(visitor);
+  }
+}
+
+

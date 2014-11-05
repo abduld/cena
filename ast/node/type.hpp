@@ -3,7 +3,7 @@
 #ifndef __TYPE_H__
 #define __TYPE_H__
 
-class TypeNode : public Node {
+class TypeNode : public Node, public NodeAcceptor<TypeNode> {
 public:
   TypeNode(const int &row, const int &col) : Node(row, col) {}
   TypeNode(const int &row, const int &col, const string &typ) : Node(row, col) {

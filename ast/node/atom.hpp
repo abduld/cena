@@ -3,7 +3,7 @@
 #ifndef __ATOM_H__
 #define __ATOM_H__
 
-template <typename T> class AtomNode : public Node, NodeAcceptor<AtomNode<T> > {
+template <typename T> class AtomNode : public Node {
 public:
   AtomNode(const int &row, const int &col) : Node(row, col), init_(true) {}
   AtomNode(const int &row, const int &col, const T &v)
@@ -51,7 +51,7 @@ private:
   T val_{};
 };
 
-class BooleanNode : public AtomNode<bool>, NodeAcceptor<BooleanNode> {
+class BooleanNode : public AtomNode<bool>, public NodeAcceptor<BooleanNode> {
 public:
   BooleanNode(const int &row, const int &col) : AtomNode<bool>(row, col) {}
   BooleanNode(const int &row, const int &col, const bool &v)
@@ -63,7 +63,7 @@ private:
   string head_ = "Boolean";
 };
 
-class SymbolNode : public AtomNode<string>, NodeAcceptor<SymbolNode> {
+class SymbolNode : public AtomNode<string>, public NodeAcceptor<SymbolNode> {
 public:
   SymbolNode(const int &row, const int &col) : AtomNode<string>(row, col) {}
   SymbolNode(const int &row, const int &col, const string &v)
@@ -71,21 +71,28 @@ public:
   SymbolNode(const int &row, const int &col, const char *v)
       : AtomNode<string>(row, col, string(v)) {}
   string getHead() const { return head_; }
+  void traverse(ASTVisitor * visitor) override {
+	  accept(visitor);
+  }
 
 private:
   string head_ = "Symbol";
 };
 
-class StringNode : public SymbolNode, NodeAcceptor<StringNode> {
+class StringNode : public AtomNode<string>, public NodeAcceptor<StringNode> {
 public:
-  StringNode(const int &row, const int &col) : SymbolNode(row, col) {}
+  StringNode(const int &row, const int &col) : AtomNode<string>(row, col) {}
   StringNode(const int &row, const int &col, const string &v)
-      : SymbolNode(row, col, v) {}
+      : AtomNode<string>(row, col, v) {}
   StringNode(const int &row, const int &col, const char *v)
-      : SymbolNode(row, col, string(v)) {}
+      : AtomNode<string>(row, col, string(v)) {}
   string getHead() const { return head_; }
 
   void toCCode_(ostringstream &o) { o << "\"" << getConstant() << "\""; }
+  void traverse(ASTVisitor * visitor) override {
+	  accept(visitor);
+  }
+
 
 private:
   string head_ = "String";

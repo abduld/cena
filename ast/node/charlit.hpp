@@ -2,7 +2,7 @@
 #ifndef __CHARLIT_H__
 #define __CHARLIT_H__
 
-class CharacterNode : public AtomNode<unsigned char> {
+class CharacterNode : public AtomNode<unsigned char>, public NodeAcceptor<CharacterNode> {
 public:
   CharacterNode(const int &row, const int &col)
       : AtomNode<unsigned char>(row, col) {}
@@ -12,7 +12,7 @@ public:
   void toCCode_(ostringstream &o) {
     o << "'" << string(1, getConstant()) << "'";
   }
-  void traverse(ASTVisitor * visitor) {
+  void traverse(ASTVisitor * visitor) override {
       accept(visitor);
   }
 

@@ -2,7 +2,7 @@
 #ifndef __CALL_H__
 #define __CALL_H__
 
-class CallNode : public Node {
+class CallNode : public Node, public NodeAcceptor<CallNode> {
 public:
   CallNode(const int &row, const int &col) : Node(row, col) {}
   CallNode(const int &row, const int &col,

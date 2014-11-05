@@ -3,7 +3,7 @@
 #ifndef __FLOAT_LIT_H__
 #define __FLOAT_LIT_H__
 
-class RealNode : public AtomNode<double> {
+class RealNode : public AtomNode<double>, public NodeAcceptor<RealNode> {
 public:
   RealNode(const int &row, const int &col) : AtomNode<double>(row, col) {}
   RealNode(const int &row, const int &col, const double &v)
