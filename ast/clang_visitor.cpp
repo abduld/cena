@@ -242,6 +242,7 @@ bool SVisitor::canIgnoreCurrentASTNode() const {
       return false;
     }
   }
+  DEBUG;
   return true;
 }
 bool SVisitor::TraverseFunctionDecl(FunctionDecl *decl) {
@@ -292,9 +293,6 @@ bool SVisitor::TraverseParmVarDecl(ParmVarDecl *decl) {
 }
 
 bool SVisitor::TraverseVarDecl(VarDecl *decl) {
-  if (canIgnoreCurrentASTNode()) {
-    return true;
-  }
   PresumedLoc loc = SM.getPresumedLoc(decl->getSourceRange().getBegin());
   shared_ptr<Node> tmp = current_node;
   shared_ptr<DeclareNode> nd(new DeclareNode(loc.getLine(), loc.getColumn()));
@@ -317,9 +315,6 @@ bool SVisitor::TraverseVarDecl(VarDecl *decl) {
 }
 
 bool SVisitor::TraverseDeclStmt(DeclStmt *decl) {
-  if (canIgnoreCurrentASTNode()) {
-    return true;
-  }
   PresumedLoc loc = SM.getPresumedLoc(decl->getSourceRange().getBegin());
   shared_ptr<Node> tmp = current_node;
   shared_ptr<CompoundNode> nd(new CompoundNode(loc.getLine(), loc.getColumn()));
@@ -335,6 +330,8 @@ bool SVisitor::TraverseDeclStmt(DeclStmt *decl) {
 
 bool SVisitor::TraverseWhileStmt(WhileStmt *stmt) {
   if (canIgnoreCurrentASTNode()) {
+	  DEBUG;
+	  stmt->dumpColor();
     return true;
   }
   PresumedLoc loc = SM.getPresumedLoc(stmt->getWhileLoc());
@@ -522,6 +519,7 @@ bool SVisitor::TraverseDeclRefExpr(DeclRefExpr *E) {
   const ValueDecl *D = E->getDecl();
   PresumedLoc loc = SM.getPresumedLoc(E->getLocation());
 
+  E->dumpColor();
   current_node = shared_ptr<IdentifierNode>(
       new IdentifierNode(loc.getLine(), loc.getColumn(), "unkownid"));
   if (D) {
@@ -592,6 +590,12 @@ bool SVisitor::TraverseCXXConstructExpr(CXXConstructExpr *E) {
 bool SVisitor::TraverseMaterializeTemporaryExpr(MaterializeTemporaryExpr *nd) {
   // nd->dumpColor();
   TraverseStmt(nd->GetTemporaryExpr());
+  return true;
+}
+
+bool SVisitor::TraverseMemberExpr(MemberExpr *nd) {
+	nd->getBase()->dumpColor();
+  TraverseStmt(nd->getBase());
   return true;
 }
 

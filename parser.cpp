@@ -28,6 +28,7 @@
 #include <string>
 #include <vector>
 #include <memory>
+#include <iostream>
 
 using namespace std;
 using namespace llvm;
@@ -104,9 +105,13 @@ public:
       }
     };
 
+    std::string json = getProgram()->toEsprimaString();
     std::cout << "Program : " << std::endl;
-    std::cout << getProgram()->toEsprimaString() << std::endl;
-    std::cout << getProgram()->toCCode() << std::endl;
+    std::cout << json << std::endl;
+	  std::ofstream file("output.json");
+	  file << json;
+	  file.close();
+    //std::cout << getProgram()->toCCode() << std::endl;
     return;
   }
   bool HandleTopLevelDecl(DeclGroupRef dg) override {

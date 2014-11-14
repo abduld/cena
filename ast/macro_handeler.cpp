@@ -21,7 +21,7 @@ void PreprocessorCallback::InclusionDirective(
     llvm::StringRef SearchPath, llvm::StringRef RelativePath,
     const Module *Imported) {
 
-  std::cout << "This is an include" << std::endl;
+  //std::cout << "This is an include" << std::endl;
 }
 void PreprocessorCallback::If(SourceLocation Loc, SourceRange ConditionRange,
                               ConditionValueKind ConditionValue) {

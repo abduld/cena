@@ -87,6 +87,7 @@ public:
 #undef OPERATOR
   bool TraverseReturnStmt(ReturnStmt *stmt);
   bool TraverseDeclRefExpr(DeclRefExpr *E);
+  bool TraverseMemberExpr(MemberExpr *E);
   bool TraverseCallExpr(CallExpr *E);
   bool TraverseIntegerLiteral(IntegerLiteral *E);
   bool TraverseCharacterLiteral(CharacterLiteral *E);
