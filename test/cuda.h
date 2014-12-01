@@ -30,3 +30,12 @@ typedef struct cudaStream* cudaStream_t;
 
 int cudaConfigureCall(dim3 grid_size, dim3 block_size, unsigned shared_size = 0,
                       cudaStream_t stream = 0);
+
+typedef int cudaError_t;
+cudaError_t cudaFree(void *);
+cudaError_t cudaDeviceSynchronize();
+cudaError_t cudaThreadSynchronize();
+cudaError_t cudaMalloc(void ** ptr, size_t sz);
+cudaError_t cudaMemcpy(void * to, void * from, size_t sz, int dir);
+const int cudaMemcpyHostToDevice = 0;
+const int cudaMemcpyDeviceToHost = 1;

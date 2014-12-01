@@ -18,6 +18,7 @@
 #include "clang/Tooling/Tooling.h"
 #include "clang/Basic/TargetInfo.h"
 #include "clang/Basic/LangOptions.h"
+#include "clang/AST/Attr.h"
 #include "llvm/Support/Signals.h"
 #include "clang/Lex/Lexer.h"
 #include "clang/Lex/Preprocessor.h"
@@ -67,6 +68,8 @@ public:
   bool TraverseWhileStmt(WhileStmt *stmt);
   bool TraverseForStmt(ForStmt *stmt);
   bool TraverseIfStmt(IfStmt *stmt);
+bool TraverseArraySubscriptExpr(ArraySubscriptExpr * E);
+  bool TraverseConditionalOperator(ConditionalOperator * E);
   bool TraverseCompoundStmt(CompoundStmt *stmt);
 #define OPERATOR(NAME) bool TraverseUnary##NAME(UnaryOperator *E);
   UNARYOP_LIST()
@@ -89,6 +92,8 @@ public:
   bool TraverseDeclRefExpr(DeclRefExpr *E);
   bool TraverseMemberExpr(MemberExpr *E);
   bool TraverseCallExpr(CallExpr *E);
+  bool TraverseCUDAKernelCallExpr(CUDAKernelCallExpr * E);
+  bool TraverseImplicitCastExpr(ImplicitCastExpr *Node);
   bool TraverseIntegerLiteral(IntegerLiteral *E);
   bool TraverseCharacterLiteral(CharacterLiteral *E);
   bool TraverseStringLiteral(StringLiteral *E);
@@ -97,6 +102,8 @@ public:
   bool TraverseCXXConstructExpr(CXXConstructExpr *E);
   bool TraverseCXXBindTemporaryExpr(CXXBindTemporaryExpr *E);
   bool TraverseParmVarDecl(ParmVarDecl *decl);
+  bool TraverseParenExpr(ParenExpr *E);
+bool TraverseNullStmt(NullStmt * Stmt);
 
   bool TraverseMaterializeTemporaryExpr(MaterializeTemporaryExpr *nd);
 

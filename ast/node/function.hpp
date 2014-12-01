@@ -17,12 +17,19 @@ public:
     }
     *params_ <<= nd;
   }
+  void addAttribute(const string & str) {
+    attributes_.push_back(str);
+  }
   void setBody(const shared_ptr<BlockNode> &blk) { body_ = blk; }
   shared_ptr<BlockNode> getBody() const { return body_; }
 
   void toCCode_(ostringstream &o) {
     assert(ret_ != nullptr);
     assert(name_ != nullptr);
+    for (auto attr : attributes_) {
+      o << attr;
+      o << " ";
+    }
     ret_->toCCode_(o);
     o << " ";
     name_->toCCode_(o);
@@ -38,6 +45,10 @@ public:
   void toString_(ostringstream &o) {
     assert(ret_ != nullptr);
     assert(name_ != nullptr);
+    for (auto attr : attributes_) {
+      o << attr;
+      o << " ";
+    }
     ret_->toString_(o);
     o << " ";
     name_->toString_(o);
@@ -78,6 +89,7 @@ private:
   shared_ptr<CompoundNode> params_ = nullptr;
   shared_ptr<BlockNode> body_ = nullptr;
   shared_ptr<TypeNode> qualifiers_ = nullptr;
+  vector<string> attributes_{};
 };
 
 #endif /* __FUNCTION_H__ */

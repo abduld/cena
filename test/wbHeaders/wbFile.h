@@ -47,8 +47,6 @@ void wbFile_write(wbFile_t file, const void *buffer, size_t size, size_t count);
 void wbFile_write(wbFile_t file, const void *buffer, size_t len);
 void wbFile_write(wbFile_t file, const char *buffer);
 void wbFile_writeLine(wbFile_t file, const char *buffer0);
-void wbFile_write(wbFile_t file, string buffer);
-void wbFile_writeLine(wbFile_t file, string buffer0);
 wbBool wbFile_existsQ(const char *path);
 char *wbFile_extension(const char *file);
 

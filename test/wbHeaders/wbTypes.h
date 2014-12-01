@@ -10,7 +10,7 @@ typedef struct st_wbTimerNode_t *wbTimerNode_t;
 typedef struct st_wbTimer_t *wbTimer_t;
 typedef struct st_wbLogEntry_t *wbLogEntry_t;
 typedef struct st_wbLogger_t *wbLogger_t;
-typedef struct st_wbArg_t wbArg_t;
+typedef int wbArg_t;
 
 #define wbTrue true
 #define wbFalse false

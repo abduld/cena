@@ -12,6 +12,8 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <cuda.h>
+#include <math.h>
 
 #ifdef _MSC_VER
 #define __func__ __FUNCTION__

@@ -106,12 +106,12 @@ public:
     };
 
     std::string json = getProgram()->toEsprimaString();
-    std::cout << "Program : " << std::endl;
+    //std::cout << "Program : " << std::endl;
     std::cout << json << std::endl;
 	  std::ofstream file("output.json");
 	  file << json;
 	  file.close();
-    //std::cout << getProgram()->toCCode() << std::endl;
+    std::cout << getProgram()->toCCode() << std::endl;
     return;
   }
   bool HandleTopLevelDecl(DeclGroupRef dg) override {
@@ -125,7 +125,7 @@ public:
       if (SM.getFileID(SM.getExpansionLoc(decl->getLocation())) != mainFileID)
         continue;
       DEBUG;
-      // decl->dumpColor();
+       //decl->dumpColor();
       Visitor->TraverseDecl(decl);
       Visitor->addCurrent();
     }
@@ -236,8 +236,7 @@ void parse(int argc, const char **argv) {
   // printer.print(st, stdout);
 
   std::vector<string> args;
-  args.emplace_back("-x");
-  args.emplace_back("cuda");
+  args.emplace_back("-xcuda");
   // args.emplace_back("-v");
   args.emplace_back("-E");
   args.emplace_back("-fPIE");

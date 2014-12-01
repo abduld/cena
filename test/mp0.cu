@@ -1,54 +1,84 @@
-#include	<wb.h>
+// MP 1
+#include    <wb.h>
 
-//@@ The purpose of this code is to become familiar with the submission 
-//@@ process. Do not worry if you do not understand all the details of 
-//@@ the code.
+__global__ void vecAdd(float * in1, float * in2, float * out, int len) {
+    //@@ Insert code to implement vector addition here
+    int idx = blockIdx.x * blockDim.x + threadIdx.x;
+    if (idx<len) out[idx] = in1[idx] + in2[idx];
+}
 
 int main(int argc, char ** argv) {
-    int deviceCount;
+    wbArg_t args;
+    int inputLength;
+    float * hostInput1;
+    float * hostInput2;
+    float * hostOutput;
+    float * deviceInput1;
+    float * deviceInput2;
+    float * deviceOutput;
 
-    wbArg_read(argc, argv);
+    args = wbArg_read(argc, argv);
 
-    cudaGetDeviceCount(&deviceCount);
+    wbTime_start(Generic, "Importing data and creating memory on host");
+    hostInput1 = (float *) wbImport(wbArg_getInputFile(args, 0), &inputLength);
+    hostInput2 = (float *) wbImport(wbArg_getInputFile(args, 1), &inputLength);
+    hostOutput = (float *) malloc(inputLength * sizeof(float));
+    wbTime_stop(Generic, "Importing data and creating memory on host");
 
-    wbTime_start(GPU, "Getting GPU Data."); //@@ start a timer
+    wbLog(TRACE, "The input length is ", inputLength, " elements");
 
-    for (int dev = 0; dev < deviceCount; dev++) {
-        cudaDeviceProp deviceProp;
 
-        cudaGetDeviceProperties(&deviceProp, dev);
+    wbTime_start(GPU, "Allocating GPU memory.");
+    //@@ Allocate GPU memory here
+    int byteSize =sizeof(float) * inputLength;
 
-        if (dev == 0) {
-            if (deviceProp.major == 9999 && deviceProp.minor == 9999) {
-                wbLog(TRACE, "No CUDA GPU has been detected");
-                return -1;
-            } else if (deviceCount == 1) {
-                //@@ WbLog is a provided logging API (similar to Log4J).
-                //@@ The logging function wbLog takes a level which is either
-                //@@ OFF, FATAL, ERROR, WARN, INFO, DEBUG, or TRACE and a
-                //@@ message to be printed.
-                wbLog(TRACE, "There is 1 device supporting CUDA");
-            } else {
-                wbLog(TRACE, "There are ", deviceCount, " devices supporting CUDA");
-            }
-        }
+    wbTime_stop(GPU, "Allocating GPU memory.");
 
-        wbLog(TRACE, "Device ", dev, " name: ", deviceProp.name);
-        wbLog(TRACE, " Computational Capabilities: ", deviceProp.major, ".", deviceProp.minor);
-        wbLog(TRACE, " Maximum global memory size: ", deviceProp.totalGlobalMem);
-        wbLog(TRACE, " Maximum constant memory size: ", deviceProp.totalConstMem);
-        wbLog(TRACE, " Maximum shared memory size per block: ", deviceProp.sharedMemPerBlock);
-        wbLog(TRACE, " Maximum block dimensions: ", deviceProp.maxThreadsDim[0], " x ",
-                                                    deviceProp.maxThreadsDim[1], " x ",
-                                                    deviceProp.maxThreadsDim[2]);
-        wbLog(TRACE, " Maximum grid dimensions: ", deviceProp.maxGridSize[0], " x ",
-                                                   deviceProp.maxGridSize[1], " x ",
-                                                   deviceProp.maxGridSize[2]);
-        wbLog(TRACE, " Warp size: ", deviceProp.warpSize);
-    }
+    wbTime_start(GPU, "Copying input memory to the GPU.");
+    //@@ Copy memory to the GPU here
 
-    wbTime_stop(GPU, "Getting GPU Data."); //@@ stop the timer
+    cudaMalloc((void **) &deviceInput1, byteSize);
+    cudaMalloc((void **) &deviceInput2, byteSize);
+    cudaMalloc((void **) &deviceOutput, byteSize);
+
+
+    wbTime_stop(GPU, "Copying input memory to the GPU.");
+
+    //@@ Initialize the grid and block dimensions here
+    cudaMemcpy(deviceInput1, hostInput1, byteSize,cudaMemcpyHostToDevice);
+
+    cudaMemcpy(deviceInput2, hostInput1, byteSize,cudaMemcpyHostToDevice);
+
+
+    wbTime_start(Compute, "Performing CUDA computation");
+    //@@ Launch the GPU Kernel here
+     int block_size = 16;
+     int n_blocks = inputLength /block_size + (inputLength%block_size == 0 ? 0:1);
+
+
+    vecAdd<<< n_blocks, block_size>>>(deviceInput1, deviceInput2, deviceOutput, inputLength);
+
+
+    cudaThreadSynchronize();
+    wbTime_stop(Compute, "Performing CUDA computation");
+
+    wbTime_start(Copy, "Copying output memory to the CPU");
+    //@@ Copy the GPU memory back to the CPU here
+    cudaMemcpy(hostOutput, deviceOutput, byteSize,cudaMemcpyDeviceToHost);
+
+    wbTime_stop(Copy, "Copying output memory to the CPU");
+
+    wbTime_start(GPU, "Freeing GPU Memory");
+    //@@ Free the GPU memory here
+
+
+    wbTime_stop(GPU, "Freeing GPU Memory");
+
+    wbSolution(args, hostOutput, inputLength);
+
+    free(hostInput1);
+    free(hostInput2);
+    free(hostOutput);
 
     return 0;
 }
-

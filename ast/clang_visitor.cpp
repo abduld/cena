@@ -91,7 +91,7 @@ static shared_ptr<TypeNode> toNode(const ASTContext *ctx,
   if (const BuiltinType *bty = dyn_cast<const BuiltinType>(ty)) {
     StringRef s = bty->getName(PrintingPolicy(ctx->getLangOpts()));
     return shared_ptr<TypeNode>(
-        new TypeNode(loc.getLine(), loc.getColumn(), s));
+        new TypeNode(loc.getLine(), loc.getColumn(), s.str()));
   } else if (ty->isPointerType()) {
     auto t = toNode(ctx, loc, ty->getPointeeType());
     return shared_ptr<TypeNode>(
@@ -242,7 +242,7 @@ bool SVisitor::canIgnoreCurrentASTNode() const {
       return false;
     }
   }
-  DEBUG;
+  //DEBUG;
   return true;
 }
 bool SVisitor::TraverseFunctionDecl(FunctionDecl *decl) {
@@ -270,8 +270,19 @@ bool SVisitor::TraverseFunctionDecl(FunctionDecl *decl) {
   if (decl->doesThisDeclarationHaveABody()) {
     shared_ptr<BlockNode> body = func->getBody();
     current_node = body;
+    //decl->getBody()->dumpColor();
     SVisitor::TraverseStmt(decl->getBody());
     *body <<= current_node;
+  }
+  if (decl->hasAttr<CUDAGlobalAttr>()) {
+    decl->dumpColor();
+    func->addAttribute("__global__");
+  }
+  if (decl->hasAttr<CUDADeviceAttr>()) {
+    func->addAttribute("__device__");
+  }
+  if (decl->hasAttr<CUDAHostAttr>()) {
+    func->addAttribute("__host__");
   }
   current_node = func;
   return true;
@@ -322,6 +333,7 @@ bool SVisitor::TraverseDeclStmt(DeclStmt *decl) {
        ++init) {
     current_node = tmp;
     SVisitor::TraverseDecl(*init);
+    assert(current_node != tmp);
     *nd <<= current_node;
   }
   current_node = nd;
@@ -330,8 +342,8 @@ bool SVisitor::TraverseDeclStmt(DeclStmt *decl) {
 
 bool SVisitor::TraverseWhileStmt(WhileStmt *stmt) {
   if (canIgnoreCurrentASTNode()) {
-	  DEBUG;
-	  stmt->dumpColor();
+	  //DEBUG;
+	  //stmt->dumpColor();
     return true;
   }
   PresumedLoc loc = SM.getPresumedLoc(stmt->getWhileLoc());
@@ -408,6 +420,37 @@ bool SVisitor::TraverseIfStmt(IfStmt *stmt) {
   return true;
 }
 
+bool SVisitor::TraverseConditionalOperator(ConditionalOperator * E) {
+  
+  PresumedLoc loc = SM.getPresumedLoc(E->getExprLoc());
+  shared_ptr<ConditionalNode> nd(new ConditionalNode(loc.getLine(), loc.getColumn()));
+  current_node = nd;
+  TraverseStmt(E->getCond());
+  nd->setCondition(current_node);
+  current_node = nd;
+  TraverseStmt(E->getLHS());
+  nd->setThen(current_node);
+  current_node = nd;
+  TraverseStmt(E->getRHS());
+  nd->setElse(current_node);
+  current_node = nd;
+  return true;
+}
+
+
+bool SVisitor::TraverseArraySubscriptExpr(ArraySubscriptExpr * E) {
+  
+  PresumedLoc loc = SM.getPresumedLoc(E->getExprLoc());
+  shared_ptr<SubscriptNode> nd(new SubscriptNode(loc.getLine(), loc.getColumn()));
+  current_node = nd;
+  TraverseStmt(E->getLHS());
+  nd->setLHS(current_node);
+  current_node = nd;
+  TraverseStmt(E->getRHS());
+  nd->setRHS(current_node);
+  current_node = nd;
+  return true;
+}
 bool SVisitor::TraverseCompoundStmt(CompoundStmt *stmt) {
   shared_ptr<Node> tmp = current_node;
   PresumedLoc loc = SM.getPresumedLoc(stmt->getLocStart());
@@ -460,10 +503,31 @@ bool SVisitor::TraverseUnaryOperator(UnaryOperator *op) {
   return handleUnaryOperator(op);
 }
 bool SVisitor::TraverseUnaryExprOrTypeTraitExpr(UnaryExprOrTypeTraitExpr *E) {
-  DEBUG;
-  // E->dumpColor();
-  current_node = shared_ptr<StringNode>(
-      new StringNode(-1, -1, string("TODOXXUnaryExprOrTypeTraitExpr")));
+  string fun;
+  switch (E->getKind()) {
+    case UETT_SizeOf:
+    fun = "sizeof";
+    break ;
+    case UETT_AlignOf:
+    fun = "alignof";
+    break ;
+    case UETT_VecStep  :
+    fun = "vecstep";
+    break ;
+  }
+  PresumedLoc loc = SM.getPresumedLoc(E->getExprLoc());
+  shared_ptr<CallNode> nd(
+      new CallNode(loc.getLine(), loc.getColumn()));
+  nd->setFunction(shared_ptr<IdentifierNode>(new IdentifierNode(loc.getLine(), loc.getColumn(), fun)));
+  current_node = nd;
+  if (E->isArgumentType()) {
+    current_node = toNode(ctx, loc, E->getArgumentType());
+} else {
+
+    SVisitor::TraverseStmt(E->getArgumentExpr());
+}
+  nd->addArg(current_node);
+  current_node = nd;
   return true;
 }
 
@@ -473,27 +537,28 @@ bool SVisitor::handleBinaryOperator(BinaryOperator *E) {
     shared_ptr<AssignNode> nd(new AssignNode(loc.getLine(), loc.getColumn()));
     current_node = nd;
     SVisitor::TraverseStmt(E->getLHS());
+    assert(current_node != nd);
     nd->setLHS(current_node);
     current_node = nd;
     SVisitor::TraverseStmt(E->getRHS());
+    assert(current_node != nd);
     nd->setRHS(current_node);
     current_node = nd;
   } else {
     shared_ptr<BinaryOperatorNode> nd(
         new BinaryOperatorNode(loc.getLine(), loc.getColumn()));
     current_node = nd;
-    nd->setOperator(E->getOpcodeStr());
+    nd->setOperator(BinaryOperator::getOpcodeStr(E->getOpcode()).str());
     SVisitor::TraverseStmt(E->getLHS());
     nd->setLHS(current_node);
     current_node = nd;
     SVisitor::TraverseStmt(E->getRHS());
-    if (current_node == nd) {
-      std::cout << "Something has went wrong " << E->getOpcodeStr().str()
-                << std::endl;
-      // E->dumpColor();
-    }
     nd->setRHS(current_node);
     current_node = nd;
+    //E->dumpColor();
+  if (BinaryOperator::getOpcodeStr(E->getOpcode()).str() == "%") {
+    std::cout << nd->toCCode() << std::endl;
+  }
   }
   return true;
 }
@@ -519,7 +584,7 @@ bool SVisitor::TraverseDeclRefExpr(DeclRefExpr *E) {
   const ValueDecl *D = E->getDecl();
   PresumedLoc loc = SM.getPresumedLoc(E->getLocation());
 
-  E->dumpColor();
+  //E->dumpColor();
   current_node = shared_ptr<IdentifierNode>(
       new IdentifierNode(loc.getLine(), loc.getColumn(), "unkownid"));
   if (D) {
@@ -535,13 +600,50 @@ bool SVisitor::TraverseDeclRefExpr(DeclRefExpr *E) {
 bool SVisitor::TraverseCallExpr(CallExpr *E) {
   const FunctionDecl *F = E->getDirectCallee();
   PresumedLoc loc = SM.getPresumedLoc(F->getLocation());
-  DEBUG;
+  //DEBUG;
   shared_ptr<CallNode> call(new CallNode(loc.getLine(), loc.getColumn()));
   current_node = call;
   call->setFunction(shared_ptr<IdentifierNode>(
       new IdentifierNode(loc.getLine(), loc.getColumn(),
                          F->getNameInfo().getName().getAsString())));
   for (auto arg : E->arguments()) {
+    if (isa<CXXDefaultArgExpr>(arg)) {
+      continue ;
+    }
+    SVisitor::TraverseStmt(arg);
+    call->addArg(current_node);
+    current_node = call;
+  }
+  return true;
+}
+
+bool SVisitor::TraverseCUDAKernelCallExpr(CUDAKernelCallExpr * E) {
+  
+  const FunctionDecl *F = E->getDirectCallee();
+  PresumedLoc loc = SM.getPresumedLoc(F->getLocation());
+  DEBUG;
+  shared_ptr<CUDACallNode> call(new CUDACallNode(loc.getLine(), loc.getColumn()));
+  current_node = call;
+  call->setFunction(shared_ptr<IdentifierNode>(
+      new IdentifierNode(loc.getLine(), loc.getColumn(),
+                         F->getNameInfo().getName().getAsString())));
+  auto config = E->getConfig();
+
+  for (unsigned i = 0, e = config->getNumArgs(); i != e; ++i) {
+    auto conf = config->getArg(i);
+    if (isa<CXXDefaultArgExpr>(conf)) {
+      continue ;
+    }
+    //conf->dumpColor();
+    SVisitor::TraverseStmt(conf);
+
+    call->addConfig(current_node);
+    current_node = call;
+  }
+  for (auto arg : E->arguments()) {
+    if (isa<CXXDefaultArgExpr>(arg)) {
+      continue ;
+    }
     SVisitor::TraverseStmt(arg);
     call->addArg(current_node);
     current_node = call;
@@ -576,15 +678,25 @@ bool SVisitor::TraverseCXXBindTemporaryExpr(CXXBindTemporaryExpr *E) {
   return true;
 }
 bool SVisitor::TraverseCXXConstructExpr(CXXConstructExpr *E) {
+
   if (E->getNumArgs() == 1) {
     return TraverseStmt(E->getArg(0));
   } else {
     PresumedLoc loc = SM.getPresumedLoc(E->getExprLoc());
-    CXXConstructorDecl *decl = E->getConstructor();
-    current_node = toNode(ctx, loc, decl->getType());
-    DEBUG;
-    return true;
+
+  shared_ptr<CompoundNode> nd(new CompoundNode(loc.getLine(), loc.getColumn()));    
+    for (unsigned i = 0, e = E->getNumArgs(); i != e; ++i) {
+      if (isa<CXXDefaultArgExpr>(E->getArg(i))) {
+        continue ;
+      }
+      current_node = nd;
+      nd->isListInitialization(true);
+      SVisitor::TraverseStmt(E->getArg(i));
+      *nd <<= current_node;
+    }
+    current_node = nd;
   }
+  return true;
 }
 
 bool SVisitor::TraverseMaterializeTemporaryExpr(MaterializeTemporaryExpr *nd) {
@@ -593,12 +705,41 @@ bool SVisitor::TraverseMaterializeTemporaryExpr(MaterializeTemporaryExpr *nd) {
   return true;
 }
 
-bool SVisitor::TraverseMemberExpr(MemberExpr *nd) {
-	nd->getBase()->dumpColor();
-  TraverseStmt(nd->getBase());
+bool SVisitor::TraverseImplicitCastExpr(ImplicitCastExpr *nd) {
+  TraverseStmt(nd->getSubExpr());
   return true;
 }
 
+bool SVisitor::TraverseMemberExpr(MemberExpr *nd) {
+  //nd->dumpColor();
+  PresumedLoc loc = SM.getPresumedLoc(nd->getExprLoc());
+  shared_ptr<MemberNode> member = shared_ptr<MemberNode>(
+      new MemberNode(loc.getLine(), loc.getColumn()));
+  current_node = member;
+  SVisitor::TraverseStmt(nd->getBase());
+  assert(current_node != member);
+  member->setLHS(current_node);
+  current_node = member;
+  current_node = toNode(ctx,loc, nd->getMemberDecl());
+  assert(current_node != member);
+  member->setRHS(current_node);
+  current_node = member;
+  return true;
+}
+
+bool SVisitor::TraverseParenExpr(ParenExpr *E) {
+  PresumedLoc loc = SM.getPresumedLoc(E->getExprLoc());
+  TraverseStmt(E->getSubExpr());
+  current_node = shared_ptr<ParenNode>(
+      new ParenNode(loc.getLine(), loc.getColumn(), current_node));
+  return true;
+}
+bool SVisitor::TraverseNullStmt(NullStmt * stmt) {
+  PresumedLoc loc = SM.getPresumedLoc(stmt->getLocStart());
+  current_node = shared_ptr<SkipStmtNode>(
+    new SkipStmtNode(loc.getLine(), loc.getColumn()));
+  return true;
+}
 void SVisitor::addCurrent() {
   *prog_ <<= current_node;
   current_node = prog_;

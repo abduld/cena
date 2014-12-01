@@ -11,12 +11,8 @@ struct st_wbArg_t {
   char *type;
 };
 
-#define wbArg_getInputCount(wa) ((wa).inputCount)
-#define wbArg_getInputFiles(wa) ((wa).inputFiles)
-#define wbArg_getInputFile(wa, ii) (wbArg_getInputFiles(wa)[ii])
-#define wbArg_getOutputFile(wa) ((wa).outputFile)
-#define wbArg_getExpectedOutputFile(wa) ((wa).expectedOutput)
-#define wbArg_getType(wa) ((wa).type)
+#define wbArg_getInputFile(wa, ii) "input" # ii
+#define wbArg_getOutputFile(wa) ("output")
 
 #define wbArg_setInputCount(wa, val) (wbArg_getInputCount(wa) = val)
 #define wbArg_setInputFiles(wa, val) (wbArg_getInputFiles(wa) = val)

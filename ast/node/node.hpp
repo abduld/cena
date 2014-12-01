@@ -75,6 +75,7 @@ public:
   virtual bool isBlock() const { return false; }
   virtual bool isProgram() const { return false; }
   virtual bool isEmpty() const { return false; }
+  virtual bool isSkip() const { return false; }
   virtual vector<shared_ptr<Node> > getValues() {
     vector<shared_ptr<Node> > vec;
     return vec;

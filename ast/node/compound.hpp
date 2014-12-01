@@ -64,6 +64,9 @@ public:
     return *this;
   }
   CompoundNode &operator<<=(const shared_ptr<Node> &c) {
+    if (!vals_.empty() &&vals_.back()== c) {
+      return *this;
+    }
     if (c->isCompound()) {
       *this <<= std::static_pointer_cast<CompoundNode>(c);
     } else {
@@ -74,6 +77,7 @@ public:
     return *this;
   }
   CompoundNode &operator<<=(CompoundNode *c) {
+
     vector<shared_ptr<Node> > vals = c->getValues();
     for (auto iter = vals.begin(); iter != vals.end(); iter++) {
       vals_.push_back(*iter);
@@ -81,11 +85,21 @@ public:
     return *this;
   }
   CompoundNode &operator<<=(const shared_ptr<CompoundNode> &c) {
+    if (!vals_.empty() &&vals_.back()== c) {
+      return *this;
+    }
     vector<shared_ptr<Node> > vals = c->getValues();
     for (auto iter = vals.begin(); iter != vals.end(); iter++) {
       vals_.push_back(*iter);
     }
     return *this;
+  }
+  bool isListInitialization(bool val) {
+    isListInitialization_ = val;
+    return isListInitialization_;
+  }
+  bool isListInitialization() {
+    return isListInitialization_;
   }
   void push_back(Node *v) {
     shared_ptr<Node> var(v);
@@ -95,6 +109,9 @@ public:
     return;
   }
   void push_back(const shared_ptr<Node> &var) {
+    if (!vals_.empty() &&vals_.back()== var) {
+      return ;
+    }
     var->setParent(this);
     addChild(var);
     vals_.push_back(var);
@@ -126,16 +143,19 @@ public:
     if (isBlock()) {
       o << "{\n";
     }
+    if (isListInitialization()) {
+      o << "{";
+    }
     if (!isEmpty()) {
       for (auto v : vals) {
         len--;
         v->toCCode_(o);
-        if (v->isBlock()) {
+        if (v->isBlock() || v->isSkip()) {
           continue;
         }
-        if (v->isStatement() && isBlock()) {
+        if (v->isStatement() || isBlock()) {
           o << ";";
-          o << " /* " << v->getHead() << "*/\n";
+          o << " /* " << v->getHead() << "*/";
           o << "\n";
         } else if (!isProgram() && len > 0) {
           o << " /* " << v->getHead() << "*/";
@@ -146,19 +166,37 @@ public:
     if (isBlock()) {
       o << "}\n";
     }
+    if (isListInitialization()) {
+      o << "}";
+    }
   }
   virtual Json toEsprima_() {
+
     std::vector<Json> lst;
     for (auto elem : vals_) {
       lst.push_back(elem->toEsprima_());
     }
-    return Json(lst);
+    if (isListInitialization()) {
+      
+    Json::object obj;
+    vector<Json> args;
+    obj["type"] = "ArrayExpression";
+    obj["line"] = row_;
+    obj["column"] = col_;
+    obj["elements"] = lst;
+    return obj;
+    } else {
+      return Json(lst);
+    }
   }
   virtual void toString_(ostringstream &o) {
     auto vals = getValues();
     auto len = vals.size();
     if (isBlock()) {
       o << "{\n";
+    }
+    if (isListInitialization()) {
+      o << "{";
     }
     if (!isEmpty()) {
       for (auto v : vals) {
@@ -177,6 +215,9 @@ public:
     if (isBlock()) {
       o << "}\n";
     }
+    if (isListInitialization()) {
+      o << "}";
+    }
   }
   virtual void toJSON_(ostringstream &o) { o << "{\"type\": \"unknown\"}"; }
 
@@ -189,6 +230,7 @@ public:
 protected:
   string head_ = "CompoundNode";
   vector<shared_ptr<Node> > vals_;
+  bool isListInitialization_{false};
 };
 
 #endif /* __COMPOUND_H__ */

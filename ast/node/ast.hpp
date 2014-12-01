@@ -68,5 +68,11 @@ using std::transform;
 //#include "reference.hpp"
 #include "reference_type.hpp"
 #include "parameter.hpp"
+#include "skip.hpp"
+#include "cudakernelcall.hpp"
+#include "paren.hpp"
+#include "member.hpp"
+#include "conditional.hpp"
+#include "subscript.hpp"
 
 #endif /* __AST_H__ */

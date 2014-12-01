@@ -38,7 +38,6 @@ public:
     }
   }
   void toJSON_(ostringstream &o) { o << "{\"type\": \"unknown\"}"; }
-  bool isStatement() const { return true; }
   Json toEsprima_() override {
     Json::object obj;
     Json::object decl;
