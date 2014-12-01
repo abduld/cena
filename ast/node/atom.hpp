@@ -34,7 +34,7 @@ public:
   virtual Json toEsprima_() override {
     Json::object obj;
     ostringstream o;
-    obj["type"] = Json("literal");
+    obj["type"] = Json("Literal");
     obj["line"] = row_;
     obj["column"] = col_;
     o << val_;
