@@ -18,6 +18,14 @@ public:
     type_->toString_(o);
     o << "*";
   }
+  Json toEsprima_() override {
+    Json::object obj;
+    obj["type"] = "ReferenceType";
+    obj["line"] = row_;
+    obj["column"] = col_;
+    obj["value"] = type_->toEsprima_();
+    return obj;
+  }
 
 private:
   string head_ = "ReferenceType";

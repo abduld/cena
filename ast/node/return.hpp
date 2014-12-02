@@ -34,7 +34,9 @@ public:
     obj["type"] = "ReturnStatement";
     obj["line"] = row_;
     obj["column"] = col_;
-    obj["argument"] = ret_->toEsprima_();
+    if (ret_ != nullptr) {
+      obj["argument"] = ret_->toEsprima_();
+    }
     return obj;
   }
   void traverse(ASTVisitor * visitor) override {
