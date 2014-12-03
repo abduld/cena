@@ -36,7 +36,7 @@ public:
   }
   Json toEsprima_() override {
     Json::object obj;
-    obj["type"] = "MemberExpression";
+    obj["type"] = "SubscriptExpression";
     obj["computed"] = true;
     obj["line"] = row_;
     obj["column"] = col_;
