@@ -49,6 +49,14 @@ public:
     arg_->toString_(o);
   }
   void toJSON_(ostringstream &o) { o << "{\"type\": \"unknown\"}"; }
+  virtual Json toEsprima_() override {
+    Json::object obj;
+    obj["type"] = "UnaryExpression";
+    obj["prefix"] = true;
+    obj["operator"] = op_->toString();
+    obj["argument"] = arg_->toEsprima();
+    return obj;
+  }
   void traverse(ASTVisitor * visitor) override {
       op_->traverse(visitor);
       arg_->traverse(visitor);
