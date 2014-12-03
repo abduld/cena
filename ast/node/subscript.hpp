@@ -40,7 +40,6 @@ public:
     obj["computed"] = true;
     obj["line"] = row_;
     obj["column"] = col_;
-    obj["operator"] = "=";
     obj["init"] = lhs_->toEsprima_();
     obj["property"] = rhs_->toEsprima_();
     return Json(obj);
