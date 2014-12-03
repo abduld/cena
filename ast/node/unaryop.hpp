@@ -53,6 +53,8 @@ public:
     Json::object obj;
     obj["type"] = "UnaryExpression";
     obj["prefix"] = true;
+    obj["line"] = row_;
+    obj["column"] = col_;
     obj["operator"] = op_->toString();
     obj["argument"] = arg_->toEsprima();
     return obj;
