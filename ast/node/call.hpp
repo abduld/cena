@@ -43,7 +43,7 @@ public:
     obj["type"] = "CallExpression";
     obj["line"] = row_;
     obj["column"] = col_;
-    obj["callee"] = fun_->toString();
+    obj["callee"] = fun_->toEsprima_();
     if (args_ != nullptr) {
       for (auto arg : args_->getValues()) {
         args.push_back(arg->toEsprima_());
