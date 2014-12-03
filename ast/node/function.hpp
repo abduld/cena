@@ -66,6 +66,7 @@ public:
     obj["type"] = "Function";
     obj["line"] = row_;
     obj["column"] = col_;
+    obj["attributes"] = attributes_;
     obj["id"] = name_->getName();
     obj["params"] = params_->toEsprima_();
     obj["body"] = body_->toEsprima_();
