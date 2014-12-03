@@ -58,7 +58,7 @@ public:
     Json::object obj;
     vector<Json> config;
     vector<Json> args;
-    obj["type"] = "CallExpression";
+    obj["type"] = "CUDACallExpression";
     obj["line"] = row_;
     obj["column"] = col_;
     obj["callee"] = fun_->toString();
