@@ -4,10 +4,12 @@
 
 class AssignNode : public Node, public NodeAcceptor<AssignNode> {
 public:
-  AssignNode(const int &row, const int &col) : Node(row, col) {}
-  AssignNode(const int &row, const int &col, const shared_ptr<Node> &lhs,
+  AssignNode(const int &row, const int &col, const int &endrow, const int &endcol,
+           const string &raw) : Node(row, col, endrow, endcol, raw) {}
+  AssignNode(const int &row, const int &col, const int &endrow, const int &endcol,
+           const string &raw, const shared_ptr<Node> &lhs,
              const shared_ptr<Node> &rhs)
-      : Node(row, col), lhs_(lhs), rhs_(rhs) {}
+      : Node(row, col, endrow, endcol, raw), lhs_(lhs), rhs_(rhs) {}
   ~AssignNode() {}
   void setLHS(const shared_ptr<Node> &lhs) {
     lhs_ = lhs;
@@ -35,8 +37,9 @@ public:
   Json toEsprima_() override {
     Json::object obj;
     obj["type"] = "AssignmentExpression";
-    obj["line"] = row_;
-    obj["column"] = col_;
+    obj["loc"] = getLocation();
+    obj["raw"] = raw_;
+    obj["cform"] = toCCode();
     obj["operator"] = "=";
     obj["left"] = lhs_->toEsprima_();
     obj["right"] = rhs_->toEsprima_();
@@ -47,18 +50,18 @@ public:
   bool hasChildren() const override {
     return lhs_ != nullptr || rhs_ != nullptr;
   }
-  vector<shared_ptr<Node> > getChildren() override {
+  vector<shared_ptr<Node>> getChildren() override {
     if (hasChildren() == false) {
-      return vector<shared_ptr<Node> >{};
+      return vector<shared_ptr<Node>>{};
     } else if (lhs_ != nullptr && rhs_ != nullptr) {
-      return vector<shared_ptr<Node> >{ lhs_, rhs_ };
+      return vector<shared_ptr<Node>>{lhs_, rhs_};
     } else if (lhs_ != nullptr) {
-      return vector<shared_ptr<Node> >{ lhs_ };
+      return vector<shared_ptr<Node>>{lhs_};
     } else if (rhs_ != nullptr) {
-      return vector<shared_ptr<Node> >{ rhs_ };
+      return vector<shared_ptr<Node>>{rhs_};
     } else {
       assert(false);
-      return vector<shared_ptr<Node> >{};
+      return vector<shared_ptr<Node>>{};
     }
   }
 

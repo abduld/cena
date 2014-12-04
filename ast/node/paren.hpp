@@ -4,9 +4,12 @@
 
 class ParenNode : public Node, public NodeAcceptor<ParenNode> {
 public:
-  ParenNode(const int &row, const int &col) : Node(row, col) {}
-  ParenNode(const int &row, const int &col, const shared_ptr<Node> &body)
-      : Node(row, col), body_(body) {}
+  ParenNode(const int &row, const int &col, const int &endrow,
+            const int &endcol, const string &raw)
+      : Node(row, col, endrow, endcol, raw) {}
+  ParenNode(const int &row, const int &col, const int &endrow,
+            const int &endcol, const string &raw, const shared_ptr<Node> &body)
+      : Node(row, col, endrow, endcol, raw), body_(body) {}
   ~ParenNode() {}
   void setBody(const shared_ptr<Node> &body) {
     body_ = body;
@@ -29,21 +32,20 @@ public:
   Json toEsprima_() override {
     Json::object obj;
     obj["type"] = "ExpressionStatement";
-    obj["line"] = row_;
-    obj["column"] = col_;
+    obj["loc"] = getLocation();
+    obj["raw"] = raw_;
+    obj["cform"] = toCCode();
     obj["expression"] = body_->toEsprima_();
     return Json(obj);
   }
   Json toJSON_() { return toEsprima_(); }
 
-  bool hasChildren() const override {
-    return body_ != nullptr;
-  }
-  vector<shared_ptr<Node> > getChildren() override {
+  bool hasChildren() const override { return body_ != nullptr; }
+  vector<shared_ptr<Node>> getChildren() override {
     if (hasChildren() == false) {
-      return vector<shared_ptr<Node> >{};
+      return vector<shared_ptr<Node>>{};
     } else {
-      return vector<shared_ptr<Node> >{ body_};
+      return vector<shared_ptr<Node>>{body_};
     }
   }
 

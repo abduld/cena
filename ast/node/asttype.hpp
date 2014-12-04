@@ -5,8 +5,7 @@
 
 class Node;
 class AssignNode;
-template <typename T>
-class AtomNode;
+template <typename T> class AtomNode;
 class CharacterNode;
 class IntegerNode;
 class RealNode;

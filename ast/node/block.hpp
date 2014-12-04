@@ -4,9 +4,12 @@
 
 class BlockNode : public CompoundNode {
 public:
-  BlockNode(const int &row, const int &col) : CompoundNode(row, col) {}
-  BlockNode(const int &row, const int &col, const shared_ptr<Node> &nd)
-      : CompoundNode(row, col) {
+  BlockNode(const int &row, const int &col, const int &endrow,
+            const int &endcol, const string &raw)
+      : CompoundNode(row, col, endrow, endcol, raw) {}
+  BlockNode(const int &row, const int &col, const int &endrow,
+            const int &endcol, const string &raw, const shared_ptr<Node> &nd)
+      : CompoundNode(row, col, endrow, endcol, raw) {
     push_back(nd);
   }
   ~BlockNode() {}
@@ -16,8 +19,9 @@ public:
     Json::object obj;
     vector<Json> body;
     obj["type"] = "BlockStatement";
-    obj["line"] = row_;
-    obj["column"] = col_;
+    obj["loc"] = getLocation();
+    obj["raw"] = raw_;
+    obj["cform"] = toCCode();
     for (auto stmt : getValues()) {
       body.push_back(stmt->toEsprima_());
     }

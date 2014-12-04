@@ -4,22 +4,21 @@
 
 class FunctionNode : public Node {
 public:
-  FunctionNode(const int &row, const int &col)
-      : Node(row, col),
-        body_(shared_ptr<BlockNode>(new BlockNode(row_, col_))) {}
+  FunctionNode(const int &row, const int &col, const int &endrow,
+               const int &endcol, const string &raw)
+      : Node(row, col, endrow, endcol, raw),
+        body_(shared_ptr<BlockNode>(new BlockNode(row, col, endrow, endcol, raw))) {}
   void setReturnType(const shared_ptr<TypeNode> &typ) { ret_ = typ; }
   shared_ptr<TypeNode> getReturnType() const { return ret_; }
   void setName(const shared_ptr<IdentifierNode> &id) { name_ = id; }
   shared_ptr<IdentifierNode> getName() const { return name_; }
   void addParameter(const shared_ptr<Node> &nd) {
     if (params_ == nullptr) {
-      params_ = shared_ptr<CompoundNode>(new CompoundNode(row_, col_));
+      params_ = shared_ptr<CompoundNode>(new CompoundNode(row_, col_, endrow_, endcol_, raw_));
     }
     *params_ <<= nd;
   }
-  void addAttribute(const string & str) {
-    attributes_.push_back(str);
-  }
+  void addAttribute(const string &str) { attributes_.push_back(str); }
   void setBody(const shared_ptr<BlockNode> &blk) { body_ = blk; }
   shared_ptr<BlockNode> getBody() const { return body_; }
 
@@ -64,8 +63,9 @@ public:
   Json toEsprima_() {
     Json::object obj;
     obj["type"] = "Function";
-    obj["line"] = row_;
-    obj["column"] = col_;
+    obj["loc"] = getLocation();
+    obj["raw"] = raw_;
+    obj["cform"] = toCCode();
     obj["attributes"] = attributes_;
     obj["id"] = name_->getName();
     obj["params"] = params_->toEsprima_();
@@ -73,15 +73,15 @@ public:
     return obj;
   }
   void toJSON_(ostringstream &o) { o << "{\"type\": \"unknown\"}"; }
-  void traverse(ASTVisitor * visitor) override {
-      name_->traverse(visitor);
-      if (params_ != nullptr) {
-          params_->traverse(visitor);
-      }
-      body_->traverse(visitor);
-      if (qualifiers_ != nullptr) {
-          qualifiers_->traverse(visitor);
-      }
+  void traverse(ASTVisitor *visitor) override {
+    name_->traverse(visitor);
+    if (params_ != nullptr) {
+      params_->traverse(visitor);
+    }
+    body_->traverse(visitor);
+    if (qualifiers_ != nullptr) {
+      qualifiers_->traverse(visitor);
+    }
   }
 
 private:

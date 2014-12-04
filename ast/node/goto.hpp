@@ -5,7 +5,7 @@
 class Goto : public Node {
 public:
   Goto(const int &row, const int &col, const shared_ptr<Node> &node)
-      : Node(row, col), trgt_(trgt) {}
+      : Node(row, col, endrow, endcol, raw), trgt_(trgt) {}
   ~Goto() {}
   string getHead() { return head_; }
 

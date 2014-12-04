@@ -5,31 +5,33 @@
 
 class TypeNode : public Node, public NodeAcceptor<TypeNode> {
 public:
-  TypeNode(const int &row, const int &col) : Node(row, col) {}
-  TypeNode(const int &row, const int &col, const string &typ) : Node(row, col) {
+  TypeNode(const int &row, const int &col, const int &endrow, const int &endcol,
+           const string &raw)
+      : Node(row, col, endrow, endcol, raw) {}
+  TypeNode(const int &row, const int &col, const int &endrow, const int &endcol,
+           const string &raw, const string &typ)
+      : Node(row, col, endrow, endcol, raw) {
     addBase(typ);
   }
   void addQualifyer(const string &qual) {
-    addQualifyer(
-        shared_ptr<SymbolNode>(new SymbolNode(row_, col_, qual)));
+    addQualifyer(shared_ptr<SymbolNode>(new SymbolNode(row_, col_, endrow_, endcol_, qual,  qual)));
   }
   void addQualifyer(const shared_ptr<Node> &qual) {
     qualifiers_.push_back(qual);
   }
   void addBase(const string &base) {
-    addBase(shared_ptr<SymbolNode>(new SymbolNode(row_, col_, base)));
+    addBase(shared_ptr<SymbolNode>(new SymbolNode(row_, col_, endrow_, endcol_, base, base)));
   }
   void addBase(const shared_ptr<Node> &base) { base_.push_back(base); }
   void addAddressSpace(const string &addr) {
-    addAddressSpace(
-        shared_ptr<SymbolNode>(new SymbolNode(row_, col_, addr)));
+    addAddressSpace(shared_ptr<SymbolNode>(new SymbolNode(row_, col_, endrow_, endcol_, addr, addr)));
   }
   void addAddressSpace(const shared_ptr<Node> &addr) {
     address_space_.push_back(addr);
   }
-  vector<shared_ptr<Node> > getQualifiers() const { return qualifiers_; }
-  vector<shared_ptr<Node> > getBase() const { return base_; }
-  vector<shared_ptr<Node> > getAddressSpace() const { return address_space_; }
+  vector<shared_ptr<Node>> getQualifiers() const { return qualifiers_; }
+  vector<shared_ptr<Node>> getBase() const { return base_; }
+  vector<shared_ptr<Node>> getAddressSpace() const { return address_space_; }
   virtual Json toEsprima_() override {
     Json::object obj;
     vector<Json> addrs, quals, bases;
@@ -43,8 +45,9 @@ public:
     for (auto base : base_) {
       bases.push_back(base->toEsprima_());
     }
-    obj["line"] = row_;
-    obj["column"] = col_;
+    obj["loc"] = getLocation();
+    obj["raw"] = raw_;
+    obj["cform"] = toCCode();
     obj["address_spaces"] = addrs;
     obj["qualifiers"] = quals;
     obj["bases"] = bases;
@@ -74,22 +77,22 @@ public:
   virtual void toString_(ostringstream &o) { toCCode_(o); }
   virtual void toJSON_(ostringstream &o) { o << "{\"type\": \"unknown\"}"; }
   virtual string getHead() const { return head_; }
-  void traverse(ASTVisitor * visitor) override {
-      for (auto addr : address_space_) {
-          addr->traverse(visitor);
-      }
-      for (auto qual : qualifiers_) {
-          qual->traverse(visitor);
-      }
-      for (auto base : base_) {
-          base->traverse(visitor);
-      }
+  void traverse(ASTVisitor *visitor) override {
+    for (auto addr : address_space_) {
+      addr->traverse(visitor);
+    }
+    for (auto qual : qualifiers_) {
+      qual->traverse(visitor);
+    }
+    for (auto base : base_) {
+      base->traverse(visitor);
+    }
   }
 
 private:
   string head_ = "Type";
-  vector<shared_ptr<Node> > qualifiers_{};
-  vector<shared_ptr<Node> > base_{};
-  vector<shared_ptr<Node> > address_space_{};
+  vector<shared_ptr<Node>> qualifiers_{};
+  vector<shared_ptr<Node>> base_{};
+  vector<shared_ptr<Node>> address_space_{};
 };
 #endif /* __TYPE_H__ */

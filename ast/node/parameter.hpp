@@ -4,7 +4,9 @@
 
 class ParameterNode : public Node {
 public:
-  ParameterNode(const int &row, const int &col) : Node(row, col) {}
+  ParameterNode(const int &row, const int &col, const int &endrow,
+                const int &endcol, const string &raw)
+      : Node(row, col, endrow, endcol, raw) {}
   void setIdentifier(const shared_ptr<IdentifierNode> &id) { id_ = id; }
   void setType(const shared_ptr<TypeNode> &typ) { typ_ = typ; }
   shared_ptr<Node> getIdentifier() const { return id_; }

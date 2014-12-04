@@ -5,10 +5,13 @@
 
 class WhileNode : public Node {
 public:
-  WhileNode(const int &row, const int &col) : Node(row, col) {}
-  WhileNode(const int &row, const int &col, const shared_ptr<Node> &cond,
+  WhileNode(const int &row, const int &col, const int &endrow,
+            const int &endcol, const string &raw)
+      : Node(row, col, endrow, endcol, raw) {}
+  WhileNode(const int &row, const int &col, const int &endrow,
+            const int &endcol, const string &raw, const shared_ptr<Node> &cond,
             const shared_ptr<Node> &body)
-      : Node(row, col), cond_(cond), body_(body) {}
+      : Node(row, col, endrow, endcol, raw), cond_(cond), body_(body) {}
   string getHead() const { return head_; }
 
 private:

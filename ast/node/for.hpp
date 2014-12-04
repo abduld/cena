@@ -5,7 +5,9 @@
 
 class ForNode : public Node, public NodeAcceptor<ForNode> {
 public:
-  ForNode(const int &row, const int &col) : Node(row, col) {}
+  ForNode(const int &row, const int &col, const int &endrow, const int &endcol,
+          const string &raw)
+      : Node(row, col, endrow, endcol, raw) {}
   string getHead() const { return head_; }
   void setInit(const shared_ptr<Node> &nd) {
     init_ = nd;
@@ -24,7 +26,7 @@ public:
   }
   void setBody(const shared_ptr<Node> &nd) {
     if (body_ == nullptr) {
-      body_ = shared_ptr<BlockNode>(new BlockNode(row_, col_));
+      body_ = shared_ptr<BlockNode>(new BlockNode(row_, col_, endrow_, endcol_, raw_));
       body_->setParent(this);
       addChild(body_);
     }
@@ -52,8 +54,9 @@ public:
   Json toEsprima_() override {
     Json::object obj;
     obj["type"] = "ForStatement";
-    obj["line"] = row_;
-    obj["column"] = col_;
+    obj["loc"] = getLocation();
+    obj["raw"] = raw_;
+    obj["cform"] = toCCode();
     obj["init"] = init_->toEsprima_();
     obj["test"] = cond_->toEsprima_();
     obj["update"] = inc_->toEsprima_();
@@ -61,11 +64,11 @@ public:
     return obj;
   }
 
-  void traverse(ASTVisitor * visitor) override {
-      init_->traverse(visitor);
-      cond_->traverse(visitor);
-      inc_->traverse(visitor);
-      body_->traverse(visitor);
+  void traverse(ASTVisitor *visitor) override {
+    init_->traverse(visitor);
+    cond_->traverse(visitor);
+    inc_->traverse(visitor);
+    body_->traverse(visitor);
   }
 
 private:

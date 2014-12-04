@@ -5,7 +5,7 @@
 
 class ProgramNode : public CompoundNode {
 public:
-  ProgramNode() : CompoundNode(0, 0) {}
+  ProgramNode() : CompoundNode(0, 0, 0, 0, "") {}
   ~ProgramNode() {}
   string getHead() { return head_; }
   bool isProgram() const { return true; }
@@ -13,8 +13,9 @@ public:
     Json::object obj;
     std::vector<Json> lst;
     obj["type"] = "Program";
-    obj["line"] = row_;
-    obj["column"] = col_;
+    obj["loc"] = getLocation();
+    obj["raw"] = raw_;
+    obj["cform"] = toCCode();
     for (auto elem : vals_) {
       lst.push_back(elem->toEsprima_());
     }

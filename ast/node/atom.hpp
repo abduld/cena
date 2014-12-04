@@ -5,13 +5,16 @@
 
 template <typename T> class AtomNode : public Node {
 public:
-  AtomNode(const int &row, const int &col) : Node(row, col), init_(true) {}
-  AtomNode(const int &row, const int &col, const T &v)
-      : Node(row, col), init_(true) {
+  AtomNode(const int &row, const int &col, const int &endrow, const int &endcol,
+           const string &raw)
+      : Node(row, col, endrow, endcol, raw), init_(true) {}
+  AtomNode(const int &row, const int &col, const int &endrow, const int &endcol,
+           const string &raw, const T &v)
+      : Node(row, col, endrow, endcol, raw), init_(true) {
     val_ = v;
   }
-  vector<shared_ptr<Node> > getValues() {
-    vector<shared_ptr<Node> > vec;
+  vector<shared_ptr<Node>> getValues() {
+    vector<shared_ptr<Node>> vec;
     shared_ptr<Node> v(this);
     vec.push_back(v);
     return vec;
@@ -34,14 +37,15 @@ public:
   virtual Json toEsprima_() override {
     Json::object obj;
     obj["type"] = Json("Literal");
-    obj["line"] = row_;
-    obj["column"] = col_;
+    obj["loc"] = getLocation();
+    obj["raw"] = raw_;
+    obj["cform"] = toCCode();
     obj["value"] = toString();
     return obj;
   }
   bool hasChildren() const override { return false; }
-  vector<shared_ptr<Node> > getChildren() override {
-    return vector<shared_ptr<Node> >{};
+  vector<shared_ptr<Node>> getChildren() override {
+    return vector<shared_ptr<Node>>{};
   }
 
 private:
@@ -51,9 +55,12 @@ private:
 
 class BooleanNode : public AtomNode<bool>, public NodeAcceptor<BooleanNode> {
 public:
-  BooleanNode(const int &row, const int &col) : AtomNode<bool>(row, col) {}
-  BooleanNode(const int &row, const int &col, const bool &v)
-      : AtomNode<bool>(row, col, v) {}
+  BooleanNode(const int &row, const int &col, const int &endrow,
+              const int &endcol, const string &raw)
+      : AtomNode<bool>(row, col, endrow, endcol, raw) {}
+  BooleanNode(const int &row, const int &col, const int &endrow,
+              const int &endcol, const string &raw, const bool &v)
+      : AtomNode<bool>(row, col, endrow, endcol, raw, v) {}
   string getHead() const { return head_; }
   void toCCode_(ostringstream &o) { o << (getConstant() ? "true" : "false"); }
 
@@ -63,15 +70,17 @@ private:
 
 class SymbolNode : public AtomNode<string>, public NodeAcceptor<SymbolNode> {
 public:
-  SymbolNode(const int &row, const int &col) : AtomNode<string>(row, col) {}
-  SymbolNode(const int &row, const int &col, const string &v)
-      : AtomNode<string>(row, col, v) {}
-  SymbolNode(const int &row, const int &col, const char *v)
-      : AtomNode<string>(row, col, string(v)) {}
+  SymbolNode(const int &row, const int &col, const int &endrow,
+             const int &endcol, const string &raw)
+      : AtomNode<string>(row, col, endrow, endcol, raw) {}
+  SymbolNode(const int &row, const int &col, const int &endrow,
+             const int &endcol, const string &raw, const string &v)
+      : AtomNode<string>(row, col, endrow, endcol, raw, v) {}
+  SymbolNode(const int &row, const int &col, const int &endrow,
+             const int &endcol, const string &raw, const char *v)
+      : AtomNode<string>(row, col, endrow, endcol, raw, string(v)) {}
   string getHead() const { return head_; }
-  void traverse(ASTVisitor * visitor) override {
-	  accept(visitor);
-  }
+  void traverse(ASTVisitor *visitor) override { accept(visitor); }
 
 private:
   string head_ = "Symbol";
@@ -79,18 +88,19 @@ private:
 
 class StringNode : public AtomNode<string>, public NodeAcceptor<StringNode> {
 public:
-  StringNode(const int &row, const int &col) : AtomNode<string>(row, col) {}
-  StringNode(const int &row, const int &col, const string &v)
-      : AtomNode<string>(row, col, v) {}
-  StringNode(const int &row, const int &col, const char *v)
-      : AtomNode<string>(row, col, string(v)) {}
+  StringNode(const int &row, const int &col, const int &endrow,
+             const int &endcol, const string &raw)
+      : AtomNode<string>(row, col, endrow, endcol, raw) {}
+  StringNode(const int &row, const int &col, const int &endrow,
+             const int &endcol, const string &raw, const string &v)
+      : AtomNode<string>(row, col, endrow, endcol, raw, v) {}
+  StringNode(const int &row, const int &col, const int &endrow,
+             const int &endcol, const string &raw, const char *v)
+      : AtomNode<string>(row, col, endrow, endcol, raw, string(v)) {}
   string getHead() const { return head_; }
 
   void toCCode_(ostringstream &o) { o << "\"" << getConstant() << "\""; }
-  void traverse(ASTVisitor * visitor) override {
-	  accept(visitor);
-  }
-
+  void traverse(ASTVisitor *visitor) override { accept(visitor); }
 
 private:
   string head_ = "String";

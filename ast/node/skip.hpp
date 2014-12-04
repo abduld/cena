@@ -5,31 +5,26 @@
 
 class SkipStmtNode : public Node, public NodeAcceptor<SkipStmtNode> {
 public:
-  SkipStmtNode(const int &row, const int &col) : Node(row, col) {}
+  SkipStmtNode(const int &row, const int &col, const int &endrow,
+               const int &endcol, const string &raw)
+      : Node(row, col, endrow, endcol, raw) {}
   string getHead() const { return head_; }
 
-  void toCCode_(ostringstream &o) {
-  }
-  void toString_(ostringstream &o) {
-  }
+  void toCCode_(ostringstream &o) {}
+  void toString_(ostringstream &o) {}
   Json toEsprima_() override {
     Json::object obj{};
     return obj;
   }
-  void toJSON_(ostringstream &o) {  }
+  void toJSON_(ostringstream &o) {}
 
-  bool hasChildren() const override {
-    return false;
+  bool hasChildren() const override { return false; }
+  vector<shared_ptr<Node>> getChildren() override {
+    return vector<shared_ptr<Node>>{};
   }
-  vector<shared_ptr<Node> > getChildren() override {
-    return vector<shared_ptr<Node> >{};
-  }
-  void traverse(ASTVisitor * visitor) override {
-      accept(visitor);
-  }
-  bool isSkip() const override {
-  	return true;
-  }
+  void traverse(ASTVisitor *visitor) override { accept(visitor); }
+  bool isSkip() const override { return true; }
+
 private:
   string head_ = "Skip";
 };

@@ -4,10 +4,12 @@
 
 class BinaryOp : public StringNode {
 public:
-  BinaryOp(const int &row, const int &col, const char *s)
-      : StringNode(row, col, s) {}
-  BinaryOp(const int &row, const int &col, const string &s)
-      : StringNode(row, col, s) {}
+  BinaryOp(const int &row, const int &col, const int &endrow, const int &endcol,
+           const string &raw, const char *s)
+      : StringNode(row, col, endrow, endcol, raw, s) {}
+  BinaryOp(const int &row, const int &col, const int &endrow, const int &endcol,
+           const string &raw, const string &s)
+      : StringNode(row, col, endrow, endcol, raw, s) {}
   string getHead() const { return head_; }
   void toCCode_(ostringstream &o) { o << getConstant(); }
   void toString_(ostringstream &o) { toCCode_(o); }
@@ -16,19 +18,23 @@ private:
   string head_ = "BinaryOp";
 };
 
-class BinaryOperatorNode : public Node, public NodeAcceptor<BinaryOperatorNode> {
+class BinaryOperatorNode : public Node,
+                           public NodeAcceptor<BinaryOperatorNode> {
 public:
-  BinaryOperatorNode(const int &row, const int &col) : Node(row, col) {}
-  BinaryOperatorNode(const int &row, const int &col, const string &op,
+  BinaryOperatorNode(const int &row, const int &col, const int &endrow,
+                     const int &endcol, const string &raw)
+      : Node(row, col, endrow, endcol, raw) {}
+  BinaryOperatorNode(const int &row, const int &col, const int &endrow,
+                     const int &endcol, const string &raw, const string &op,
                      const shared_ptr<Node> &lhs, const shared_ptr<Node> &rhs)
-      : Node(row, col) {
-    op_ = shared_ptr<BinaryOp>(new BinaryOp(row_, col_, op));
+      : Node(row, col, endrow, endcol, raw) {
+    op_ = shared_ptr<BinaryOp>(new BinaryOp(row_, col_, endrow_, endcol_, raw_, op));
     lhs_ = lhs;
     rhs_ = rhs;
   }
   ~BinaryOperatorNode() {}
   void setOperator(const string &op) {
-    op_ = shared_ptr<BinaryOp>(new BinaryOp(row_, col_, op));
+    op_ = shared_ptr<BinaryOp>(new BinaryOp(row_, col_, endrow_, endcol_, op, op));
   }
   void setOperator(const shared_ptr<BinaryOp> &op) { op_ = op; }
   void setLHS(const shared_ptr<Node> &lhs) { lhs_ = lhs; }
@@ -62,8 +68,9 @@ public:
   Json toEsprima_() override {
     Json::object obj;
     obj["type"] = "BinaryExpression";
-    obj["line"] = row_;
-    obj["column"] = col_;
+    obj["loc"] = getLocation();
+    obj["raw"] = raw_;
+    obj["cform"] = toCCode();
     obj["left"] = lhs_->toEsprima_();
     obj["right"] = rhs_->toEsprima_();
     obj["operator"] = op_->toString();
@@ -74,33 +81,32 @@ public:
   bool hasChildren() const override {
     return lhs_ != nullptr || rhs_ != nullptr;
   }
-  vector<shared_ptr<Node> > getChildren() override {
+  vector<shared_ptr<Node>> getChildren() override {
     assert(op_ != nullptr);
     if (hasChildren() == false) {
-      return vector<shared_ptr<Node> >{};
+      return vector<shared_ptr<Node>>{};
     } else if (lhs_ != nullptr && rhs_ != nullptr) {
-      return vector<shared_ptr<Node> >{ lhs_, op_, rhs_ };
+      return vector<shared_ptr<Node>>{lhs_, op_, rhs_};
     } else if (lhs_ != nullptr) {
-      return vector<shared_ptr<Node> >{ lhs_, op_ };
+      return vector<shared_ptr<Node>>{lhs_, op_};
     } else if (rhs_ != nullptr) {
-      return vector<shared_ptr<Node> >{ rhs_, op_ };
+      return vector<shared_ptr<Node>>{rhs_, op_};
     } else {
       assert(false);
-      return vector<shared_ptr<Node> >{};
+      return vector<shared_ptr<Node>>{};
     }
   }
-  void traverse(ASTVisitor * visitor) override {
-      accept(visitor);
-      if (lhs_ != nullptr) {
-          lhs_->traverse(visitor);
-      }
-      if (op_ != nullptr) {
-          op_->traverse(visitor);
-      }
-      if (rhs_ != nullptr) {
-          rhs_->traverse(visitor);
-      }
-
+  void traverse(ASTVisitor *visitor) override {
+    accept(visitor);
+    if (lhs_ != nullptr) {
+      lhs_->traverse(visitor);
+    }
+    if (op_ != nullptr) {
+      op_->traverse(visitor);
+    }
+    if (rhs_ != nullptr) {
+      rhs_->traverse(visitor);
+    }
   }
 
 private:

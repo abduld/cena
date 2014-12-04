@@ -4,8 +4,9 @@
 
 class Pragma : public CompoundNode {
 public:
-  Pragma(const int &row, const int &col, const shared_ptr<Node> &node)
-      : CompoundNode(row, col) {
+  Pragma(const int &row, const int &col, const int &endrow, const int &endcol,
+         const string &raw, const shared_ptr<Node> &node)
+      : CompoundNode(row, col, endrow, endcol, raw) {
     push_back(node);
   }
   ~Pragma() {}

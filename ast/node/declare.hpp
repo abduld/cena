@@ -4,7 +4,9 @@
 
 class DeclareNode : public Node {
 public:
-  DeclareNode(const int &row, const int &col) : Node(row, col) {}
+  DeclareNode(const int &row, const int &col, const int &endrow,
+              const int &endcol, const string &raw)
+      : Node(row, col, endrow, endcol, raw) {}
   void setIdentifier(const shared_ptr<IdentifierNode> &id) { id_ = id; }
   void setType(const shared_ptr<TypeNode> &typ) { typ_ = typ; }
   void setInitializer(const shared_ptr<Node> &init) { init_ = init; }
@@ -42,24 +44,26 @@ public:
     Json::object obj;
     Json::object decl;
     decl["type"] = "VariableDeclarator";
-    decl["line"] = row_;
-    decl["column"] = col_;
+    decl["loc"] = getLocation();
+    decl["raw"] = raw_;
+    decl["cform"] = toCCode();
     decl["id"] = id_->toEsprima_();
     if (hasInitializer()) {
       decl["init"] = init_->toEsprima_();
     }
     obj["type"] = "VariableDeclaration";
-    obj["line"] = row_;
-    obj["column"] = col_;
-    obj["declarations"] = vector<Json>{ decl };
+    obj["loc"] = getLocation();
+    obj["raw"] = raw_;
+    obj["cform"] = toCCode();
+    obj["declarations"] = vector<Json>{decl};
     return obj;
   }
-  void traverse(ASTVisitor * visitor) override {
-      id_->traverse(visitor);
-      typ_->traverse(visitor);
-      if (hasInitializer()) {
-          init_->traverse(visitor);
-      }
+  void traverse(ASTVisitor *visitor) override {
+    id_->traverse(visitor);
+    typ_->traverse(visitor);
+    if (hasInitializer()) {
+      init_->traverse(visitor);
+    }
   }
 
 private:

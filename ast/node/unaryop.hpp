@@ -4,14 +4,14 @@
 
 class UnaryOp : public SymbolNode {
 public:
-  UnaryOp(const int &row, const int &col, const char *s)
-      : SymbolNode(row, col, s) {}
-  UnaryOp(const int &row, const int &col, const string &s)
-      : SymbolNode(row, col, s) {}
+  UnaryOp(const int &row, const int &col, const int &endrow, const int &endcol,
+          const string &raw, const char *s)
+      : SymbolNode(row, col, endrow, endcol, raw, s) {}
+  UnaryOp(const int &row, const int &col, const int &endrow, const int &endcol,
+          const string &raw, const string &s)
+      : SymbolNode(row, col, endrow, endcol, raw, s) {}
   string getHead() const { return head_; }
-  void traverse(ASTVisitor * visitor) override {
-      accept(visitor);
-  }
+  void traverse(ASTVisitor *visitor) override { accept(visitor); }
 
 private:
   string head_ = "UnaryOperator";
@@ -19,14 +19,16 @@ private:
 
 class UnaryOperatorNode : public Node {
 public:
-  UnaryOperatorNode(const int &row, const int &col) : Node(row, col) {}
-  UnaryOperatorNode(const int &row, const int &col, const string &op,
+  UnaryOperatorNode(const int &row, const int &col,const int &endrow, const int &endcol,
+          const string &raw) : Node(row, col, endrow, endcol, raw) {}
+  UnaryOperatorNode(const int &row, const int &col,const int &endrow, const int &endcol,
+          const string &raw, const string &op,
                     const shared_ptr<Node> &arg)
-      : Node(row, col), op_(shared_ptr<UnaryOp>(new UnaryOp(row, col, op))),
+      : Node(row, col, endrow, endcol, raw), op_(shared_ptr<UnaryOp>(new UnaryOp(row, col, endrow, endcol, raw, op))),
         arg_(arg) {}
   ~UnaryOperatorNode() {}
   void setOperator(const string &op) {
-    op_ = shared_ptr<UnaryOp>(new UnaryOp(row_, col_, op));
+    op_ = shared_ptr<UnaryOp>(new UnaryOp(row_, col_, endrow_, endcol_, op, op));
   }
   void setArg(const shared_ptr<Node> &arg) { arg_ = arg; }
 
@@ -53,15 +55,16 @@ public:
     Json::object obj;
     obj["type"] = "UnaryExpression";
     obj["prefix"] = true;
-    obj["line"] = row_;
-    obj["column"] = col_;
+    obj["loc"] = getLocation();
+    obj["raw"] = raw_;
+    obj["cform"] = toCCode();
     obj["operator"] = op_->toString();
     obj["argument"] = arg_->toEsprima();
     return obj;
   }
-  void traverse(ASTVisitor * visitor) override {
-      op_->traverse(visitor);
-      arg_->traverse(visitor);
+  void traverse(ASTVisitor *visitor) override {
+    op_->traverse(visitor);
+    arg_->traverse(visitor);
   }
 
 private:

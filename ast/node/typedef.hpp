@@ -4,10 +4,14 @@
 
 class TypeDefNode : public Node {
 public:
-  TypeDefNode(const int &row, const int &col) : Node(row, col) {}
-  TypeDefNode(const int &row, const int &col, const shared_ptr<TypeNode> &lhs,
+  TypeDefNode(const int &row, const int &col, const int &endrow,
+              const int &endcol, const string &raw)
+      : Node(row, col, endrow, endcol, raw) {}
+  TypeDefNode(const int &row, const int &col, const int &endrow,
+              const int &endcol, const string &raw,
+              const shared_ptr<TypeNode> &lhs,
               const shared_ptr<IdentifierNode> &rhs)
-      : Node(row, col), type_(lhs), alias_(rhs) {}
+      : Node(row, col, endrow, endcol, raw), type_(lhs), alias_(rhs) {}
   ~TypeDefNode() {}
   void setTypeNode(const shared_ptr<TypeNode> &lhs) { type_ = lhs; }
   void setName(const shared_ptr<IdentifierNode> &rhs) { alias_ = rhs; }

@@ -5,16 +5,22 @@
 
 static string ToCCode(const shared_ptr<Node> &nd) { return nd->toCCode(); }
 
-static vector<string> ToCCode(const vector<shared_ptr<Node> > &nds) {
+static vector<string> ToCCode(const vector<shared_ptr<Node>> &nds) {
   vector<string> trgt;
   trgt.resize(nds.size());
   transform(nds.begin(), nds.end(), trgt.begin(),
             [](shared_ptr<Node> nd) { return ToCCode(nd); });
   return trgt;
 }
+template <typename T>
+static string convertToString(const T &nd) { 
+  ostringstream o;
+  o << nd;
+  return o.str();
+}
 
 static string ToString(const shared_ptr<Node> &nd) { return nd->toString(); }
-static vector<string> ToString(const vector<shared_ptr<Node> > &nds) {
+static vector<string> ToString(const vector<shared_ptr<Node>> &nds) {
   vector<string> trgt;
   trgt.resize(nds.size());
   transform(nds.begin(), nds.end(), trgt.begin(),

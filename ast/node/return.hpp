@@ -4,9 +4,12 @@
 
 class ReturnNode : public Node {
 public:
-  ReturnNode(const int &row, const int &col) : Node(row, col) {}
-  ReturnNode(const int &row, const int &col, const shared_ptr<Node> &nd)
-      : Node(row, col) {
+  ReturnNode(const int &row, const int &col, const int &endrow,
+             const int &endcol, const string &raw)
+      : Node(row, col, endrow, endcol, raw) {}
+  ReturnNode(const int &row, const int &col, const int &endrow,
+             const int &endcol, const string &raw, const shared_ptr<Node> &nd)
+      : Node(row, col, endrow, endcol, raw) {
     setReturnValue(nd);
   }
   ~ReturnNode() {}
@@ -32,16 +35,17 @@ public:
   Json toEsprima_() override {
     Json::object obj;
     obj["type"] = "ReturnStatement";
-    obj["line"] = row_;
-    obj["column"] = col_;
+    obj["loc"] = getLocation();
+    obj["raw"] = raw_;
+    obj["cform"] = toCCode();
     if (ret_ != nullptr) {
       obj["argument"] = ret_->toEsprima_();
     }
     return obj;
   }
-  void traverse(ASTVisitor * visitor) override {
+  void traverse(ASTVisitor *visitor) override {
     if (ret_ != nullptr) {
-        ret_->traverse(visitor);
+      ret_->traverse(visitor);
     }
   }
 

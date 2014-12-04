@@ -5,7 +5,9 @@
 
 class Statement : public CompoundNode {
 public:
-  Statement(const int &row, const int &col) : CompoundNode(row, col) {}
+  Statement(const int &row, const int &col, const int &endrow,
+            const int &endcol, const string &raw)
+      : CompoundNode(row, col, endrow, endcol, raw) {}
   ~Statement() {}
   bool isStatement() const { return true; }
   string getHead() const { return head_; }

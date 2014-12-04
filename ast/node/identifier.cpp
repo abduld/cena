@@ -4,8 +4,9 @@
 Json IdentifierNode::toEsprima_() {
   Json::object obj;
   obj["type"] = "Identifier";
-  obj["line"] = row_;
-  obj["column"] = col_;
+    obj["loc"] = getLocation();
+    obj["raw"] = raw_;
+    obj["cform"] = toCCode();
   obj["name"] = getName();
   if (typ_ != nullptr) {
     obj["kind"] = typ_->toEsprima_();

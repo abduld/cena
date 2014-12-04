@@ -19,7 +19,7 @@ public:
   virtual void accept(ASTVisitor *visitor) {
     visitor->visit(static_cast<Derived *>(this));
   }
-  virtual void traverse(ASTVisitor *visitor) {} ;
+  virtual void traverse(ASTVisitor *visitor){};
 };
 
 #endif /* __VISITOR_H__ */

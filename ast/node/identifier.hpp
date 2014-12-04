@@ -6,17 +6,22 @@ class TypeNode;
 
 class IdentifierNode : public virtual SymbolNode {
 public:
-  IdentifierNode(const int &row, const int &col)
-      : SymbolNode(row, col, "unknownid") {}
-  IdentifierNode(const int &row, const int &col, const string &v)
-      : SymbolNode(row, col, v) {}
-  IdentifierNode(const int &row, const int &col,
+  IdentifierNode(const int &row, const int &col, const int &endrow,
+                 const int &endcol, const string &raw)
+      : SymbolNode(row, col, endrow, endcol, raw, "unknownid") {}
+  IdentifierNode(const int &row, const int &col, const int &endrow,
+                 const int &endcol, const string &raw, const string &v)
+      : SymbolNode(row, col, endrow, endcol, raw, v) {}
+  IdentifierNode(const int &row, const int &col, const int &endrow,
+                 const int &endcol, const string &raw,
                  const shared_ptr<StringNode> &s)
-      : SymbolNode(row, col) {
+      : SymbolNode(row, col, endrow, endcol, raw) {
     setName(s);
   }
-  IdentifierNode(const int &row, const int &col, const shared_ptr<Node> &s)
-      : SymbolNode(row, col) {
+  IdentifierNode(const int &row, const int &col, const int &endrow,
+                 const int &endcol, const string &raw,
+                 const shared_ptr<Node> &s)
+      : SymbolNode(row, col, endrow, endcol, raw) {
     setName(s);
   }
   void setName(const string &name) { setConstant(name); }
@@ -42,7 +47,8 @@ public:
   virtual void toString_(ostringstream &o) { o << getConstant(); }
   virtual void toJSON_(ostringstream &o) { toCCode_(o); }
   virtual Json toEsprima_() override;
-  void traverse(ASTVisitor * visitor) override;
+  void traverse(ASTVisitor *visitor) override;
+
 private:
   string head_ = "Identifier";
   shared_ptr<TypeNode> typ_ = nullptr;

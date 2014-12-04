@@ -4,10 +4,13 @@
 
 class MemberNode : public Node, public NodeAcceptor<MemberNode> {
 public:
-  MemberNode(const int &row, const int &col) : Node(row, col) {}
-  MemberNode(const int &row, const int &col, const shared_ptr<Node> &lhs,
+  MemberNode(const int &row, const int &col, const int &endrow,
+             const int &endcol, const string &raw)
+      : Node(row, col, endrow, endcol, raw) {}
+  MemberNode(const int &row, const int &col, const int &endrow,
+             const int &endcol, const string &raw, const shared_ptr<Node> &lhs,
              const shared_ptr<Node> &rhs)
-      : Node(row, col), lhs_(lhs), rhs_(rhs) {}
+      : Node(row, col, endrow, endcol, raw), lhs_(lhs), rhs_(rhs) {}
   ~MemberNode() {}
   void setLHS(const shared_ptr<Node> &lhs) {
     lhs_ = lhs;
@@ -17,7 +20,7 @@ public:
     rhs_ = rhs;
     rhs_->setParent(this);
   }
-  void setIsArrow(const bool & val = true) {
+  void setIsArrow(const bool &val = true) {
     isArrow_ = val;
     rhs_->setParent(this);
   }
@@ -28,33 +31,34 @@ public:
   void toCCode_(ostringstream &o) override {
     lhs_->toCCode_(o);
     if (isArrow_) {
-    o << "->";
-  } else {
-    o << ".";
-  }
+      o << "->";
+    } else {
+      o << ".";
+    }
     rhs_->toCCode_(o);
     return;
   }
   void toString_(ostringstream &o) override {
     lhs_->toString_(o);
     if (isArrow_) {
-    o << "->";
-  } else {
-    o << ".";
-  }
+      o << "->";
+    } else {
+      o << ".";
+    }
     rhs_->toString_(o);
     return;
   }
   Json toEsprima_() override {
     Json::object obj;
     obj["type"] = "MemberExpression";
-    obj["line"] = row_;
-    obj["column"] = col_;
+    obj["loc"] = getLocation();
+    obj["raw"] = raw_;
+    obj["cform"] = toCCode();
     if (isArrow_) {
-    obj["operator"] = "->";
-  } else {
-    obj["operator"] = ".";
-  }
+      obj["operator"] = "->";
+    } else {
+      obj["operator"] = ".";
+    }
     obj["left"] = lhs_->toEsprima_();
     obj["right"] = rhs_->toEsprima_();
     return Json(obj);
@@ -64,18 +68,18 @@ public:
   bool hasChildren() const override {
     return lhs_ != nullptr || rhs_ != nullptr;
   }
-  vector<shared_ptr<Node> > getChildren() override {
+  vector<shared_ptr<Node>> getChildren() override {
     if (hasChildren() == false) {
-      return vector<shared_ptr<Node> >{};
+      return vector<shared_ptr<Node>>{};
     } else if (lhs_ != nullptr && rhs_ != nullptr) {
-      return vector<shared_ptr<Node> >{ lhs_, rhs_ };
+      return vector<shared_ptr<Node>>{lhs_, rhs_};
     } else if (lhs_ != nullptr) {
-      return vector<shared_ptr<Node> >{ lhs_ };
+      return vector<shared_ptr<Node>>{lhs_};
     } else if (rhs_ != nullptr) {
-      return vector<shared_ptr<Node> >{ rhs_ };
+      return vector<shared_ptr<Node>>{rhs_};
     } else {
       assert(false);
-      return vector<shared_ptr<Node> >{};
+      return vector<shared_ptr<Node>>{};
     }
   }
 

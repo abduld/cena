@@ -5,13 +5,14 @@
 
 class RealNode : public AtomNode<double>, public NodeAcceptor<RealNode> {
 public:
-  RealNode(const int &row, const int &col) : AtomNode<double>(row, col) {}
-  RealNode(const int &row, const int &col, const double &v)
-      : AtomNode<double>(row, col, v) {}
+  RealNode(const int &row, const int &col, const int &endrow, const int &endcol,
+           const string &raw)
+      : AtomNode<double>(row, col, endrow, endcol, raw) {}
+  RealNode(const int &row, const int &col, const int &endrow, const int &endcol,
+           const string &raw, const double &v)
+      : AtomNode<double>(row, col, endrow, endcol, raw, v) {}
   string getHead() { return head_; }
-  void traverse(ASTVisitor * visitor) override {
-      accept(visitor);
-  }
+  void traverse(ASTVisitor *visitor) override { accept(visitor); }
 
 private:
   string head_ = "Real";

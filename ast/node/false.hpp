@@ -4,7 +4,9 @@
 
 class False : public Keyword {
 public:
-  False(const int &row, const int &col) : Keyword(row, col, "False") {}
+  False(const int &row, const int &col, const int &endrow, const int &endcol,
+        const string &raw)
+      : Keyword(row, col, endrow, endcol, raw, "False") {}
   ~False() {}
 };
 

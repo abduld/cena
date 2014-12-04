@@ -5,8 +5,12 @@
 
 class ReferenceNode : public Node {
 public:
-  ReferenceNode(const int &line, const int &col) : Node(line, col) {}
-  ReferenceNode(const int &line, const int &col, const shared_ptr<Node> &typ)
+  ReferenceNode(const int &line, const int &col, const int &endrow,
+                const int &endcol, const string &raw)
+      : Node(line, col) {}
+  ReferenceNode(const int &line, const int &col, const int &endrow,
+                const int &endcol, const string &raw,
+                const shared_ptr<Node> &typ)
       : Node(line, col) {
     type_ = typ;
   }
@@ -32,8 +36,9 @@ public:
   Json toEsprima_() override {
     Json::object obj;
     obj["type"] = "ReferenceExpression";
-    obj["line"] = row_;
-    obj["column"] = col_;
+    obj["loc"] = getLocation();
+    obj["raw"] = raw_;
+    obj["cform"] = toCCode();
     obj["value"] = type_->toEsprima_();
     return obj;
   }
