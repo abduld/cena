@@ -28,13 +28,15 @@ public:
                      const int &endcol, const string &raw, const string &op,
                      const shared_ptr<Node> &lhs, const shared_ptr<Node> &rhs)
       : Node(row, col, endrow, endcol, raw) {
-    op_ = shared_ptr<BinaryOp>(new BinaryOp(row_, col_, endrow_, endcol_, raw_, op));
+    op_ = shared_ptr<BinaryOp>(
+        new BinaryOp(row_, col_, endrow_, endcol_, raw_, op));
     lhs_ = lhs;
     rhs_ = rhs;
   }
   ~BinaryOperatorNode() {}
   void setOperator(const string &op) {
-    op_ = shared_ptr<BinaryOp>(new BinaryOp(row_, col_, endrow_, endcol_, op, op));
+    op_ = shared_ptr<BinaryOp>(
+        new BinaryOp(row_, col_, endrow_, endcol_, op, op));
   }
   void setOperator(const shared_ptr<BinaryOp> &op) { op_ = op; }
   void setLHS(const shared_ptr<Node> &lhs) { lhs_ = lhs; }

@@ -7,14 +7,16 @@ public:
   FunctionNode(const int &row, const int &col, const int &endrow,
                const int &endcol, const string &raw)
       : Node(row, col, endrow, endcol, raw),
-        body_(shared_ptr<BlockNode>(new BlockNode(row, col, endrow, endcol, raw))) {}
+        body_(shared_ptr<BlockNode>(
+            new BlockNode(row, col, endrow, endcol, raw))) {}
   void setReturnType(const shared_ptr<TypeNode> &typ) { ret_ = typ; }
   shared_ptr<TypeNode> getReturnType() const { return ret_; }
   void setName(const shared_ptr<IdentifierNode> &id) { name_ = id; }
   shared_ptr<IdentifierNode> getName() const { return name_; }
   void addParameter(const shared_ptr<Node> &nd) {
     if (params_ == nullptr) {
-      params_ = shared_ptr<CompoundNode>(new CompoundNode(row_, col_, endrow_, endcol_, raw_));
+      params_ = shared_ptr<CompoundNode>(
+          new CompoundNode(row_, col_, endrow_, endcol_, raw_));
     }
     *params_ <<= nd;
   }

@@ -4,7 +4,8 @@ include(ast/node/sources.cmake)
 get_filename_component(CurrentDirectory "${CMAKE_CURRENT_LIST_FILE}" PATH)
 
 file(GLOB THESE_CPP_FILES
-    ${CurrentDirectory}/*.cpp
+    ${
+  CurrentDirectory}/*.cpp
 )
 
 file(GLOB THESE_TEST_FILES

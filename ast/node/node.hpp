@@ -19,7 +19,7 @@ public:
     o << "unkown(" << this->getHead() << ")";
   }
   Json getLocation() {
-    
+
     Json::object obj;
     Json::object start;
     Json::object end;

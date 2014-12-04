@@ -4,10 +4,11 @@
 
 class AssignNode : public Node, public NodeAcceptor<AssignNode> {
 public:
-  AssignNode(const int &row, const int &col, const int &endrow, const int &endcol,
-           const string &raw) : Node(row, col, endrow, endcol, raw) {}
-  AssignNode(const int &row, const int &col, const int &endrow, const int &endcol,
-           const string &raw, const shared_ptr<Node> &lhs,
+  AssignNode(const int &row, const int &col, const int &endrow,
+             const int &endcol, const string &raw)
+      : Node(row, col, endrow, endcol, raw) {}
+  AssignNode(const int &row, const int &col, const int &endrow,
+             const int &endcol, const string &raw, const shared_ptr<Node> &lhs,
              const shared_ptr<Node> &rhs)
       : Node(row, col, endrow, endcol, raw), lhs_(lhs), rhs_(rhs) {}
   ~AssignNode() {}

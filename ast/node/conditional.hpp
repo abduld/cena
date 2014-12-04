@@ -17,10 +17,12 @@ public:
     then_->setParent(this);
   }
   ConditionalNode(const int &row, const int &col, const int &endrow,
-                  const int &endcol, const string &raw, const shared_ptr<Node> &cond,
+                  const int &endcol, const string &raw,
+                  const shared_ptr<Node> &cond,
                   const shared_ptr<Node> &thenPart,
                   const shared_ptr<Node> &elsePart)
-      : Node(row, col, endrow, endcol, raw), cond_(cond), then_(thenPart), else_(elsePart) {
+      : Node(row, col, endrow, endcol, raw), cond_(cond), then_(thenPart),
+        else_(elsePart) {
     cond_->setParent(this);
     then_->setParent(this);
     else_->setParent(this);

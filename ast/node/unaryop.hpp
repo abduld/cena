@@ -19,16 +19,20 @@ private:
 
 class UnaryOperatorNode : public Node {
 public:
-  UnaryOperatorNode(const int &row, const int &col,const int &endrow, const int &endcol,
-          const string &raw) : Node(row, col, endrow, endcol, raw) {}
-  UnaryOperatorNode(const int &row, const int &col,const int &endrow, const int &endcol,
-          const string &raw, const string &op,
+  UnaryOperatorNode(const int &row, const int &col, const int &endrow,
+                    const int &endcol, const string &raw)
+      : Node(row, col, endrow, endcol, raw) {}
+  UnaryOperatorNode(const int &row, const int &col, const int &endrow,
+                    const int &endcol, const string &raw, const string &op,
                     const shared_ptr<Node> &arg)
-      : Node(row, col, endrow, endcol, raw), op_(shared_ptr<UnaryOp>(new UnaryOp(row, col, endrow, endcol, raw, op))),
+      : Node(row, col, endrow, endcol, raw),
+        op_(shared_ptr<UnaryOp>(
+            new UnaryOp(row, col, endrow, endcol, raw, op))),
         arg_(arg) {}
   ~UnaryOperatorNode() {}
   void setOperator(const string &op) {
-    op_ = shared_ptr<UnaryOp>(new UnaryOp(row_, col_, endrow_, endcol_, op, op));
+    op_ =
+        shared_ptr<UnaryOp>(new UnaryOp(row_, col_, endrow_, endcol_, op, op));
   }
   void setArg(const shared_ptr<Node> &arg) { arg_ = arg; }
 

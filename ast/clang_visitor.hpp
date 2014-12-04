@@ -37,17 +37,18 @@ using namespace clang;
                                                                                \
   OPERATOR(PostInc) OPERATOR(PostDec) OPERATOR(PreInc) OPERATOR(PreDec)        \
       OPERATOR(AddrOf) OPERATOR(Deref) OPERATOR(Plus) OPERATOR(Minus)          \
-      OPERATOR(Not) OPERATOR(LNot) OPERATOR(Real) OPERATOR(Imag)               \
-      OPERATOR(Extension)
+          OPERATOR(Not) OPERATOR(LNot) OPERATOR(Real) OPERATOR(Imag)           \
+              OPERATOR(Extension)
 
 // All binary operators (excluding compound assign operators).
 #define BINOP_LIST()                                                           \
                                                                                \
   OPERATOR(PtrMemD) OPERATOR(PtrMemI) OPERATOR(Mul) OPERATOR(Div)              \
       OPERATOR(Rem) OPERATOR(Add) OPERATOR(Sub) OPERATOR(Shl) OPERATOR(Shr)    \
-      OPERATOR(LT) OPERATOR(GT) OPERATOR(LE) OPERATOR(GE) OPERATOR(EQ)         \
-      OPERATOR(NE) OPERATOR(And) OPERATOR(Xor) OPERATOR(Or) OPERATOR(LAnd)     \
-      OPERATOR(LOr) OPERATOR(Assign) OPERATOR(Comma)
+          OPERATOR(LT) OPERATOR(GT) OPERATOR(LE) OPERATOR(GE) OPERATOR(EQ)     \
+              OPERATOR(NE) OPERATOR(And) OPERATOR(Xor) OPERATOR(Or)            \
+                  OPERATOR(LAnd) OPERATOR(LOr) OPERATOR(Assign)                \
+                      OPERATOR(Comma)
 
 // All compound assign operators.
 #define CAO_LIST()                                                             \
@@ -68,8 +69,8 @@ public:
   bool TraverseWhileStmt(WhileStmt *stmt);
   bool TraverseForStmt(ForStmt *stmt);
   bool TraverseIfStmt(IfStmt *stmt);
-bool TraverseArraySubscriptExpr(ArraySubscriptExpr * E);
-  bool TraverseConditionalOperator(ConditionalOperator * E);
+  bool TraverseArraySubscriptExpr(ArraySubscriptExpr *E);
+  bool TraverseConditionalOperator(ConditionalOperator *E);
   bool TraverseCompoundStmt(CompoundStmt *stmt);
 #define OPERATOR(NAME) bool TraverseUnary##NAME(UnaryOperator *E);
   UNARYOP_LIST()
@@ -92,7 +93,7 @@ bool TraverseArraySubscriptExpr(ArraySubscriptExpr * E);
   bool TraverseDeclRefExpr(DeclRefExpr *E);
   bool TraverseMemberExpr(MemberExpr *E);
   bool TraverseCallExpr(CallExpr *E);
-  bool TraverseCUDAKernelCallExpr(CUDAKernelCallExpr * E);
+  bool TraverseCUDAKernelCallExpr(CUDAKernelCallExpr *E);
   bool TraverseImplicitCastExpr(ImplicitCastExpr *Node);
   bool TraverseIntegerLiteral(IntegerLiteral *E);
   bool TraverseCharacterLiteral(CharacterLiteral *E);
@@ -103,7 +104,7 @@ bool TraverseArraySubscriptExpr(ArraySubscriptExpr * E);
   bool TraverseCXXBindTemporaryExpr(CXXBindTemporaryExpr *E);
   bool TraverseParmVarDecl(ParmVarDecl *decl);
   bool TraverseParenExpr(ParenExpr *E);
-bool TraverseNullStmt(NullStmt * Stmt);
+  bool TraverseNullStmt(NullStmt *Stmt);
 
   bool TraverseMaterializeTemporaryExpr(MaterializeTemporaryExpr *nd);
 

@@ -20,49 +20,56 @@ public:
   virtual bool isCompound() const { return true; }
   virtual bool isEmpty() const { return getArgCount() == 0; }
   CompoundNode *operator<<=(const bool &val) {
-    shared_ptr<BooleanNode> var(new BooleanNode(row_, col_, endrow_, endcol_, val ? "true" : "false", val));
+    shared_ptr<BooleanNode> var(new BooleanNode(row_, col_, endrow_, endcol_,
+                                                val ? "true" : "false", val));
     var->setParent(this);
     addChild(var);
     vals_.push_back(var);
     return this;
   }
   CompoundNode &operator<<=(const int &val) {
-    shared_ptr<IntegerNode> var(new IntegerNode(row_, col_, endrow_, endcol_, convertToString(val), val));
+    shared_ptr<IntegerNode> var(new IntegerNode(row_, col_, endrow_, endcol_,
+                                                convertToString(val), val));
     var->setParent(this);
     addChild(var);
     vals_.push_back(var);
     return *this;
   }
   CompoundNode &operator<<=(const int64_t &val) {
-    shared_ptr<IntegerNode> var(new IntegerNode(row_, col_,endrow_, endcol_, convertToString(val), val));
+    shared_ptr<IntegerNode> var(new IntegerNode(row_, col_, endrow_, endcol_,
+                                                convertToString(val), val));
     var->setParent(this);
     addChild(var);
     vals_.push_back(var);
     return *this;
   }
   CompoundNode &operator<<=(const float &val) {
-    shared_ptr<RealNode> var(new RealNode(row_, col_, endrow_, endcol_, convertToString(val), val));
+    shared_ptr<RealNode> var(
+        new RealNode(row_, col_, endrow_, endcol_, convertToString(val), val));
     var->setParent(this);
     addChild(var);
     vals_.push_back(var);
     return *this;
   }
   CompoundNode &operator<<=(const double &val) {
-    shared_ptr<RealNode> var(new RealNode(row_, col_, endrow_, endcol_, convertToString(val), val));
+    shared_ptr<RealNode> var(
+        new RealNode(row_, col_, endrow_, endcol_, convertToString(val), val));
     var->setParent(this);
     addChild(var);
     vals_.push_back(var);
     return *this;
   }
   CompoundNode &operator<<=(const char *val) {
-    shared_ptr<StringNode> var(new StringNode(row_, col_, endrow_, endcol_, convertToString(val), val));
+    shared_ptr<StringNode> var(new StringNode(row_, col_, endrow_, endcol_,
+                                              convertToString(val), val));
     var->setParent(this);
     addChild(var);
     vals_.push_back(var);
     return *this;
   }
   CompoundNode &operator<<=(const string &val) {
-    shared_ptr<StringNode> var(new StringNode(row_, col_, endrow_, endcol_, convertToString(val), val));
+    shared_ptr<StringNode> var(new StringNode(row_, col_, endrow_, endcol_,
+                                              convertToString(val), val));
     var->setParent(this);
     addChild(var);
     vals_.push_back(var);
@@ -184,9 +191,9 @@ public:
       Json::object obj;
       vector<Json> args;
       obj["type"] = "ArrayExpression";
-    obj["loc"] = getLocation();
-    obj["raw"] = raw_;
-    obj["cform"] = toCCode();
+      obj["loc"] = getLocation();
+      obj["raw"] = raw_;
+      obj["cform"] = toCCode();
       obj["elements"] = lst;
       return obj;
     } else {

@@ -11,21 +11,24 @@ public:
                const int &endcol, const string &raw,
                const shared_ptr<IdentifierNode> &fun,
                const vector<shared_ptr<Node>> &args)
-      : Node(row, col, endrow, endcol, raw), fun_(fun), args_(new CompoundNode(row, col, endrow, endcol, raw, args)) {}
+      : Node(row, col, endrow, endcol, raw), fun_(fun),
+        args_(new CompoundNode(row, col, endrow, endcol, raw, args)) {}
   ~CUDACallNode() {}
   shared_ptr<IdentifierNode> getFunction() const { return fun_; }
   vector<shared_ptr<Node>> getArgs() const { return args_->getValues(); }
   void setFunction(const shared_ptr<IdentifierNode> &fun) { fun_ = fun; }
   void addArg(const shared_ptr<Node> &nd) {
     if (args_ == nullptr) {
-      args_ = shared_ptr<CompoundNode>(new CompoundNode(row_, col_, endrow_, endcol_, raw_));
+      args_ = shared_ptr<CompoundNode>(
+          new CompoundNode(row_, col_, endrow_, endcol_, raw_));
       args_->setParent(this);
     }
     args_->push_back(nd);
   }
   void addConfig(const shared_ptr<Node> &nd) {
     if (config_ == nullptr) {
-      config_ = shared_ptr<CompoundNode>(new CompoundNode(row_, col_, endrow_, endcol_, raw_));
+      config_ = shared_ptr<CompoundNode>(
+          new CompoundNode(row_, col_, endrow_, endcol_, raw_));
       config_->setParent(this);
     }
     config_->push_back(nd);

@@ -12,8 +12,7 @@ static vector<string> ToCCode(const vector<shared_ptr<Node>> &nds) {
             [](shared_ptr<Node> nd) { return ToCCode(nd); });
   return trgt;
 }
-template <typename T>
-static string convertToString(const T &nd) { 
+template <typename T> static string convertToString(const T &nd) {
   ostringstream o;
   o << nd;
   return o.str();

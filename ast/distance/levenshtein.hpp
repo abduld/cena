@@ -56,9 +56,8 @@ static int levenshtein_distance1(const char *s, const size_t &m, const char *t,
 static int levenshtein_distance(const char *s, const size_t &m, const char *t,
                                 const size_t &n) {
 
-
-  vector<int> prev(n+1);
-  vector<int> curr(n+1);
+  vector<int> prev(n + 1);
+  vector<int> curr(n + 1);
   for (int ii = 1; ii <= n; ii++) {
     prev[ii] = ii;
   }
@@ -66,13 +65,13 @@ static int levenshtein_distance(const char *s, const size_t &m, const char *t,
     curr[0] = ii + 1;
     for (int jj = 0; jj < n; jj++) {
       int cost = s[ii] == t[jj] ? 0 : 1;
-      //std::cout << s[ii] << " =  " << t[jj] << " " << cost << std::endl;
-      curr[jj + 1] =
-          std::min(
-          std::min(curr[jj] + 1//deletion
-            , prev[jj + 1] + 1)//insersion
-              , prev[jj] + cost//substitution
-              );
+      // std::cout << s[ii] << " =  " << t[jj] << " " << cost << std::endl;
+      curr[jj + 1] = std::min(std::min(curr[jj] + 1 // deletion
+                                       ,
+                                       prev[jj + 1] + 1) // insersion
+                              ,
+                              prev[jj] + cost // substitution
+                              );
     }
     curr.swap(prev);
     /*

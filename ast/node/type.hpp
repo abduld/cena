@@ -14,17 +14,20 @@ public:
     addBase(typ);
   }
   void addQualifyer(const string &qual) {
-    addQualifyer(shared_ptr<SymbolNode>(new SymbolNode(row_, col_, endrow_, endcol_, qual,  qual)));
+    addQualifyer(shared_ptr<SymbolNode>(
+        new SymbolNode(row_, col_, endrow_, endcol_, qual, qual)));
   }
   void addQualifyer(const shared_ptr<Node> &qual) {
     qualifiers_.push_back(qual);
   }
   void addBase(const string &base) {
-    addBase(shared_ptr<SymbolNode>(new SymbolNode(row_, col_, endrow_, endcol_, base, base)));
+    addBase(shared_ptr<SymbolNode>(
+        new SymbolNode(row_, col_, endrow_, endcol_, base, base)));
   }
   void addBase(const shared_ptr<Node> &base) { base_.push_back(base); }
   void addAddressSpace(const string &addr) {
-    addAddressSpace(shared_ptr<SymbolNode>(new SymbolNode(row_, col_, endrow_, endcol_, addr, addr)));
+    addAddressSpace(shared_ptr<SymbolNode>(
+        new SymbolNode(row_, col_, endrow_, endcol_, addr, addr)));
   }
   void addAddressSpace(const shared_ptr<Node> &addr) {
     address_space_.push_back(addr);

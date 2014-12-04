@@ -3,16 +3,16 @@
 #include "levenshtein.hpp"
 
 #define TEST0(a, b, expected)                                                  \
-	{int dist = levenshtein_distance(a, b);\
-  if (dist != expected) {                                \
-    std::cerr << "TEST FAILED:: Distance(" << a << ", " << b       \
-              << ") = " << dist << " and not " << expected    \
-              << std::endl;                                                    \
-  } else {                                                                     \
-    std::cout << "Passed Distance(" << a << ", " << b << ") = " << expected        \
-              << std::endl;                                                    \
-  }\
-}
+  {                                                                            \
+    int dist = levenshtein_distance(a, b);                                     \
+    if (dist != expected) {                                                    \
+      std::cerr << "TEST FAILED:: Distance(" << a << ", " << b                 \
+                << ") = " << dist << " and not " << expected << std::endl;     \
+    } else {                                                                   \
+      std::cout << "Passed Distance(" << a << ", " << b << ") = " << expected  \
+                << std::endl;                                                  \
+    }                                                                          \
+  }
 #define TEST(a, b, expected) TEST0(string(a), string(b), expected)
 int main() {
 

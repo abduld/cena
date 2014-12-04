@@ -26,7 +26,8 @@ public:
   }
   void setBody(const shared_ptr<Node> &nd) {
     if (body_ == nullptr) {
-      body_ = shared_ptr<BlockNode>(new BlockNode(row_, col_, endrow_, endcol_, raw_));
+      body_ = shared_ptr<BlockNode>(
+          new BlockNode(row_, col_, endrow_, endcol_, raw_));
       body_->setParent(this);
       addChild(body_);
     }
