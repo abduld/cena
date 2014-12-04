@@ -36,7 +36,7 @@ public:
     obj["type"] = Json("Literal");
     obj["line"] = row_;
     obj["column"] = col_;
-    obj["value"] = o.str();
+    obj["value"] = toString();
     return obj;
   }
   bool hasChildren() const override { return false; }
