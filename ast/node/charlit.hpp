@@ -17,6 +17,15 @@ public:
   }
   void traverse(ASTVisitor *visitor) override { accept(visitor); }
 
+  virtual Json toEsprima_() override {
+    Json::object obj;
+    obj["type"] = Json("CharLiteral");
+    obj["loc"] = getLocation();
+    obj["raw"] = raw_;
+    obj["cform"] = toCCode();
+    obj["value"] = getConstant();
+    return obj;
+  }
 private:
   string head_ = "Character";
 };

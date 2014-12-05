@@ -63,6 +63,15 @@ public:
       : AtomNode<bool>(row, col, endrow, endcol, raw, v) {}
   string getHead() const { return head_; }
   void toCCode_(ostringstream &o) { o << (getConstant() ? "true" : "false"); }
+  virtual Json toEsprima_() override {
+    Json::object obj;
+    obj["type"] = Json("BooleanLiteral");
+    obj["loc"] = getLocation();
+    obj["raw"] = raw_;
+    obj["cform"] = toCCode();
+    obj["value"] = toCCode();
+    return obj;
+  }
 
 private:
   string head_ = "Boolean";
@@ -101,6 +110,15 @@ public:
 
   void toCCode_(ostringstream &o) { o << "\"" << getConstant() << "\""; }
   void traverse(ASTVisitor *visitor) override { accept(visitor); }
+  virtual Json toEsprima_() override {
+    Json::object obj;
+    obj["type"] = Json("StringLiteral");
+    obj["loc"] = getLocation();
+    obj["raw"] = raw_;
+    obj["cform"] = toCCode();
+    obj["value"] = toCCode();
+    return obj;
+  }
 
 private:
   string head_ = "String";

@@ -41,7 +41,23 @@ static shared_ptr<Node> toNode(const ASTContext *ctx, const SourceManager &SM,
   PresumedLoc ploc = SM.getPresumedLoc(loc);
   PresumedLoc plocend = SM.getPresumedLoc(locend);
   string raw = getRaw(ctx, SM, loc, locend);
-  if (ii.getBitWidth() <= 64) {
+  if (ii.getBitWidth() == 8) {
+    return shared_ptr<Integer8Node>(
+        new Integer8Node(ploc.getLine(), ploc.getColumn(), plocend.getLine(),
+                        plocend.getColumn(), raw, ii.getSExtValue()));
+    } else if (ii.getBitWidth() == 16) {
+    return shared_ptr<Integer16Node>(
+        new Integer16Node(ploc.getLine(), ploc.getColumn(), plocend.getLine(),
+                        plocend.getColumn(), raw, ii.getSExtValue()));
+    } else if (ii.getBitWidth() <= 32) {
+    return shared_ptr<Integer32Node>(
+        new Integer32Node(ploc.getLine(), ploc.getColumn(), plocend.getLine(),
+                        plocend.getColumn(), raw, ii.getSExtValue()));
+    } else if (ii.getBitWidth() == 64) {
+    return shared_ptr<Integer64Node>(
+        new Integer64Node(ploc.getLine(), ploc.getColumn(), plocend.getLine(),
+                        plocend.getColumn(), raw, ii.getSExtValue()));
+  } else if (ii.getBitWidth() <= 64) {
     return shared_ptr<IntegerNode>(
         new IntegerNode(ploc.getLine(), ploc.getColumn(), plocend.getLine(),
                         plocend.getColumn(), raw, ii.getSExtValue()));

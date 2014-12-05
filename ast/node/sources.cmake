@@ -3,8 +3,7 @@ get_filename_component(CurrentDirectory "${CMAKE_CURRENT_LIST_FILE}" PATH)
 MESSAGE( STATUS "Current directory = ${CurrentDirectory}")
 
 file(GLOB THESE_CPP_FILES
-    ${
-  CurrentDirectory}/*.cpp
+    ${CurrentDirectory}/*.cpp
 )
 
 file(GLOB THESE_TEST_FILES
