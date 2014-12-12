@@ -47,6 +47,7 @@ public:
     decl["loc"] = getLocation();
     decl["raw"] = raw_;
     decl["cform"] = toCCode();
+    decl["kind"] = typ_->toEsprima_();
     decl["id"] = id_->toEsprima_();
     if (hasInitializer()) {
       decl["init"] = init_->toEsprima_();
