@@ -6,9 +6,7 @@ class FunctionNode : public Node {
 public:
   FunctionNode(const int &row, const int &col, const int &endrow,
                const int &endcol, const string &raw)
-      : Node(row, col, endrow, endcol, raw), params_(nullptr),
-        body_(shared_ptr<BlockNode>(
-            new BlockNode(row, col, endrow, endcol, raw))) {}
+      : Node(row, col, endrow, endcol, raw), params_(nullptr) {}
   void setReturnType(const shared_ptr<TypeNode> &typ) { ret_ = typ; }
   shared_ptr<TypeNode> getReturnType() const { return ret_; }
   void setName(const shared_ptr<IdentifierNode> &id) { name_ = id; }
@@ -21,8 +19,17 @@ public:
     *params_ <<= nd;
   }
   void addAttribute(const string &str) { attributes_.push_back(str); }
-  void setBody(const shared_ptr<BlockNode> &blk) { body_ = blk; }
+  void setBody(const shared_ptr<BlockNode> &blk) { 
+    body_ = blk;
+  }
   shared_ptr<BlockNode> getBody() const { return body_; }
+  shared_ptr<BlockNode> getOrInitBody() {
+    if (body_ == nullptr) {
+      body_ = shared_ptr<BlockNode>(
+            new BlockNode(row_, col_, endrow_, endcol_, raw_));
+    }
+    return body_;
+  }
 
   void toCCode_(ostringstream &o) {
     assert(ret_ != nullptr);
@@ -41,6 +48,8 @@ public:
     o << ")";
     if (body_ != nullptr) {
       body_->toCCode_(o);
+    } else {
+      o << ";\n";
     }
   }
   void toString_(ostringstream &o) {

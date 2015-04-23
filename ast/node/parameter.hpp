@@ -31,6 +31,9 @@ public:
   Json toEsprima_() override {
     Json::object obj;
     obj["type"] = "ParameterExpression";
+    if (typ_ != nullptr) {
+      obj["kind"] = typ_->toEsprima_();
+    }
     obj["data"] = id_->toEsprima_();
     return obj;
   }

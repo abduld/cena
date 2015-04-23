@@ -371,7 +371,7 @@ bool SVisitor::TraverseFunctionDecl(FunctionDecl *decl) {
     func->addParameter(current_node);
   }
   if (decl->doesThisDeclarationHaveABody()) {
-    shared_ptr<BlockNode> body = func->getBody();
+    shared_ptr<BlockNode> body = func->getOrInitBody();
     current_node = body;
     // decl->getBody()->dumpColor();
     SVisitor::TraverseStmt(decl->getBody());
