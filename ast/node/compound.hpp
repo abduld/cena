@@ -17,9 +17,9 @@ public:
                const vector<shared_ptr<Node>> &vals)
       : Node(row, col, endrow, endcol, raw), vals_(vals) {}
   virtual ~CompoundNode() { vals_.clear(); }
-  virtual bool isCompound() const { return true; }
-  virtual bool isEmpty() const { return getArgCount() == 0; }
-  CompoundNode *operator<<=(const bool &val) {
+  virtual bool isCompound() const override { return true; }
+  virtual bool isEmpty() const override  { return getArgCount() == 0; }
+  CompoundNode *operator<<=(const bool &val) override {
     shared_ptr<BooleanNode> var(new BooleanNode(row_, col_, endrow_, endcol_,
                                                 val ? "true" : "false", val));
     var->setParent(this);
@@ -27,7 +27,7 @@ public:
     vals_.push_back(var);
     return this;
   }
-  CompoundNode &operator<<=(const int &val) {
+  CompoundNode &operator<<=(const int &val) override {
     shared_ptr<IntegerNode> var(new IntegerNode(row_, col_, endrow_, endcol_,
                                                 convertToString(val), val));
     var->setParent(this);
@@ -35,7 +35,7 @@ public:
     vals_.push_back(var);
     return *this;
   }
-  CompoundNode &operator<<=(const int64_t &val) {
+  CompoundNode &operator<<=(const int64_t &val) override {
     shared_ptr<IntegerNode> var(new IntegerNode(row_, col_, endrow_, endcol_,
                                                 convertToString(val), val));
     var->setParent(this);
@@ -43,7 +43,7 @@ public:
     vals_.push_back(var);
     return *this;
   }
-  CompoundNode &operator<<=(const float &val) {
+  CompoundNode &operator<<=(const float &val) override {
     shared_ptr<RealNode> var(
         new RealNode(row_, col_, endrow_, endcol_, convertToString(val), val));
     var->setParent(this);
@@ -51,7 +51,7 @@ public:
     vals_.push_back(var);
     return *this;
   }
-  CompoundNode &operator<<=(const double &val) {
+  CompoundNode &operator<<=(const double &val) override {
     shared_ptr<RealNode> var(
         new RealNode(row_, col_, endrow_, endcol_, convertToString(val), val));
     var->setParent(this);
@@ -59,7 +59,7 @@ public:
     vals_.push_back(var);
     return *this;
   }
-  CompoundNode &operator<<=(const char *val) {
+  CompoundNode &operator<<=(const char *val) override {
     shared_ptr<StringNode> var(new StringNode(row_, col_, endrow_, endcol_,
                                               convertToString(val), val));
     var->setParent(this);
@@ -67,7 +67,7 @@ public:
     vals_.push_back(var);
     return *this;
   }
-  CompoundNode &operator<<=(const string &val) {
+  CompoundNode &operator<<=(const string &val) override {
     shared_ptr<StringNode> var(new StringNode(row_, col_, endrow_, endcol_,
                                               convertToString(val), val));
     var->setParent(this);
@@ -75,7 +75,7 @@ public:
     vals_.push_back(var);
     return *this;
   }
-  CompoundNode &operator<<=(const shared_ptr<Node> &c) {
+  CompoundNode &operator<<=(const shared_ptr<Node> &c) override {
     if (!vals_.empty() && vals_.back() == c) {
       return *this;
     }
@@ -145,9 +145,9 @@ public:
     return;
   }
   virtual string getHead() const override { return head_; }
-  vector<shared_ptr<Node>> getValues() { return vals_; }
+  vector<shared_ptr<Node>> getValues() override { return vals_; }
 
-  virtual void toCCode_(ostringstream &o) {
+  virtual void toCCode_(ostringstream &o) override {
     auto vals = getValues();
     auto len = vals.size();
     if (isBlock()) {
@@ -180,7 +180,7 @@ public:
       o << "}";
     }
   }
-  virtual Json toEsprima_() {
+  virtual Json toEsprima_() override {
 
     std::vector<Json> lst;
     for (auto elem : vals_) {
@@ -200,7 +200,7 @@ public:
       return Json(lst);
     }
   }
-  virtual void toString_(ostringstream &o) {
+  virtual void toString_(ostringstream &o) override {
     auto vals = getValues();
     auto len = vals.size();
     if (isBlock()) {

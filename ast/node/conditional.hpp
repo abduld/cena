@@ -40,7 +40,7 @@ public:
     else_ = nd;
     else_->setParent(this);
   }
-  void toCCode_(ostringstream &o) {
+  void toCCode_(ostringstream &o) override {
     assert(cond_ != nullptr);
     assert(then_ != nullptr);
     ;
@@ -50,7 +50,7 @@ public:
     o << " : ";
     else_->toCCode_(o);
   }
-  void toString_(ostringstream &o) {
+  void toString_(ostringstream &o) override {
 
     assert(cond_ != nullptr);
     assert(then_ != nullptr);
@@ -60,7 +60,7 @@ public:
     o << " : ";
     else_->toString_(o);
   }
-  bool isBlock() const { return true; }
+  bool isBlock() const override { return true; }
   void toJSON_(ostringstream &o) { o << "{\"type\": \"unknown\"}"; }
   Json toEsprima_() override {
     Json::object obj;

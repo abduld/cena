@@ -9,8 +9,8 @@ public:
             const int &endcol, const string &raw)
       : CompoundNode(row, col, endrow, endcol, raw) {}
   ~Statement() {}
-  bool isStatement() const { return true; }
-  string getHead() const { return head_; }
+  bool isStatement() const override { return true; }
+  string getHead() const override { return head_; }
 
 private:
   string head_ = "Statement";

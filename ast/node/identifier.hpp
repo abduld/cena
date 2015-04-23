@@ -41,11 +41,11 @@ public:
   shared_ptr<TypeNode> getType() const { return typ_; }
   bool isHidden() const { return hidden_; }
   void isHidden(bool val) { hidden_ = val; }
-  string getHead() const { return head_; }
+  string getHead() const override { return head_; }
 
-  virtual void toCCode_(ostringstream &o) { o << getConstant(); }
-  virtual void toString_(ostringstream &o) { o << getConstant(); }
-  virtual void toJSON_(ostringstream &o) { toCCode_(o); }
+  virtual void toCCode_(ostringstream &o) override { o << getConstant(); }
+  virtual void toString_(ostringstream &o) override { o << getConstant(); }
+  virtual void toJSON_(ostringstream &o) override { toCCode_(o); }
   virtual Json toEsprima_() override;
   void traverse(ASTVisitor *visitor) override;
 

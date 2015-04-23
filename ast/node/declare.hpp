@@ -14,9 +14,9 @@ public:
   shared_ptr<Node> getType() const { return typ_; }
   shared_ptr<Node> getInitializer() const { return init_; }
   bool hasInitializer() const { return init_ != nullptr; }
-  string getHead() const { return head_; }
+  string getHead() const override { return head_; }
 
-  void toCCode_(ostringstream &o) {
+  void toCCode_(ostringstream &o) override {
     assert(typ_ != nullptr);
     assert(id_ != nullptr);
     typ_->toCCode_(o);
@@ -27,7 +27,7 @@ public:
       init_->toCCode_(o);
     }
   }
-  void toString_(ostringstream &o) {
+  void toString_(ostringstream &o) override {
 
     assert(typ_ != nullptr);
     assert(id_ != nullptr);

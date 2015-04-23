@@ -33,8 +33,8 @@ public:
     }
     config_->push_back(nd);
   }
-  string getHead() const { return head_; }
-  void toCCode_(ostringstream &o) {
+  string getHead() const override { return head_; }
+  void toCCode_(ostringstream &o) override {
     fun_->toCCode_(o);
     o << "<<<";
     if (config_ != nullptr) {
@@ -47,7 +47,7 @@ public:
     }
     o << ")";
   }
-  void toString_(ostringstream &o) {
+  void toString_(ostringstream &o) override {
     fun_->toString_(o);
     o << "<<<";
     if (config_ != nullptr) {
@@ -98,7 +98,7 @@ public:
     }
   }
 
-  void traverse(ASTVisitor *visitor) {
+  void traverse(ASTVisitor *visitor) override {
     accept(visitor);
     fun_->traverse(visitor);
     args_->traverse(visitor);

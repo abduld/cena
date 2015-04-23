@@ -11,7 +11,7 @@ public:
         const string &raw, const shared_ptr<Node> &node)
       : Node(row, col, endrow, endcol, raw), trgt_(node) {}
   ~Break() {}
-  string getHead() const { return head_; }
+  string getHead() const override { return head_; }
   void setTarget(const shared_ptr<Node> &nd) { trgt_ = nd; }
   shared_ptr<Node> getTarget() const { return trgt_; }
 

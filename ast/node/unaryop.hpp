@@ -10,7 +10,7 @@ public:
   UnaryOp(const int &row, const int &col, const int &endrow, const int &endcol,
           const string &raw, const string &s)
       : SymbolNode(row, col, endrow, endcol, raw, s) {}
-  string getHead() const { return head_; }
+  string getHead() const override { return head_; }
   void traverse(ASTVisitor *visitor) override { accept(visitor); }
 
 private:
@@ -38,16 +38,16 @@ public:
 
   shared_ptr<UnaryOp> getOperator() const { return op_; }
   shared_ptr<Node> getArg() const { return arg_; }
-  string getHead() const { return head_; }
+  string getHead() const override { return head_; }
 
-  void toCCode_(ostringstream &o) {
+  void toCCode_(ostringstream &o) override {
     assert(arg_ != nullptr);
     assert(op_ != nullptr);
     op_->toCCode_(o);
     o << " ";
     arg_->toCCode_(o);
   }
-  void toString_(ostringstream &o) {
+  void toString_(ostringstream &o) override {
     assert(arg_ != nullptr);
     assert(op_ != nullptr);
     op_->toString_(o);

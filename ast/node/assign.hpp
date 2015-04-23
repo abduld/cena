@@ -46,7 +46,7 @@ public:
     obj["right"] = rhs_->toEsprima_();
     return Json(obj);
   }
-  Json toJSON_() { return toEsprima_(); }
+  Json toJSON_() override { return toEsprima_(); }
 
   bool hasChildren() const override {
     return lhs_ != nullptr || rhs_ != nullptr;

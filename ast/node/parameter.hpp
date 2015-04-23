@@ -11,16 +11,16 @@ public:
   void setType(const shared_ptr<TypeNode> &typ) { typ_ = typ; }
   shared_ptr<Node> getIdentifier() const { return id_; }
   shared_ptr<Node> getType() const { return typ_; }
-  string getHead() const { return head_; }
+  string getHead() const override { return head_; }
 
-  void toCCode_(ostringstream &o) {
+  void toCCode_(ostringstream &o) override {
     assert(typ_ != nullptr);
     assert(id_ != nullptr);
     typ_->toCCode_(o);
     o << " ";
     id_->toCCode_(o);
   }
-  void toString_(ostringstream &o) {
+  void toString_(ostringstream &o) override {
 
     assert(typ_ != nullptr);
     assert(id_ != nullptr);

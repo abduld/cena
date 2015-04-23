@@ -13,20 +13,20 @@ public:
       : Node(row, col, endrow, endcol, raw), init_(true) {
     val_ = v;
   }
-  vector<shared_ptr<Node>> getValues() {
+  vector<shared_ptr<Node>> getValues() override {
     vector<shared_ptr<Node>> vec;
     shared_ptr<Node> v(this);
     vec.push_back(v);
     return vec;
   }
-  static bool isAtomNode() { return true; }
+  bool isAtom() const override { return true; }
   void setConstant(const T &val) { val_ = val; }
   T getConstant() const { return val_; }
-  virtual void toCCode_(ostringstream &o) {
+  virtual void toCCode_(ostringstream &o) override {
     // std::cout << getHead() << "   ::  " << getConstant() << std::endl;
     o << getConstant();
   }
-  virtual void toString_(ostringstream &o) {
+  virtual void toString_(ostringstream &o) override {
     if (init_) {
       toCCode_(o);
     } else {
@@ -61,8 +61,8 @@ public:
   BooleanNode(const int &row, const int &col, const int &endrow,
               const int &endcol, const string &raw, const bool &v)
       : AtomNode<bool>(row, col, endrow, endcol, raw, v) {}
-  string getHead() const { return head_; }
-  void toCCode_(ostringstream &o) { o << (getConstant() ? "true" : "false"); }
+  string getHead() const override  { return head_; }
+  void toCCode_(ostringstream &o) override { o << (getConstant() ? "true" : "false"); }
   virtual Json toEsprima_() override {
     Json::object obj;
     obj["type"] = Json("BooleanLiteral");
@@ -88,7 +88,7 @@ public:
   SymbolNode(const int &row, const int &col, const int &endrow,
              const int &endcol, const string &raw, const char *v)
       : AtomNode<string>(row, col, endrow, endcol, raw, string(v)) {}
-  string getHead() const { return head_; }
+  string getHead() const override  { return head_; }
   void traverse(ASTVisitor *visitor) override { accept(visitor); }
 
 private:
@@ -106,9 +106,9 @@ public:
   StringNode(const int &row, const int &col, const int &endrow,
              const int &endcol, const string &raw, const char *v)
       : AtomNode<string>(row, col, endrow, endcol, raw, string(v)) {}
-  string getHead() const { return head_; }
+  string getHead() const override { return head_; }
 
-  void toCCode_(ostringstream &o) { o << "\"" << getConstant() << "\""; }
+  void toCCode_(ostringstream &o) override { o << "\"" << getConstant() << "\""; }
   void traverse(ASTVisitor *visitor) override { accept(visitor); }
   virtual Json toEsprima_() override {
     Json::object obj;

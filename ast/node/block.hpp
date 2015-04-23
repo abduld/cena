@@ -13,8 +13,8 @@ public:
     push_back(nd);
   }
   ~BlockNode() {}
-  string getHead() const { return head_; }
-  bool isBlock() const { return true; }
+  string getHead() const override { return head_; }
+  bool isBlock() const override { return true; }
   Json toEsprima_() override {
     Json::object obj;
     vector<Json> body;

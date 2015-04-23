@@ -11,7 +11,7 @@ public:
   IntegerNode(const int &row, const int &col, const int &endrow,
               const int &endcol, const string &raw, const int64_t &v)
       : AtomNode<int64_t>(row, col, endrow, endcol, raw, v) {}
-  string getHead() const { return head_; }
+  string getHead() const override  { return head_; }
   void traverse(ASTVisitor *visitor) override { accept(visitor); }
 
   virtual Json toEsprima_() override {
@@ -36,7 +36,7 @@ public:
   Integer8Node(const int &row, const int &col, const int &endrow,
               const int &endcol, const string &raw, const int64_t &v)
       : AtomNode<int8_t>(row, col, endrow, endcol, raw, v) {}
-  string getHead() const { return head_; }
+  string getHead() const override  { return head_; }
   void traverse(ASTVisitor *visitor) override { accept(visitor); }
 
   virtual Json toEsprima_() override {
@@ -61,7 +61,7 @@ public:
   Integer16Node(const int &row, const int &col, const int &endrow,
               const int &endcol, const string &raw, const int64_t &v)
       : AtomNode<int16_t>(row, col, endrow, endcol, raw, v) {}
-  string getHead() const { return head_; }
+  string getHead() const  override  { return head_; }
   void traverse(ASTVisitor *visitor) override { accept(visitor); }
 
   virtual Json toEsprima_() override {
@@ -86,7 +86,7 @@ public:
   Integer32Node(const int &row, const int &col, const int &endrow,
               const int &endcol, const string &raw, const int64_t &v)
       : AtomNode<int32_t>(row, col, endrow, endcol, raw, v) {}
-  string getHead() const { return head_; }
+  string getHead() const override  { return head_; }
   void traverse(ASTVisitor *visitor) override { accept(visitor); }
 
   virtual Json toEsprima_() override {
@@ -110,7 +110,7 @@ public:
   Integer64Node(const int &row, const int &col, const int &endrow,
               const int &endcol, const string &raw, const int64_t &v)
       : AtomNode<int64_t>(row, col, endrow, endcol, raw, v) {}
-  string getHead() const { return head_; }
+  string getHead() const override { return head_; }
   void traverse(ASTVisitor *visitor) override { accept(visitor); }
 
   virtual Json toEsprima_() override {

@@ -74,5 +74,10 @@ using std::transform;
 #include "member.hpp"
 #include "conditional.hpp"
 #include "subscript.hpp"
+#include "goto.hpp"
+#include "case.hpp"
+#include "switch.hpp"
+#include "default.hpp"
+#include "label.hpp"
 
 #endif /* __AST_H__ */

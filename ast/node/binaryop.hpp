@@ -10,9 +10,9 @@ public:
   BinaryOp(const int &row, const int &col, const int &endrow, const int &endcol,
            const string &raw, const string &s)
       : StringNode(row, col, endrow, endcol, raw, s) {}
-  string getHead() const { return head_; }
-  void toCCode_(ostringstream &o) { o << getConstant(); }
-  void toString_(ostringstream &o) { toCCode_(o); }
+  string getHead() const override { return head_; }
+  void toCCode_(ostringstream &o) override { o << getConstant(); }
+  void toString_(ostringstream &o) override { toCCode_(o); }
 
 private:
   string head_ = "BinaryOp";
@@ -47,7 +47,7 @@ public:
   shared_ptr<Node> setRHS() const { return rhs_; }
   string getHead() { return head_; }
 
-  void toCCode_(ostringstream &o) {
+  void toCCode_(ostringstream &o) override {
     assert(lhs_ != nullptr);
     assert(rhs_ != nullptr);
     assert(op_ != nullptr);
@@ -57,7 +57,7 @@ public:
     o << " ";
     rhs_->toCCode_(o);
   }
-  void toString_(ostringstream &o) {
+  void toString_(ostringstream &o) override {
     assert(lhs_ != nullptr);
     assert(rhs_ != nullptr);
     assert(op_ != nullptr);

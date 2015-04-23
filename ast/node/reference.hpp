@@ -14,8 +14,8 @@ public:
       : Node(line, col) {
     type_ = typ;
   }
-  string getHead() const { return head_; }
-  void toCCode_(ostringstream &o) {
+  string getHead() const override { return head_; }
+  void toCCode_(ostringstream &o) override {
     if (dynamic_cast<TypeNode>(type_.get())) {
       toCCode_(o);
       o << "*";
@@ -24,7 +24,7 @@ public:
       toCCode_(o);
     }
   }
-  void toString_(ostringstream &o) {
+  void toString_(ostringstream &o) override {
     if (dynamic_cast<TypeNode>(type_.get())) {
       toString_(o);
       o << "*";

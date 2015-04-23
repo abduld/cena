@@ -11,7 +11,7 @@ public:
   RealNode(const int &row, const int &col, const int &endrow, const int &endcol,
            const string &raw, const double &v)
       : AtomNode<double>(row, col, endrow, endcol, raw, v) {}
-  string getHead() { return head_; }
+  string getHead() const override { return head_; }
   void traverse(ASTVisitor *visitor) override { accept(visitor); }
 
 private:

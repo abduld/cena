@@ -11,7 +11,7 @@ public:
   Dereference(const int &row, const int &col, const int &endrow,
               const int &endcol, const string &raw, const shared_ptr<Node> &typ)
       : Node(row, col, endrow, endcol, raw), typ_(typ) {}
-  string getHead() const { return head_; }
+  string getHead() const override { return head_; }
 
 private:
   string head_ = "Dereference";

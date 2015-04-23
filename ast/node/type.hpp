@@ -57,7 +57,7 @@ public:
     return obj;
   }
 
-  virtual void toCCode_(ostringstream &o) {
+  virtual void toCCode_(ostringstream &o) override {
     for (auto addr : address_space_) {
       addr->toCCode_(o);
       if (addr != *address_space_.end()) {
@@ -77,9 +77,9 @@ public:
       }
     }
   }
-  virtual void toString_(ostringstream &o) { toCCode_(o); }
+  virtual void toString_(ostringstream &o) override { toCCode_(o); }
   virtual void toJSON_(ostringstream &o) { o << "{\"type\": \"unknown\"}"; }
-  virtual string getHead() const { return head_; }
+  virtual string getHead() const override  { return head_; }
   void traverse(ASTVisitor *visitor) override {
     for (auto addr : address_space_) {
       addr->traverse(visitor);

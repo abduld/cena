@@ -38,7 +38,7 @@ public:
     obj["expression"] = body_->toEsprima_();
     return Json(obj);
   }
-  Json toJSON_() { return toEsprima_(); }
+  Json toJSON_() override { return toEsprima_(); }
 
   bool hasChildren() const override { return body_ != nullptr; }
   vector<shared_ptr<Node>> getChildren() override {

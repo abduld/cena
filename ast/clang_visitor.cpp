@@ -367,7 +367,7 @@ bool SVisitor::TraverseFunctionDecl(FunctionDecl *decl) {
   unsigned paramCount = decl->getNumParams();
   std::cout << "paramCount = " << paramCount << std::endl;
   for (unsigned i = 0; i < paramCount; i++) {
-    TraverseDecl(decl->getParamDecl(i));
+    SVisitor::TraverseDecl(decl->getParamDecl(i));
     func->addParameter(current_node);
   }
   if (decl->doesThisDeclarationHaveABody()) {
@@ -563,13 +563,13 @@ bool SVisitor::TraverseConditionalOperator(ConditionalOperator *E) {
       new ConditionalNode(loc.getLine(), loc.getColumn(), locend.getLine(),
                           locend.getColumn(), raw));
   current_node = nd;
-  TraverseStmt(E->getCond());
+  SVisitor::TraverseStmt(E->getCond());
   nd->setCondition(current_node);
   current_node = nd;
-  TraverseStmt(E->getLHS());
+  SVisitor::TraverseStmt(E->getLHS());
   nd->setThen(current_node);
   current_node = nd;
-  TraverseStmt(E->getRHS());
+  SVisitor::TraverseStmt(E->getRHS());
   nd->setElse(current_node);
   current_node = nd;
   return true;
@@ -585,10 +585,10 @@ bool SVisitor::TraverseArraySubscriptExpr(ArraySubscriptExpr *E) {
                                                  locend.getLine(),
                                                  locend.getColumn(), raw));
   current_node = nd;
-  TraverseStmt(E->getLHS());
+  SVisitor::TraverseStmt(E->getLHS());
   nd->setLHS(current_node);
   current_node = nd;
-  TraverseStmt(E->getRHS());
+  SVisitor::TraverseStmt(E->getRHS());
   nd->setRHS(current_node);
   current_node = nd;
   return true;
@@ -867,7 +867,7 @@ bool SVisitor::TraverseCXXBindTemporaryExpr(CXXBindTemporaryExpr *E) {
   PresumedLoc locend = SM.getPresumedLoc(E->getLocEnd());
   string raw = getRaw(ctx, SM, E->getLocStart(), E->getLocEnd());
 
-  TraverseStmt(temp);
+  SVisitor::TraverseStmt(temp);
   return true;
 }
 bool SVisitor::TraverseCXXConstructExpr(CXXConstructExpr *E) {
@@ -898,12 +898,12 @@ bool SVisitor::TraverseCXXConstructExpr(CXXConstructExpr *E) {
 
 bool SVisitor::TraverseMaterializeTemporaryExpr(MaterializeTemporaryExpr *nd) {
   // nd->dumpColor();
-  TraverseStmt(nd->GetTemporaryExpr());
+  SVisitor::TraverseStmt(nd->GetTemporaryExpr());
   return true;
 }
 
 bool SVisitor::TraverseImplicitCastExpr(ImplicitCastExpr *nd) {
-  TraverseStmt(nd->getSubExpr());
+  SVisitor::TraverseStmt(nd->getSubExpr());
   return true;
 }
 
@@ -935,7 +935,7 @@ bool SVisitor::TraverseParenExpr(ParenExpr *E) {
   PresumedLoc locend = SM.getPresumedLoc(E->getLocEnd());
   string raw = getRaw(ctx, SM, E->getLocStart(), E->getLocEnd());
 
-  TraverseStmt(E->getSubExpr());
+  SVisitor::TraverseStmt(E->getSubExpr());
   current_node = shared_ptr<ParenNode>(
       new ParenNode(loc.getLine(), loc.getColumn(), locend.getLine(),
                     locend.getColumn(), raw, current_node));
@@ -951,6 +951,43 @@ bool SVisitor::TraverseNullStmt(NullStmt *stmt) {
                        locend.getColumn(), raw));
   return true;
 }
+
+
+  bool SVisitor::TraverseCaseStmt(CaseStmt *stmt) {
+    return true;
+  }
+  bool SVisitor::TraverseDefaultStmt(DefaultStmt *stmt) {
+  return true;
+
+  }
+  bool SVisitor::TraverseGotoStmt(GotoStmt *stmt) {
+  return true;
+
+  }
+  bool SVisitor::TraverseSwitchStmt(SwitchStmt *stmt) {
+  return true;
+
+  }
+  bool SVisitor::TraverseLabelStmt(LabelStmt *stmt) {
+
+  PresumedLoc loc = SM.getPresumedLoc(stmt->getLocStart());
+  PresumedLoc locend = SM.getPresumedLoc(stmt->getLocEnd());
+  string raw = getRaw(ctx, SM, stmt->getLocStart(), stmt->getLocEnd());
+
+ shared_ptr<LabelNode> labelStmt = shared_ptr<LabelNode>(
+      new LabelNode(loc.getLine(), loc.getColumn(), locend.getLine(),
+                       locend.getColumn(), raw));
+  current_node = labelStmt;
+  SVisitor::TraverseDecl(stmt->getDecl());
+  labelStmt->setLabel(current_node);
+  current_node = labelStmt;
+  SVisitor::TraverseStmt(stmt->getSubStmt());
+  labelStmt->setBody(current_node);
+
+  current_node = labelStmt;
+  return true;
+
+  }
 void SVisitor::addCurrent() {
   *prog_ <<= current_node;
   current_node = prog_;

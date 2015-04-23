@@ -106,6 +106,12 @@ public:
   bool TraverseParenExpr(ParenExpr *E);
   bool TraverseNullStmt(NullStmt *Stmt);
 
+  bool TraverseCaseStmt(CaseStmt *Stmt);
+  bool TraverseDefaultStmt(DefaultStmt *Stmt);
+  bool TraverseGotoStmt(GotoStmt *Stmt);
+  bool TraverseSwitchStmt(SwitchStmt *Stmt);
+  bool TraverseLabelStmt(LabelStmt *Stmt);
+
   bool TraverseMaterializeTemporaryExpr(MaterializeTemporaryExpr *nd);
 
   void addCurrent();

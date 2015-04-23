@@ -8,7 +8,7 @@ public:
   ForNode(const int &row, const int &col, const int &endrow, const int &endcol,
           const string &raw)
       : Node(row, col, endrow, endcol, raw) {}
-  string getHead() const { return head_; }
+  string getHead() const override { return head_; }
   void setInit(const shared_ptr<Node> &nd) {
     init_ = nd;
     init_->setParent(this);
@@ -33,7 +33,7 @@ public:
     }
     *body_ <<= nd;
   }
-  void toCCode_(ostringstream &o) {
+  void toCCode_(ostringstream &o) override {
     o << "for (";
     if (init_ != nullptr) {
       init_->toCCode_(o);
@@ -49,8 +49,8 @@ public:
     o << ") ";
     body_->toCCode_(o);
   }
-  void toString_(ostringstream &o) { toCCode_(o); }
-  bool isBlock() const { return true; }
+  void toString_(ostringstream &o) override { toCCode_(o); }
+  bool isBlock() const override { return true; }
   void toJSON_(ostringstream &o) { o << "{\"type\": \"unknown\"}"; }
   Json toEsprima_() override {
     Json::object obj;

@@ -31,7 +31,7 @@ public:
     return body_;
   }
 
-  void toCCode_(ostringstream &o) {
+  void toCCode_(ostringstream &o) override {
     assert(ret_ != nullptr);
     assert(name_ != nullptr);
     for (auto attr : attributes_) {
@@ -52,7 +52,7 @@ public:
       o << ";\n";
     }
   }
-  void toString_(ostringstream &o) {
+  void toString_(ostringstream &o) override {
     assert(ret_ != nullptr);
     assert(name_ != nullptr);
     for (auto attr : attributes_) {
@@ -71,7 +71,7 @@ public:
       body_->toString_(o);
     }
   }
-  Json toEsprima_() {
+  Json toEsprima_() override {
     Json::object obj;
     obj["type"] = "Function";
     obj["loc"] = getLocation();

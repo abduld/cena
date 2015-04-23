@@ -13,7 +13,7 @@ public:
   ~SizeOfNode() {}
   void setArg(const shared_ptr<Node> &arg) { arg_ = arg; }
   shared_ptr<Node> getArg() const { return arg_; }
-  string getHead() const { return head_; }
+  string getHead() const override { return head_; }
 
 private:
   string head_ = "SizeOf";

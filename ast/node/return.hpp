@@ -15,16 +15,16 @@ public:
   ~ReturnNode() {}
   void setReturnValue(const shared_ptr<Node> &arg) { ret_ = arg; }
   shared_ptr<Node> getReturnValue() const { return ret_; }
-  string getHead() const { return head_; }
-  bool isStatement() const { return true; }
-  void toCCode_(ostringstream &o) {
+  string getHead() const override { return head_; }
+  bool isStatement() const override { return true; }
+  void toCCode_(ostringstream &o) override {
     o << "return";
     if (ret_ != nullptr) {
       o << " ";
       ret_->toCCode_(o);
     }
   }
-  void toString_(ostringstream &o) {
+  void toString_(ostringstream &o) override {
     o << "return";
     if (ret_ != nullptr) {
       o << " ";

@@ -17,7 +17,7 @@ public:
   void setName(const shared_ptr<IdentifierNode> &rhs) { alias_ = rhs; }
   shared_ptr<Node> getTypeNode() const { return type_; }
   shared_ptr<Node> getName() const { return alias_; }
-  string getHead() const { return head_; }
+  string getHead() const override { return head_; }
 
 private:
   string head_ = "TypeDef";

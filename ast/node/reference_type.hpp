@@ -12,12 +12,12 @@ public:
                     const int &endcol, const string &raw,
                     const shared_ptr<TypeNode> &typ)
       : TypeNode(row, col, endrow, endcol, raw), type_(typ) {}
-  string getHead() const { return head_; }
-  void toCCode_(ostringstream &o) {
+  string getHead() const override { return head_; }
+  void toCCode_(ostringstream &o) override {
     type_->toCCode_(o);
     o << "*";
   }
-  void toString_(ostringstream &o) {
+  void toString_(ostringstream &o) override {
     type_->toString_(o);
     o << "*";
   }

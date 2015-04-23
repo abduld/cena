@@ -8,8 +8,8 @@ public:
   ProgramNode() : CompoundNode(0, 0, 0, 0, "") {}
   ~ProgramNode() {}
   string getHead() { return head_; }
-  bool isProgram() const { return true; }
-  Json toEsprima_() {
+  bool isProgram() const override { return true; }
+  Json toEsprima_() override {
     Json::object obj;
     std::vector<Json> lst;
     obj["type"] = "Program";

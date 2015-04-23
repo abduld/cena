@@ -12,7 +12,7 @@ public:
             const int &endcol, const string &raw, const shared_ptr<Node> &cond,
             const shared_ptr<Node> &body)
       : Node(row, col, endrow, endcol, raw), cond_(cond), body_(body) {}
-  string getHead() const { return head_; }
+  string getHead() const override { return head_; }
 
 private:
   string head_ = "While";
