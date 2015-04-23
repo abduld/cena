@@ -61,8 +61,10 @@ public:
   BooleanNode(const int &row, const int &col, const int &endrow,
               const int &endcol, const string &raw, const bool &v)
       : AtomNode<bool>(row, col, endrow, endcol, raw, v) {}
-  string getHead() const override  { return head_; }
-  void toCCode_(ostringstream &o) override { o << (getConstant() ? "true" : "false"); }
+  string getHead() const override { return head_; }
+  void toCCode_(ostringstream &o) override {
+    o << (getConstant() ? "true" : "false");
+  }
   virtual Json toEsprima_() override {
     Json::object obj;
     obj["type"] = Json("BooleanLiteral");
@@ -88,7 +90,7 @@ public:
   SymbolNode(const int &row, const int &col, const int &endrow,
              const int &endcol, const string &raw, const char *v)
       : AtomNode<string>(row, col, endrow, endcol, raw, string(v)) {}
-  string getHead() const override  { return head_; }
+  string getHead() const override { return head_; }
   void traverse(ASTVisitor *visitor) override { accept(visitor); }
 
 private:
@@ -108,7 +110,9 @@ public:
       : AtomNode<string>(row, col, endrow, endcol, raw, string(v)) {}
   string getHead() const override { return head_; }
 
-  void toCCode_(ostringstream &o) override { o << "\"" << getConstant() << "\""; }
+  void toCCode_(ostringstream &o) override {
+    o << "\"" << getConstant() << "\"";
+  }
   void traverse(ASTVisitor *visitor) override { accept(visitor); }
   virtual Json toEsprima_() override {
     Json::object obj;

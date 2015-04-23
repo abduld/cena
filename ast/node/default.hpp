@@ -4,19 +4,20 @@
 
 class DefaultNode : public Node {
 public:
-  DefaultNode(const int &row, const int &col, const int &endrow, const int &endcol,
-          const string &raw)
+  DefaultNode(const int &row, const int &col, const int &endrow,
+              const int &endcol, const string &raw)
       : Node(row, col, endrow, endcol, raw) {}
   ~DefaultNode() {}
 
   bool isStatement() const override { return true; }
 
-  void setBody(const shared_ptr<Node> & nd) { body_ = nd; body_->setParent(this); }
+  void setBody(const shared_ptr<Node> &nd) {
+    body_ = nd;
+    body_->setParent(this);
+  }
   shared_ptr<Node> getBody() const { return body_; }
 
-  string getHead() const override {
-    return head_;
-  }
+  string getHead() const override { return head_; }
   void toCCode_(ostringstream &o) override {
     o << "default";
     if (body_) {
@@ -47,13 +48,13 @@ public:
     }
   }
   bool hasChildren() const override { return body_ != nullptr; }
-    vector<shared_ptr<Node>> getChildren() override {
-      if (!hasChildren()){
-        return vector<shared_ptr<Node>>{};
-      } else {
-        return vector<shared_ptr<Node>>{body_};
-      }
+  vector<shared_ptr<Node>> getChildren() override {
+    if (!hasChildren()) {
+      return vector<shared_ptr<Node>>{};
+    } else {
+      return vector<shared_ptr<Node>>{body_};
     }
+  }
 
 private:
   string head_ = "Default";

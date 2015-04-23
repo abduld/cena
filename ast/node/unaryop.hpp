@@ -40,40 +40,31 @@ public:
   shared_ptr<Node> getArg() const { return arg_; }
   string getHead() const override { return head_; }
 
-
-  bool isPostfix() const{
-    return isPostfix_;
-  }
-  void isPostfix(const bool & val) {
-    isPostfix_ = val;
-  }
-  bool isPrefix() const{
-    return isPrefix_;
-  }
-  void isPrefix(const bool & val) {
-    isPrefix_ = val;
-  }
+  bool isPostfix() const { return isPostfix_; }
+  void isPostfix(const bool &val) { isPostfix_ = val; }
+  bool isPrefix() const { return isPrefix_; }
+  void isPrefix(const bool &val) { isPrefix_ = val; }
   void toCCode_(ostringstream &o) override {
     assert(arg_ != nullptr);
     assert(op_ != nullptr);
     if (isPrefix_) {
-    op_->toCCode_(o);
-  }
+      op_->toCCode_(o);
+    }
     arg_->toCCode_(o);
     if (isPostfix_) {
-    op_->toCCode_(o);
-  }
+      op_->toCCode_(o);
+    }
   }
   void toString_(ostringstream &o) override {
     assert(arg_ != nullptr);
     assert(op_ != nullptr);
     if (isPrefix_) {
-    op_->toString_(o);
-  }
+      op_->toString_(o);
+    }
     arg_->toString_(o);
     if (isPostfix_) {
-    op_->toString_(o);
-  }
+      op_->toString_(o);
+    }
   }
   void toJSON_(ostringstream &o) { o << "{\"type\": \"unknown\"}"; }
   virtual Json toEsprima_() override {

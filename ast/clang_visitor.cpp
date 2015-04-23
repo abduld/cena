@@ -44,19 +44,19 @@ static shared_ptr<Node> toNode(const ASTContext *ctx, const SourceManager &SM,
   if (ii.getBitWidth() == 8) {
     return shared_ptr<Integer8Node>(
         new Integer8Node(ploc.getLine(), ploc.getColumn(), plocend.getLine(),
-                        plocend.getColumn(), raw, ii.getSExtValue()));
-    } else if (ii.getBitWidth() == 16) {
+                         plocend.getColumn(), raw, ii.getSExtValue()));
+  } else if (ii.getBitWidth() == 16) {
     return shared_ptr<Integer16Node>(
         new Integer16Node(ploc.getLine(), ploc.getColumn(), plocend.getLine(),
-                        plocend.getColumn(), raw, ii.getSExtValue()));
-    } else if (ii.getBitWidth() <= 32) {
+                          plocend.getColumn(), raw, ii.getSExtValue()));
+  } else if (ii.getBitWidth() <= 32) {
     return shared_ptr<Integer32Node>(
         new Integer32Node(ploc.getLine(), ploc.getColumn(), plocend.getLine(),
-                        plocend.getColumn(), raw, ii.getSExtValue()));
-    } else if (ii.getBitWidth() == 64) {
+                          plocend.getColumn(), raw, ii.getSExtValue()));
+  } else if (ii.getBitWidth() == 64) {
     return shared_ptr<Integer64Node>(
         new Integer64Node(ploc.getLine(), ploc.getColumn(), plocend.getLine(),
-                        plocend.getColumn(), raw, ii.getSExtValue()));
+                          plocend.getColumn(), raw, ii.getSExtValue()));
   } else if (ii.getBitWidth() <= 64) {
     return shared_ptr<IntegerNode>(
         new IntegerNode(ploc.getLine(), ploc.getColumn(), plocend.getLine(),
@@ -973,121 +973,118 @@ bool SVisitor::TraverseNullStmt(NullStmt *stmt) {
   return true;
 }
 
+bool SVisitor::TraverseCaseStmt(CaseStmt *stmt) {
+  // stmt->dumpColor();
+  PresumedLoc loc = SM.getPresumedLoc(stmt->getLocStart());
+  PresumedLoc locend = SM.getPresumedLoc(stmt->getLocEnd());
+  string raw = getRaw(ctx, SM, stmt->getLocStart(), stmt->getLocEnd());
 
-  bool SVisitor::TraverseCaseStmt(CaseStmt *stmt) {
-    //stmt->dumpColor();
-      PresumedLoc loc = SM.getPresumedLoc(stmt->getLocStart());
-      PresumedLoc locend = SM.getPresumedLoc(stmt->getLocEnd());
-      string raw = getRaw(ctx, SM, stmt->getLocStart(), stmt->getLocEnd());
+  shared_ptr<CaseNode> node = shared_ptr<CaseNode>(
+      new CaseNode(loc.getLine(), loc.getColumn(), locend.getLine(),
+                   locend.getColumn(), raw));
+  if (stmt->getLHS()) {
+    current_node = node;
+    SVisitor::TraverseStmt(stmt->getLHS());
+    node->setLhs(current_node);
+  }
+  if (stmt->getRHS()) {
+    current_node = node;
+    SVisitor::TraverseStmt(stmt->getRHS());
+    node->setRhs(current_node);
+  }
+  if (stmt->getSubStmt()) {
+    current_node = node;
+    SVisitor::TraverseStmt(stmt->getSubStmt());
+    node->setBody(current_node);
+  }
 
-      shared_ptr<CaseNode> node = shared_ptr<CaseNode>(
-          new CaseNode(loc.getLine(), loc.getColumn(), locend.getLine(),
-                        locend.getColumn(), raw));
-        if (stmt->getLHS()) {
   current_node = node;
-        SVisitor::TraverseStmt(stmt->getLHS());
-        node->setLhs(current_node);
-      }
-      if (stmt->getRHS()) {
-current_node = node;
-SVisitor::TraverseStmt(stmt->getRHS());
-      node->setRhs(current_node);
-      }
-      if (stmt->getSubStmt()) {
-current_node = node;
-      SVisitor::TraverseStmt(stmt->getSubStmt());
-      node->setBody(current_node);
-    }
+  return true;
+}
+bool SVisitor::TraverseDefaultStmt(DefaultStmt *stmt) {
 
-      current_node = node;
-    return true;
-  }
-  bool SVisitor::TraverseDefaultStmt(DefaultStmt *stmt) {
+  PresumedLoc loc = SM.getPresumedLoc(stmt->getLocStart());
+  PresumedLoc locend = SM.getPresumedLoc(stmt->getLocEnd());
+  string raw = getRaw(ctx, SM, stmt->getLocStart(), stmt->getLocEnd());
 
-    PresumedLoc loc = SM.getPresumedLoc(stmt->getLocStart());
-    PresumedLoc locend = SM.getPresumedLoc(stmt->getLocEnd());
-    string raw = getRaw(ctx, SM, stmt->getLocStart(), stmt->getLocEnd());
-
-    shared_ptr<DefaultNode> node = shared_ptr<DefaultNode>(
-        new DefaultNode(loc.getLine(), loc.getColumn(), locend.getLine(),
+  shared_ptr<DefaultNode> node = shared_ptr<DefaultNode>(
+      new DefaultNode(loc.getLine(), loc.getColumn(), locend.getLine(),
                       locend.getColumn(), raw));
-    current_node = node;
-    SVisitor::TraverseStmt(stmt->getSubStmt());
-    node->setBody(current_node);
+  current_node = node;
+  SVisitor::TraverseStmt(stmt->getSubStmt());
+  node->setBody(current_node);
 
-    current_node = node;
-    return true;
+  current_node = node;
+  return true;
+}
+bool SVisitor::TraverseGotoStmt(GotoStmt *stmt) {
 
-  }
-  bool SVisitor::TraverseGotoStmt(GotoStmt *stmt) {
+  PresumedLoc loc = SM.getPresumedLoc(stmt->getLocStart());
+  PresumedLoc locend = SM.getPresumedLoc(stmt->getLocEnd());
+  string raw = getRaw(ctx, SM, stmt->getLocStart(), stmt->getLocEnd());
 
-      PresumedLoc loc = SM.getPresumedLoc(stmt->getLocStart());
-      PresumedLoc locend = SM.getPresumedLoc(stmt->getLocEnd());
-      string raw = getRaw(ctx, SM, stmt->getLocStart(), stmt->getLocEnd());
+  shared_ptr<GotoNode> node = shared_ptr<GotoNode>(
+      new GotoNode(loc.getLine(), loc.getColumn(), locend.getLine(),
+                   locend.getColumn(), raw));
+  current_node = node;
+  SVisitor::TraverseDecl(stmt->getLabel());
+  node->setLabel(current_node);
 
-      shared_ptr<GotoNode> node = shared_ptr<GotoNode>(
-          new GotoNode(loc.getLine(), loc.getColumn(), locend.getLine(),
-                       locend.getColumn(), raw));
-      current_node = node;
-      SVisitor::TraverseDecl(stmt->getLabel());
-      node->setLabel(current_node);
+  current_node = node;
+  return true;
+}
+bool SVisitor::TraverseSwitchStmt(SwitchStmt *stmt) {
 
-      current_node = node;
-      return true;
-  }
-  bool SVisitor::TraverseSwitchStmt(SwitchStmt *stmt) {
+  PresumedLoc loc = SM.getPresumedLoc(stmt->getLocStart());
+  PresumedLoc locend = SM.getPresumedLoc(stmt->getLocEnd());
+  string raw = getRaw(ctx, SM, stmt->getLocStart(), stmt->getLocEnd());
 
-        PresumedLoc loc = SM.getPresumedLoc(stmt->getLocStart());
-        PresumedLoc locend = SM.getPresumedLoc(stmt->getLocEnd());
-        string raw = getRaw(ctx, SM, stmt->getLocStart(), stmt->getLocEnd());
+  shared_ptr<SwitchNode> node = shared_ptr<SwitchNode>(
+      new SwitchNode(loc.getLine(), loc.getColumn(), locend.getLine(),
+                     locend.getColumn(), raw));
+  current_node = node;
+  SVisitor::TraverseStmt(stmt->getCond());
+  node->setCondition(current_node);
+  current_node = node;
+  SVisitor::TraverseStmt(stmt->getBody());
+  node->setBody(current_node);
 
-        shared_ptr<SwitchNode> node = shared_ptr<SwitchNode>(
-            new SwitchNode(loc.getLine(), loc.getColumn(), locend.getLine(),
-                           locend.getColumn(), raw));
-        current_node = node;
-        SVisitor::TraverseStmt(stmt->getCond());
-        node->setCondition(current_node);
-        current_node = node;
-        SVisitor::TraverseStmt(stmt->getBody());
-        node->setBody(current_node);
+  current_node = node;
+  return true;
+}
+bool SVisitor::TraverseLabelStmt(LabelStmt *stmt) {
 
-        current_node = node;
-        return true;
-  }
-  bool SVisitor::TraverseLabelStmt(LabelStmt *stmt) {
+  PresumedLoc loc = SM.getPresumedLoc(stmt->getLocStart());
+  PresumedLoc locend = SM.getPresumedLoc(stmt->getLocEnd());
+  string raw = getRaw(ctx, SM, stmt->getLocStart(), stmt->getLocEnd());
 
-    PresumedLoc loc = SM.getPresumedLoc(stmt->getLocStart());
-    PresumedLoc locend = SM.getPresumedLoc(stmt->getLocEnd());
-    string raw = getRaw(ctx, SM, stmt->getLocStart(), stmt->getLocEnd());
+  shared_ptr<LabelStmtNode> node = shared_ptr<LabelStmtNode>(
+      new LabelStmtNode(loc.getLine(), loc.getColumn(), locend.getLine(),
+                        locend.getColumn(), raw));
+  current_node = node;
+  SVisitor::TraverseDecl(stmt->getDecl());
+  node->setLabel(current_node);
+  current_node = node;
+  SVisitor::TraverseStmt(stmt->getSubStmt());
+  node->setBody(current_node);
 
-    shared_ptr<LabelStmtNode> node = shared_ptr<LabelStmtNode>(
-        new LabelStmtNode(loc.getLine(), loc.getColumn(), locend.getLine(),
-                          locend.getColumn(), raw));
-    current_node = node;
-    SVisitor::TraverseDecl(stmt->getDecl());
-    node->setLabel(current_node);
-    current_node = node;
-    SVisitor::TraverseStmt(stmt->getSubStmt());
-    node->setBody(current_node);
+  current_node = node;
+  return true;
+}
 
-    current_node = node;
-    return true;
-  }
+bool SVisitor::TraverseBreakStmt(BreakStmt *stmt) {
 
+  PresumedLoc loc = SM.getPresumedLoc(stmt->getLocStart());
+  PresumedLoc locend = SM.getPresumedLoc(stmt->getLocEnd());
+  string raw = getRaw(ctx, SM, stmt->getLocStart(), stmt->getLocEnd());
 
-  bool SVisitor::TraverseBreakStmt(BreakStmt *stmt) {
+  shared_ptr<BreakNode> node = shared_ptr<BreakNode>(
+      new BreakNode(loc.getLine(), loc.getColumn(), locend.getLine(),
+                    locend.getColumn(), raw));
 
-    PresumedLoc loc = SM.getPresumedLoc(stmt->getLocStart());
-    PresumedLoc locend = SM.getPresumedLoc(stmt->getLocEnd());
-    string raw = getRaw(ctx, SM, stmt->getLocStart(), stmt->getLocEnd());
-
-    shared_ptr<BreakNode> node = shared_ptr<BreakNode>(
-        new BreakNode(loc.getLine(), loc.getColumn(), locend.getLine(),
-                          locend.getColumn(), raw));
-    
-    current_node = node;
-    return true;
-  }
+  current_node = node;
+  return true;
+}
 
 void SVisitor::addCurrent() {
   *prog_ <<= current_node;

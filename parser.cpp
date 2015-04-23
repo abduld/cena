@@ -54,7 +54,7 @@ struct SDiagnosticConsumer : DiagnosticConsumer {
       std::cerr << "FATAL ";
     case DiagnosticsEngine::Error:
       std::cerr << "Error: " //<< locationToString(Info.getLocation(),
-          // annotator.getSourceMgr())
+                             // annotator.getSourceMgr())
                 << ": " << diag.c_str() << std::endl;
       clas = "error";
       break;
@@ -88,8 +88,8 @@ public:
     DEBUG;
     // visitor->TraverseDecl(context.getTranslationUnitDecl());
     // find all C++ #include needed for the converted C++ types
-    auto collectInclude = [&](clang::ASTContext &i_ctx,
-                              const clang::QualType &i_type) {
+    auto collectInclude =
+        [&](clang::ASTContext &i_ctx, const clang::QualType &i_type) {
       auto decl = i_type->getAsCXXRecordDecl();
       if (decl != nullptr) {
         // decl->dump();
@@ -105,16 +105,15 @@ public:
       }
     };
 
-    
-    //std::cout << "Program : " << std::endl;
-    #if 1
+// std::cout << "Program : " << std::endl;
+#if 1
     std::string json = getProgram()->toEsprimaString();
     std::cout << json << std::endl;
-	  std::ofstream file("output.json");
-	  file << json;
-	  file.close();
+    std::ofstream file("output.json");
+    file << json;
+    file.close();
     std::cout << getProgram()->toCCode() << std::endl;
-    #endif
+#endif
     return;
   }
   bool HandleTopLevelDecl(DeclGroupRef dg) override {
@@ -128,7 +127,7 @@ public:
       if (SM.getFileID(SM.getExpansionLoc(decl->getLocation())) != mainFileID)
         continue;
       DEBUG;
-       //decl->dumpColor();
+      // decl->dumpColor();
       Visitor->TraverseDecl(decl);
       Visitor->addCurrent();
     }

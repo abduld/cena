@@ -2,7 +2,6 @@
 #ifndef __ASSIGN_H__
 #define __ASSIGN_H__
 
-
 class AssignOp : public StringNode {
 public:
   AssignOp(const int &row, const int &col, const int &endrow, const int &endcol,

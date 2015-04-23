@@ -89,9 +89,11 @@ public:
     }
   }
 
-  bool hasChildren() const override { return lhs_ != nullptr && rhs_ != nullptr && body_ != nullptr; }
+  bool hasChildren() const override {
+    return lhs_ != nullptr && rhs_ != nullptr && body_ != nullptr;
+  }
   vector<shared_ptr<Node>> getChildren() override {
-    if (!hasChildren()){
+    if (!hasChildren()) {
       return vector<shared_ptr<Node>>{};
     } else {
       vector<shared_ptr<Node>> children{};
@@ -107,6 +109,7 @@ public:
       return children;
     }
   }
+
 private:
   string head_ = "Case";
   shared_ptr<Node> lhs_ = nullptr;

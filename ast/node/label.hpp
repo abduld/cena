@@ -4,8 +4,8 @@
 
 class LabelStmtNode : public Node {
 public:
-  LabelStmtNode(const int &row, const int &col, const int &endrow, const int &endcol,
-        const string &raw)
+  LabelStmtNode(const int &row, const int &col, const int &endrow,
+                const int &endcol, const string &raw)
       : Node(row, col, endrow, endcol, raw) {}
   ~LabelStmtNode() {}
   string getHead() const override { return head_; }
@@ -52,10 +52,10 @@ public:
     obj["raw"] = raw_;
     obj["cform"] = toCCode();
     if (lbl_ != nullptr) {
-      obj["label"] =  lbl_->toEsprima_();
+      obj["label"] = lbl_->toEsprima_();
     }
     if (body_ != nullptr) {
-      obj["body"] =  body_->toEsprima_();
+      obj["body"] = body_->toEsprima_();
     }
     return obj;
   }
@@ -68,21 +68,24 @@ public:
       body_->traverse(visitor);
     }
   }
-    bool hasChildren() const override { return lbl_ != nullptr && body_ != nullptr; }
-    vector<shared_ptr<Node>> getChildren() override {
-      if (!hasChildren()){
-        return vector<shared_ptr<Node>>{};
-      } else {
-        vector<shared_ptr<Node>> children{};
-        if (lbl_ != nullptr) {
-          children.push_back(lbl_);
-        }
-        if (body_ != nullptr) {
-          children.push_back(body_);
-        }
-        return children;
+  bool hasChildren() const override {
+    return lbl_ != nullptr && body_ != nullptr;
+  }
+  vector<shared_ptr<Node>> getChildren() override {
+    if (!hasChildren()) {
+      return vector<shared_ptr<Node>>{};
+    } else {
+      vector<shared_ptr<Node>> children{};
+      if (lbl_ != nullptr) {
+        children.push_back(lbl_);
       }
+      if (body_ != nullptr) {
+        children.push_back(body_);
+      }
+      return children;
     }
+  }
+
 private:
   string head_ = "LabelStmt";
   shared_ptr<Node> lbl_ = nullptr;
@@ -91,8 +94,8 @@ private:
 
 class LabelDeclNode : public Node {
 public:
-  LabelDeclNode(const int &row, const int &col, const int &endrow, const int &endcol,
-        const string &raw)
+  LabelDeclNode(const int &row, const int &col, const int &endrow,
+                const int &endcol, const string &raw)
       : Node(row, col, endrow, endcol, raw) {}
   ~LabelDeclNode() {}
   string getHead() const override { return head_; }
@@ -123,12 +126,12 @@ public:
     return obj;
   }
   void toJSON_(ostringstream &o) { o << "{\"type\": \"label-decl\"}"; }
-  void traverse(ASTVisitor *visitor) override {
-  }
+  void traverse(ASTVisitor *visitor) override {}
   bool hasChildren() const override { return false; }
-    vector<shared_ptr<Node>> getChildren() override {
-      return vector<shared_ptr<Node>>{};
-      }
+  vector<shared_ptr<Node>> getChildren() override {
+    return vector<shared_ptr<Node>>{};
+  }
+
 private:
   string head_ = "LabelDecl";
   bool init_ = false;

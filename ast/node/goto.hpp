@@ -48,14 +48,14 @@ public:
       lbl_->traverse(visitor);
     }
   }
-    bool hasChildren() const override { return lbl_ != nullptr; }
-    vector<shared_ptr<Node>> getChildren() override {
-      if (!hasChildren()){
-        return vector<shared_ptr<Node>>{};
-      } else {
-        return vector<shared_ptr<Node>>{lbl_};
-      }
+  bool hasChildren() const override { return lbl_ != nullptr; }
+  vector<shared_ptr<Node>> getChildren() override {
+    if (!hasChildren()) {
+      return vector<shared_ptr<Node>>{};
+    } else {
+      return vector<shared_ptr<Node>>{lbl_};
     }
+  }
 
 private:
   string head_ = "Goto";

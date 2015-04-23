@@ -26,6 +26,7 @@ public:
     obj["value"] = getConstant();
     return obj;
   }
+
 private:
   string head_ = "Character";
 };

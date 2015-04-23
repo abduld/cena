@@ -19,14 +19,12 @@ public:
     *params_ <<= nd;
   }
   void addAttribute(const string &str) { attributes_.push_back(str); }
-  void setBody(const shared_ptr<BlockNode> &blk) {
-    body_ = blk;
-  }
+  void setBody(const shared_ptr<BlockNode> &blk) { body_ = blk; }
   shared_ptr<BlockNode> getBody() const { return body_; }
   shared_ptr<BlockNode> getOrInitBody() {
     if (body_ == nullptr) {
       body_ = shared_ptr<BlockNode>(
-            new BlockNode(row_, col_, endrow_, endcol_, raw_));
+          new BlockNode(row_, col_, endrow_, endcol_, raw_));
     }
     return body_;
   }
@@ -78,14 +76,14 @@ public:
     obj["raw"] = raw_;
     obj["cform"] = toCCode();
     if (name_ != nullptr) {
-	    obj["id"] = name_->getName();
+      obj["id"] = name_->getName();
     }
     obj["attributes"] = attributes_;
     if (params_ != nullptr) {
-	    obj["params"] = params_->toEsprima_();
+      obj["params"] = params_->toEsprima_();
     }
     if (body_ != nullptr) {
-	    obj["body"] = body_->toEsprima_();
+      obj["body"] = body_->toEsprima_();
     }
     return obj;
   }
@@ -96,7 +94,7 @@ public:
       params_->traverse(visitor);
     }
     if (body_ != nullptr) {
-	    body_->traverse(visitor);
+      body_->traverse(visitor);
     }
     if (qualifiers_ != nullptr) {
       qualifiers_->traverse(visitor);

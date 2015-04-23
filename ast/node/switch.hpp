@@ -57,21 +57,23 @@ public:
     cond_->traverse(visitor);
     body_->traverse(visitor);
   }
-    bool hasChildren() const override { return cond_ != nullptr && body_ != nullptr; }
-    vector<shared_ptr<Node>> getChildren() override {
-      if (!hasChildren()){
-        return vector<shared_ptr<Node>>{};
-      } else {
-        vector<shared_ptr<Node>> children{};
-        if (cond_ != nullptr) {
-          children.push_back(cond_);
-        }
-        if (body_ != nullptr) {
-          children.push_back(body_);
-        }
-        return children;
+  bool hasChildren() const override {
+    return cond_ != nullptr && body_ != nullptr;
+  }
+  vector<shared_ptr<Node>> getChildren() override {
+    if (!hasChildren()) {
+      return vector<shared_ptr<Node>>{};
+    } else {
+      vector<shared_ptr<Node>> children{};
+      if (cond_ != nullptr) {
+        children.push_back(cond_);
       }
+      if (body_ != nullptr) {
+        children.push_back(body_);
+      }
+      return children;
     }
+  }
 
 private:
   string head_ = "Switch";
