@@ -6,7 +6,7 @@ class FunctionNode : public Node {
 public:
   FunctionNode(const int &row, const int &col, const int &endrow,
                const int &endcol, const string &raw)
-      : Node(row, col, endrow, endcol, raw),
+      : Node(row, col, endrow, endcol, raw), params_(nullptr),
         body_(shared_ptr<BlockNode>(
             new BlockNode(row, col, endrow, endcol, raw))) {}
   void setReturnType(const shared_ptr<TypeNode> &typ) { ret_ = typ; }
@@ -68,10 +68,16 @@ public:
     obj["loc"] = getLocation();
     obj["raw"] = raw_;
     obj["cform"] = toCCode();
+    if (name_ != nullptr) {
+	    obj["id"] = name_->getName();
+    }
     obj["attributes"] = attributes_;
-    obj["id"] = name_->getName();
-    obj["params"] = params_->toEsprima_();
-    obj["body"] = body_->toEsprima_();
+    if (params_ != nullptr) {
+	    obj["params"] = params_->toEsprima_();
+    }
+    if (body_ != nullptr) {
+	    obj["body"] = body_->toEsprima_();
+    }
     return obj;
   }
   void toJSON_(ostringstream &o) { o << "{\"type\": \"unknown\"}"; }
@@ -80,7 +86,9 @@ public:
     if (params_ != nullptr) {
       params_->traverse(visitor);
     }
-    body_->traverse(visitor);
+    if (body_ != nullptr) {
+	    body_->traverse(visitor);
+    }
     if (qualifiers_ != nullptr) {
       qualifiers_->traverse(visitor);
     }

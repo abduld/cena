@@ -4,7 +4,7 @@
 #  LLVM_CONFIG_EXECUTABLE - llvm-config binary
 #  CLANG_FOUND            - True if clang is found
 
-FIND_PACKAGE(LLVM REQUIRED CONFIG)
+# FIND_PACKAGE(LLVM REQUIRED CONFIG)
 FIND_PACKAGE(PackageHandleStandardArgs)
 
 FIND_PROGRAM(LLVM_CONFIG_EXECUTABLE CACHE NAMES llvm-config DOC "llvm-config executable")
