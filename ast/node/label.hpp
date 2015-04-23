@@ -29,7 +29,7 @@ public:
     if (lbl_ != nullptr) {
       lbl_->toCCode_(o);
     }
-    o << ": ";
+    o << ":\n";
     if (body_ != nullptr) {
       body_->toCCode_(o);
     }
@@ -40,7 +40,7 @@ public:
     if (lbl_ != nullptr) {
       lbl_->toString_(o);
     }
-    o << ": ";
+    o << ":\n";
     if (body_ != nullptr) {
       body_->toString_(o);
     }
@@ -109,7 +109,6 @@ public:
   void toCCode_(ostringstream &o) override {
     assert(init_);
     o << name_;
-    o << ": ";
   }
   void toString_(ostringstream &o) override {
     assert(init_);
