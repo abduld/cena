@@ -10,8 +10,9 @@
 #  LLVM_MODULE_LIBS  - list of llvm libs for working with modules.
 
 find_program(LLVM_CONFIG_EXECUTABLE
-  NAMES llvm-config-3.6
+  NAMES llvm-config-3.6 llvm-config
   PATHS
+  /Users/dddscy/project/sys/bin
   /usr/local/opt/llvm36/bin
   /Users/abduld/usr/bin
 )
