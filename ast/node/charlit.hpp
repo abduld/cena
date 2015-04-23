@@ -11,7 +11,7 @@ public:
   CharacterNode(const int &row, const int &col, const int &endrow,
                 const int &endcol, const string &raw, const unsigned char &v)
       : AtomNode<unsigned char>(row, col, endrow, endcol, raw, v) {}
-  string getHead() const override  { return head_; }
+  string getHead() const override { return head_; }
   void toCCode_(ostringstream &o) override {
     o << "'" << string(1, getConstant()) << "'";
   }

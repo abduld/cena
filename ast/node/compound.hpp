@@ -18,7 +18,7 @@ public:
       : Node(row, col, endrow, endcol, raw), vals_(vals) {}
   virtual ~CompoundNode() { vals_.clear(); }
   virtual bool isCompound() const override { return true; }
-  virtual bool isEmpty() const override  { return getArgCount() == 0; }
+  virtual bool isEmpty() const override { return getArgCount() == 0; }
   CompoundNode *operator<<=(const bool &val) override {
     shared_ptr<BooleanNode> var(new BooleanNode(row_, col_, endrow_, endcol_,
                                                 val ? "true" : "false", val));

@@ -11,7 +11,7 @@ public:
   IntegerNode(const int &row, const int &col, const int &endrow,
               const int &endcol, const string &raw, const int64_t &v)
       : AtomNode<int64_t>(row, col, endrow, endcol, raw, v) {}
-  string getHead() const override  { return head_; }
+  string getHead() const override { return head_; }
   void traverse(ASTVisitor *visitor) override { accept(visitor); }
 
   virtual Json toEsprima_() override {

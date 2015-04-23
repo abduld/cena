@@ -2,31 +2,41 @@
 #ifndef __BREAK_H__
 #define __BREAK_H__
 
-class Break : public Node {
+class BreakNode : public Node {
 public:
-  Break(const int &row, const int &col, const int &endrow, const int &endcol,
+  BreakNode(const int &row, const int &col, const int &endrow, const int &endcol,
         const string &raw)
       : Node(row, col, endrow, endcol, raw) {}
-  Break(const int &row, const int &col, const int &endrow, const int &endcol,
-        const string &raw, const shared_ptr<Node> &node)
-      : Node(row, col, endrow, endcol, raw), trgt_(node) {}
-  ~Break() {}
+  ~BreakNode() {}
   string getHead() const override { return head_; }
-  void setTarget(const shared_ptr<Node> &nd) { trgt_ = nd; }
-  shared_ptr<Node> getTarget() const { return trgt_; }
 
-  bool hasChildren() const override { return trgt_ != nullptr; }
+  bool isStatement() const override { return true; }
+
+  void toCCode_(ostringstream &o) override {
+    o << "break";
+  }
+  void toString_(ostringstream &o) override {
+    o << "break";
+  }
+  Json toEsprima_() override {
+    Json::object obj;
+    obj["type"] = "BreakStmt";
+    obj["loc"] = getLocation();
+    obj["raw"] = raw_;
+    obj["cform"] = toCCode();
+    return obj;
+  }
+  void toJSON_(ostringstream &o) { o << "{\"type\": \"break\"}"; }
+  void traverse(ASTVisitor *visitor) override {
+  }
+
+  bool hasChildren() const override { return false; }
   vector<shared_ptr<Node>> getChildren() override {
-    if (hasChildren() == false) {
-      return vector<shared_ptr<Node>>{};
-    } else {
-      return vector<shared_ptr<Node>>{trgt_};
-    }
+    return vector<shared_ptr<Node>>{};
   }
 
 private:
   string head_ = "Break";
-  shared_ptr<Node> trgt_ = nullptr;
 };
 
 #endif /* __BREAK_H__ */

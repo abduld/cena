@@ -365,8 +365,8 @@ public:
 
 	typedef typename rm_ptr<T>::type& ref_t;
 	ref_t operator*() { return *_val; }
-	 ref_t operator*() const { return *_val; }
-	ref_t operator[](size_t idx) { return _val[idx]; }
+        ref_t operator*() const { return *_val; }
+        ref_t operator[](size_t idx) { return _val[idx]; }
 
 	// Watch out, we've got a badass over here
 	T* operator&() {

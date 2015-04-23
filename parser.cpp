@@ -105,13 +105,16 @@ public:
       }
     };
 
-    std::string json = getProgram()->toEsprimaString();
+    
     //std::cout << "Program : " << std::endl;
+    #if 1
+    std::string json = getProgram()->toEsprimaString();
     std::cout << json << std::endl;
 	  std::ofstream file("output.json");
 	  file << json;
 	  file.close();
     std::cout << getProgram()->toCCode() << std::endl;
+    #endif
     return;
   }
   bool HandleTopLevelDecl(DeclGroupRef dg) override {

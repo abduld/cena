@@ -79,7 +79,7 @@ public:
   }
   virtual void toString_(ostringstream &o) override { toCCode_(o); }
   virtual void toJSON_(ostringstream &o) { o << "{\"type\": \"unknown\"}"; }
-  virtual string getHead() const override  { return head_; }
+  virtual string getHead() const override { return head_; }
   void traverse(ASTVisitor *visitor) override {
     for (auto addr : address_space_) {
       addr->traverse(visitor);

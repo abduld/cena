@@ -19,7 +19,7 @@ public:
     *params_ <<= nd;
   }
   void addAttribute(const string &str) { attributes_.push_back(str); }
-  void setBody(const shared_ptr<BlockNode> &blk) { 
+  void setBody(const shared_ptr<BlockNode> &blk) {
     body_ = blk;
   }
   shared_ptr<BlockNode> getBody() const { return body_; }

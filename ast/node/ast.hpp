@@ -79,5 +79,6 @@ using std::transform;
 #include "switch.hpp"
 #include "default.hpp"
 #include "label.hpp"
+#include "break.hpp"
 
 #endif /* __AST_H__ */

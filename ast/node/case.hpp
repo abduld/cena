@@ -8,10 +8,27 @@ public:
            const string &raw)
       : Node(row, col, endrow, endcol, raw) {}
   ~CaseNode() {}
-  string getHead() { return head_; }
+  string getHead() const override { return head_; }
 
+  void setLhs(const shared_ptr<Node> &nd) {
+    lhs_ = nd;
+    lhs_->setParent(this);
+  }
+  shared_ptr<Node> getLhs() const { return lhs_; }
 
-  virtual bool isStatement() const override { return true; }
+  void setRhs(const shared_ptr<Node> &nd) {
+    rhs_ = nd;
+    rhs_->setParent(this);
+  }
+  shared_ptr<Node> getRhs() const { return rhs_; }
+
+  void setBody(const shared_ptr<Node> &nd) {
+    body_ = nd;
+    body_->setParent(this);
+  }
+  shared_ptr<Node> getBody() const { return body_; }
+
+  bool isStatement() const override { return true; }
   void toCCode_(ostringstream &o) override {
     assert(lhs_ != nullptr);
     assert(body_ != nullptr);
@@ -19,6 +36,7 @@ public:
     if (lhs_ != nullptr) {
       lhs_->toCCode_(o);
     }
+    o << ":\n";
     if (rhs_ != nullptr) {
       rhs_->toCCode_(o);
     }
@@ -33,6 +51,7 @@ public:
     if (lhs_ != nullptr) {
       lhs_->toString_(o);
     }
+    o << ":\n";
     if (rhs_ != nullptr) {
       rhs_->toString_(o);
     }
@@ -67,6 +86,25 @@ public:
     }
     if (body_ != nullptr) {
       body_->traverse(visitor);
+    }
+  }
+
+  bool hasChildren() const override { return lhs_ != nullptr && rhs_ != nullptr && body_ != nullptr; }
+  vector<shared_ptr<Node>> getChildren() override {
+    if (!hasChildren()){
+      return vector<shared_ptr<Node>>{};
+    } else {
+      vector<shared_ptr<Node>> children{};
+      if (lhs_ != nullptr) {
+        children.push_back(lhs_);
+      }
+      if (rhs_ != nullptr) {
+        children.push_back(rhs_);
+      }
+      if (body_ != nullptr) {
+        children.push_back(body_);
+      }
+      return children;
     }
   }
 private:

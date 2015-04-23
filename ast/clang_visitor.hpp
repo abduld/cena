@@ -103,6 +103,7 @@ public:
   bool TraverseCXXConstructExpr(CXXConstructExpr *E);
   bool TraverseCXXBindTemporaryExpr(CXXBindTemporaryExpr *E);
   bool TraverseParmVarDecl(ParmVarDecl *decl);
+  bool TraverseLabelDecl(LabelDecl *decl);
   bool TraverseParenExpr(ParenExpr *E);
   bool TraverseNullStmt(NullStmt *Stmt);
 
@@ -111,6 +112,7 @@ public:
   bool TraverseGotoStmt(GotoStmt *Stmt);
   bool TraverseSwitchStmt(SwitchStmt *Stmt);
   bool TraverseLabelStmt(LabelStmt *Stmt);
+  bool TraverseBreakStmt(BreakStmt *Stmt);
 
   bool TraverseMaterializeTemporaryExpr(MaterializeTemporaryExpr *nd);
 

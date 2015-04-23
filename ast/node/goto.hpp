@@ -5,24 +5,30 @@
 class GotoNode : public Node {
 public:
   GotoNode(const int &row, const int &col, const int &endrow, const int &endcol,
-           const string &raw, const shared_ptr<Node> &label)
-      : Node(row, col, endrow, endcol, raw), label_(label) {}
+           const string &raw)
+      : Node(row, col, endrow, endcol, raw) {}
   ~GotoNode() {}
-  string getHead() { return head_; }
+  string getHead() const override { return head_; }
 
-  virtual bool isStatement() const override { return true; }
+  void setLabel(const shared_ptr<Node> &nd) {
+    lbl_ = nd;
+    lbl_->setParent(this);
+  }
+  shared_ptr<Node> getLabel() const { return lbl_; }
+
+  bool isStatement() const override { return true; }
   void toCCode_(ostringstream &o) override {
-    assert(label_ != nullptr);
+    assert(lbl_ != nullptr);
     o << "goto ";
-    if (label_ != nullptr) {
-      label_->toCCode_(o);
+    if (lbl_ != nullptr) {
+      lbl_->toCCode_(o);
     }
   }
   void toString_(ostringstream &o) override {
-    assert(label_ != nullptr);
+    assert(lbl_ != nullptr);
     o << "goto ";
-    if (label_ != nullptr) {
-      label_->toString_(o);
+    if (lbl_ != nullptr) {
+      lbl_->toString_(o);
     }
   }
   Json toEsprima_() override {
@@ -31,20 +37,29 @@ public:
     obj["loc"] = getLocation();
     obj["raw"] = raw_;
     obj["cform"] = toCCode();
-    if (label_ != nullptr) {
-      obj["target"] = label_->toEsprima_();
+    if (lbl_ != nullptr) {
+      obj["target"] = lbl_->toEsprima_();
     }
     return obj;
   }
   void toJSON_(ostringstream &o) { o << "{\"type\": \"goto\"}"; }
   void traverse(ASTVisitor *visitor) override {
-    if (label_ != nullptr) {
-      label_->traverse(visitor);
+    if (lbl_ != nullptr) {
+      lbl_->traverse(visitor);
     }
   }
+    bool hasChildren() const override { return lbl_ != nullptr; }
+    vector<shared_ptr<Node>> getChildren() override {
+      if (!hasChildren()){
+        return vector<shared_ptr<Node>>{};
+      } else {
+        return vector<shared_ptr<Node>>{lbl_};
+      }
+    }
+
 private:
   string head_ = "Goto";
-  shared_ptr<Node> label_ = nullptr;
+  shared_ptr<Node> lbl_ = nullptr;
 };
 
 #endif /* __GOTO_H__ */
