@@ -13,6 +13,7 @@ public:
   shared_ptr<Node> getType() const { return typ_; }
   string getHead() const override { return head_; }
 
+  virtual bool isArgument() const override { return true; }
   void toCCode_(ostringstream &o) override {
     assert(typ_ != nullptr);
     assert(id_ != nullptr);

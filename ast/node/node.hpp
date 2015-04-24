@@ -91,6 +91,7 @@ public:
   virtual bool isCompound() const { return false; }
   virtual bool isAtom() const { return false; }
   virtual bool isBlock() const { return false; }
+  virtual bool isArgument() const { return false; }
   virtual bool isProgram() const { return false; }
   virtual bool isEmpty() const { return false; }
   virtual bool isSkip() const { return false; }

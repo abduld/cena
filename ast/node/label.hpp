@@ -11,7 +11,13 @@ public:
   string getHead() const override { return head_; }
 
   void setBody(const shared_ptr<Node> &nd) {
-    body_ = nd;
+    if (body_ == nullptr) {
+      body_ = shared_ptr<CompoundNode>(
+          new CompoundNode(row_, col_, endrow_, endcol_, raw_));
+      body_->setParent(this);
+      addChild(body_);
+    }
+    *body_ <<= nd;
     body_->setParent(this);
   }
   shared_ptr<Node> getBody() const { return body_; }
@@ -89,7 +95,7 @@ public:
 private:
   string head_ = "LabelStmt";
   shared_ptr<Node> lbl_ = nullptr;
-  shared_ptr<Node> body_ = nullptr;
+  shared_ptr<CompoundNode> body_ = nullptr;
 };
 
 class LabelDeclNode : public Node {

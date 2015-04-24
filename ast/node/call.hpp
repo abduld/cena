@@ -20,6 +20,7 @@ public:
     if (args_ == nullptr) {
       args_ = shared_ptr<CompoundNode>(
           new CompoundNode(row_, col_, endrow_, endcol_, raw_));
+      args_->isArgumentList(true);
       args_->setParent(this);
     }
     args_->push_back(nd);

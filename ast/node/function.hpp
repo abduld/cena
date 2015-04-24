@@ -15,6 +15,8 @@ public:
     if (params_ == nullptr) {
       params_ = shared_ptr<CompoundNode>(
           new CompoundNode(row_, col_, endrow_, endcol_, raw_));
+      params_->isArgumentList(true);
+      params_->setParent(this);
     }
     *params_ <<= nd;
   }
@@ -25,6 +27,7 @@ public:
     if (body_ == nullptr) {
       body_ = shared_ptr<BlockNode>(
           new BlockNode(row_, col_, endrow_, endcol_, raw_));
+      body_->setParent(this);
     }
     return body_;
   }

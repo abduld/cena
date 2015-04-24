@@ -144,6 +144,13 @@ public:
     vals_[idx] = var;
     return;
   }
+  bool isArgumentList() const {
+    return isArgumentList_;
+  }
+  bool isArgumentList(bool val) {
+    isArgumentList_ = val;
+    return val;
+  }
   virtual string getHead() const override { return head_; }
   vector<shared_ptr<Node>> getValues() override { return vals_; }
 
@@ -163,11 +170,11 @@ public:
         if (v->isBlock() || v->isSkip()) {
           continue;
         }
-        if (v->isStatement() || isBlock()) {
+        if (v->isStatement() || isBlock() || (!isProgram() && !isArgumentList() && len > 0)) {
           o << ";";
           o << " /* " << v->getHead() << "*/";
           o << "\n";
-        } else if (!isProgram() && len > 0) {
+        } else if (!isProgram() && isArgumentList() && len > 0) {
           o << " /* " << v->getHead() << "*/";
           o << ", ";
         }
@@ -240,6 +247,7 @@ public:
 
 protected:
   string head_ = "CompoundNode";
+  bool isArgumentList_{false};
   vector<shared_ptr<Node>> vals_;
   bool isListInitialization_{false};
 };
