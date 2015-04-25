@@ -7,20 +7,27 @@ class ForNode : public Node, public NodeAcceptor<ForNode> {
 public:
   ForNode(const int &row, const int &col, const int &endrow, const int &endcol,
           const string &raw)
-      : Node(row, col, endrow, endcol, raw) {}
+      : Node(row, col, endrow, endcol, raw) {
+        isCompound(true);
+
+    isBlock(true);
+      }
   string getHead() const override { return head_; }
   void setInit(const shared_ptr<Node> &nd) {
     init_ = nd;
+    init_->isStatement(false);
     init_->setParent(this);
     addChild(init_);
   }
   void setCond(const shared_ptr<Node> &nd) {
     cond_ = nd;
+    init_->isStatement(false);
     cond_->setParent(this);
     addChild(cond_);
   }
   void setInc(const shared_ptr<Node> &nd) {
     inc_ = nd;
+    init_->isStatement(false);
     inc_->setParent(this);
     addChild(inc_);
   }
@@ -38,11 +45,11 @@ public:
     if (init_ != nullptr) {
       init_->toCCode_(o);
     }
-    o << ",";
+    o << ";";
     if (cond_ != nullptr) {
       cond_->toCCode_(o);
     }
-    o << ",";
+    o << ";";
     if (inc_ != nullptr) {
       inc_->toCCode_(o);
     }
@@ -50,7 +57,7 @@ public:
     body_->toCCode_(o);
   }
   void toString_(ostringstream &o) override { toCCode_(o); }
-  bool isBlock() const override { return true; }
+
   void toJSON_(ostringstream &o) { o << "{\"type\": \"unknown\"}"; }
   Json toEsprima_() override {
     Json::object obj;

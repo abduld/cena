@@ -6,17 +6,18 @@ class ReturnNode : public Node {
 public:
   ReturnNode(const int &row, const int &col, const int &endrow,
              const int &endcol, const string &raw)
-      : Node(row, col, endrow, endcol, raw) {}
+      : Node(row, col, endrow, endcol, raw) {
+        isStatement(true);}
   ReturnNode(const int &row, const int &col, const int &endrow,
              const int &endcol, const string &raw, const shared_ptr<Node> &nd)
       : Node(row, col, endrow, endcol, raw) {
+        isStatement(true);
     setReturnValue(nd);
   }
   ~ReturnNode() {}
   void setReturnValue(const shared_ptr<Node> &arg) { ret_ = arg; }
   shared_ptr<Node> getReturnValue() const { return ret_; }
   string getHead() const override { return head_; }
-  bool isStatement() const override { return true; }
   void toCCode_(ostringstream &o) override {
     o << "return";
     if (ret_ != nullptr) {

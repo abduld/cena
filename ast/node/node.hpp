@@ -12,6 +12,9 @@ public:
   virtual ~Node() {}
   void setId(const size_t &id) { id_ = id; }
   size_t getId() const { return id_; }
+  virtual string getHead() const {
+    return "Node";
+  }
   virtual void toCCode_(ostringstream &o) {
     o << "unkown(" << this->getHead() << ")";
   }
@@ -84,17 +87,29 @@ public:
     std::cerr << "undefined <<= \n" << std::endl;
     return *this;
   }
-  virtual Node &operator<<=(Node *c) { return *this; }
-  virtual string getHead() const { return "unknown"; }
-  virtual bool isNode() const { return false; }
-  virtual bool isStatement() const { return false; }
-  virtual bool isCompound() const { return false; }
-  virtual bool isAtom() const { return false; }
-  virtual bool isBlock() const { return false; }
-  virtual bool isArgument() const { return false; }
-  virtual bool isProgram() const { return false; }
-  virtual bool isEmpty() const { return false; }
-  virtual bool isSkip() const { return false; }
+  
+  bool needsNewLine() const { return needsNewLine_; }
+  bool isNode() const { return isNode_; }
+  bool isStatement() const { return isStatement_; }
+  bool isCompound() const { return isCompound_; }
+  bool isAtom() const { return isAtom_; }
+  bool isBlock() const { return isBlock_; }
+  bool isArgument() const { return isArgument_; }
+  bool isProgram() const { return isProgram_; }
+  bool isEmpty() const { return isEmpty_; }
+  bool isSkip() const { return isSkip_; }
+
+  bool needsNewLine(const bool & val) { needsNewLine_ = val; return needsNewLine_; }
+  bool isNode(const bool & val) { isNode_ = val; return isNode_; }
+  bool isStatement(const bool & val) { isStatement_ = val; return isStatement_; }
+  bool isCompound(const bool & val) { isCompound_ = val; return isCompound_; }
+  bool isAtom(const bool & val) { isAtom_ = val; return isAtom_; }
+  bool isBlock(const bool & val) { isBlock_ = val; return isBlock_; }
+  bool isArgument(const bool & val) { isArgument_ = val; return isArgument_; }
+  bool isProgram(const bool & val) { isProgram_ = val; return isProgram_; }
+  bool isEmpty(const bool & val) { isEmpty_ = val; return isEmpty_; }
+  bool isSkip(const bool & val) { isSkip_ = val; return isSkip_; }
+
   virtual vector<shared_ptr<Node>> getValues() {
     vector<shared_ptr<Node>> vec;
     return vec;
@@ -118,18 +133,18 @@ protected:
   int endcol_{};
   string raw_{};
   string label_{};
+  
+  bool needsNewLine_{false};
+  bool isNode_{false};
+  bool isStatement_{false};
+  bool isCompound_{false};
+  bool isAtom_{false};
+  bool isBlock_{false};
+  bool isArgument_{false};
+  bool isProgram_{false};
+  bool isEmpty_{false};
+  bool isSkip_{false};
 };
 
-template <typename T> static constexpr bool is_compound(const T &nd) {
-  return false;
-}
-
-template <typename T> static constexpr bool is_statement(const T &nd) {
-  return false;
-}
-
-template <typename T> static constexpr bool is_atomic(const T &nd) {
-  return false;
-}
 
 #endif /* __NODE_H__ */

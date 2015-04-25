@@ -6,14 +6,15 @@ class ParameterNode : public Node {
 public:
   ParameterNode(const int &row, const int &col, const int &endrow,
                 const int &endcol, const string &raw)
-      : Node(row, col, endrow, endcol, raw) {}
+      : Node(row, col, endrow, endcol, raw) {
+        isArgument(true);
+      }
   void setIdentifier(const shared_ptr<IdentifierNode> &id) { id_ = id; }
   void setType(const shared_ptr<TypeNode> &typ) { typ_ = typ; }
   shared_ptr<Node> getIdentifier() const { return id_; }
   shared_ptr<Node> getType() const { return typ_; }
   string getHead() const override { return head_; }
 
-  bool isArgument() const override { return true; }
   void toCCode_(ostringstream &o) override {
     assert(typ_ != nullptr);
     assert(id_ != nullptr);

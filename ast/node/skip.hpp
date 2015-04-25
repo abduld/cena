@@ -7,7 +7,9 @@ class SkipStmtNode : public Node, public NodeAcceptor<SkipStmtNode> {
 public:
   SkipStmtNode(const int &row, const int &col, const int &endrow,
                const int &endcol, const string &raw)
-      : Node(row, col, endrow, endcol, raw) {}
+      : Node(row, col, endrow, endcol, raw) {
+        isSkip(true);
+      }
   string getHead() const override { return head_; }
 
   void toCCode_(ostringstream &o) override {}
@@ -23,7 +25,6 @@ public:
     return vector<shared_ptr<Node>>{};
   }
   void traverse(ASTVisitor *visitor) override { accept(visitor); }
-  bool isSkip() const override { return true; }
 
 private:
   string head_ = "Skip";

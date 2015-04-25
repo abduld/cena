@@ -6,7 +6,7 @@ class LabelStmtNode : public Node {
 public:
   LabelStmtNode(const int &row, const int &col, const int &endrow,
                 const int &endcol, const string &raw)
-      : Node(row, col, endrow, endcol, raw) {}
+      : Node(row, col, endrow, endcol, raw) {isStatement(true);}
   ~LabelStmtNode() {}
   string getHead() const override { return head_; }
 
@@ -27,7 +27,6 @@ public:
   }
   shared_ptr<Node> getLabel() const { return lbl_; }
 
-  bool isStatement() const override { return true; }
 
   void toCCode_(ostringstream &o) override {
     assert(lbl_ != nullptr);

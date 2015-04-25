@@ -7,7 +7,9 @@ class SwitchNode : public Node {
 public:
   SwitchNode(const int &row, const int &col, const int &endrow,
              const int &endcol, const string &raw)
-      : Node(row, col, endrow, endcol, raw) {}
+      : Node(row, col, endrow, endcol, raw) {
+        isBlock(true);
+      }
   string getHead() const override { return head_; }
   void setCondition(const shared_ptr<Node> &cond) {
     cond_ = cond;
@@ -37,7 +39,6 @@ public:
     body_->toString_(o);
     o << "\n}";
   }
-  bool isBlock() const override { return true; }
   void toJSON_(ostringstream &o) { o << "{\"type\": \"switch\"}"; }
   Json toEsprima_() override {
     Json::object obj;

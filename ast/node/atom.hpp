@@ -7,10 +7,13 @@ template <typename T> class AtomNode : public Node {
 public:
   AtomNode(const int &row, const int &col, const int &endrow, const int &endcol,
            const string &raw)
-      : Node(row, col, endrow, endcol, raw), init_(true) {}
+      : Node(row, col, endrow, endcol, raw), init_(true) {
+        isAtom(true);
+      }
   AtomNode(const int &row, const int &col, const int &endrow, const int &endcol,
            const string &raw, const T &v)
       : Node(row, col, endrow, endcol, raw), init_(true) {
+        isAtom(true);
     val_ = v;
   }
   vector<shared_ptr<Node>> getValues() override {
@@ -19,7 +22,6 @@ public:
     vec.push_back(v);
     return vec;
   }
-  bool isAtom() const override { return true; }
   void setConstant(const T &val) { val_ = val; }
   T getConstant() const { return val_; }
   virtual void toCCode_(ostringstream &o) override {

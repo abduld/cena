@@ -6,11 +6,10 @@ class BreakNode : public Node {
 public:
   BreakNode(const int &row, const int &col, const int &endrow,
             const int &endcol, const string &raw)
-      : Node(row, col, endrow, endcol, raw) {}
+      : Node(row, col, endrow, endcol, raw) {
+    isStatement(true);}
   ~BreakNode() {}
   string getHead() const override { return head_; }
-
-  bool isStatement() const override { return true; }
 
   void toCCode_(ostringstream &o) override { o << "break"; }
   void toString_(ostringstream &o) override { o << "break"; }

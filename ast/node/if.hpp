@@ -7,11 +7,13 @@ class IfNode : public Node {
 public:
   IfNode(const int &row, const int &col, const int &endrow, const int &endcol,
          const string &raw)
-      : Node(row, col, endrow, endcol, raw) {}
+      : Node(row, col, endrow, endcol, raw) {
+    isBlock(true);}
   IfNode(const int &row, const int &col, const int &endrow, const int &endcol,
          const string &raw, const shared_ptr<Node> &cond,
          const shared_ptr<Node> &thenPart)
       : Node(row, col, endrow, endcol, raw), cond_(cond), then_(thenPart) {
+        isBlock(true);
     cond_->setParent(this);
     then_->setParent(this);
   }
@@ -20,6 +22,7 @@ public:
          const shared_ptr<Node> &thenPart, const shared_ptr<Node> &elsePart)
       : Node(row, col, endrow, endcol, raw), cond_(cond), then_(thenPart),
         else_(elsePart) {
+          isBlock(true);
     cond_->setParent(this);
     then_->setParent(this);
     else_->setParent(this);
@@ -62,7 +65,6 @@ public:
       else_->toString_(o);
     }
   }
-  bool isBlock() const override { return true; }
   void toJSON_(ostringstream &o) { o << "{\"type\": \"unknown\"}"; }
   Json toEsprima_() override {
     Json::object obj;

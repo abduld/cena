@@ -6,7 +6,7 @@ class CaseNode : public Node {
 public:
   CaseNode(const int &row, const int &col, const int &endrow, const int &endcol,
            const string &raw)
-      : Node(row, col, endrow, endcol, raw) {}
+      : Node(row, col, endrow, endcol, raw) {isStatement(true);}
   ~CaseNode() {}
   string getHead() const override { return head_; }
 
@@ -28,7 +28,6 @@ public:
   }
   shared_ptr<Node> getBody() const { return body_; }
 
-  bool isStatement() const override { return true; }
   void toCCode_(ostringstream &o) override {
     assert(lhs_ != nullptr);
     assert(body_ != nullptr);

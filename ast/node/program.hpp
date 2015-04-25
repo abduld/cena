@@ -5,10 +5,11 @@
 
 class ProgramNode : public CompoundNode {
 public:
-  ProgramNode() : CompoundNode(0, 0, 0, 0, "") {}
+  ProgramNode() : CompoundNode(0, 0, 0, 0, "") {
+    isProgram(true);
+  }
   ~ProgramNode() {}
   string getHead() { return head_; }
-  bool isProgram() const override { return true; }
   Json toEsprima_() override {
     Json::object obj;
     std::vector<Json> lst;

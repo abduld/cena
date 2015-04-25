@@ -11,20 +11,25 @@ public:
                const int &endcol, const string &raw)
       : Node(row, col, endrow, endcol, raw) {
     vals_ = vector<shared_ptr<Node>>();
+    isCompound(true);
   }
   CompoundNode(const int &row, const int &col, const int &endrow,
                const int &endcol, const string &raw,
                const vector<shared_ptr<Node>> &vals)
-      : Node(row, col, endrow, endcol, raw), vals_(vals) {}
+      : Node(row, col, endrow, endcol, raw), vals_(vals) {
+        isCompound(true);
+      }
   virtual ~CompoundNode() { vals_.clear(); }
-  virtual bool isCompound() const override { return true; }
-  virtual bool isEmpty() const override { return getArgCount() == 0; }
+  virtual bool isEmpty() const { return getArgCount() == 0; }
   CompoundNode *operator<<=(const bool &val) override {
     shared_ptr<BooleanNode> var(new BooleanNode(row_, col_, endrow_, endcol_,
                                                 val ? "true" : "false", val));
     var->setParent(this);
     addChild(var);
     vals_.push_back(var);
+    if (isBlock()|| isProgram()) {
+      var->isStatement(true);
+    }
     return this;
   }
   CompoundNode &operator<<=(const int &val) override {
@@ -33,6 +38,9 @@ public:
     var->setParent(this);
     addChild(var);
     vals_.push_back(var);
+    if (isBlock()|| isProgram()) {
+      var->isStatement(true);
+    }
     return *this;
   }
   CompoundNode &operator<<=(const int64_t &val) override {
@@ -41,6 +49,9 @@ public:
     var->setParent(this);
     addChild(var);
     vals_.push_back(var);
+    if (isBlock()|| isProgram()) {
+      var->isStatement(true);
+    }
     return *this;
   }
   CompoundNode &operator<<=(const float &val) override {
@@ -49,6 +60,9 @@ public:
     var->setParent(this);
     addChild(var);
     vals_.push_back(var);
+    if (isBlock()|| isProgram()) {
+      var->isStatement(true);
+    }
     return *this;
   }
   CompoundNode &operator<<=(const double &val) override {
@@ -57,6 +71,9 @@ public:
     var->setParent(this);
     addChild(var);
     vals_.push_back(var);
+    if (isBlock()|| isProgram()) {
+      var->isStatement(true);
+    }
     return *this;
   }
   CompoundNode &operator<<=(const char *val) override {
@@ -65,6 +82,9 @@ public:
     var->setParent(this);
     addChild(var);
     vals_.push_back(var);
+    if (isBlock()|| isProgram()) {
+      var->isStatement(true);
+    }
     return *this;
   }
   CompoundNode &operator<<=(const string &val) override {
@@ -73,6 +93,9 @@ public:
     var->setParent(this);
     addChild(var);
     vals_.push_back(var);
+    if (isBlock()|| isProgram()) {
+      var->isStatement(true);
+    }
     return *this;
   }
   CompoundNode &operator<<=(const shared_ptr<Node> &c) override {
@@ -85,6 +108,9 @@ public:
       c->setParent(this);
       addChild(c);
       vals_.push_back(c);
+    if (isBlock()|| isProgram()) {
+      c->isStatement(true);
+    }
     }
     return *this;
   }
@@ -93,6 +119,9 @@ public:
     vector<shared_ptr<Node>> vals = c->getValues();
     for (auto iter = vals.begin(); iter != vals.end(); iter++) {
       vals_.push_back(*iter);
+    if (isBlock() || isProgram()) {
+      (*iter)->isStatement(true);
+    }
     }
     return *this;
   }
@@ -103,6 +132,9 @@ public:
     vector<shared_ptr<Node>> vals = c->getValues();
     for (auto iter = vals.begin(); iter != vals.end(); iter++) {
       vals_.push_back(*iter);
+    if (isBlock()|| isProgram()) {
+      (*iter)->isStatement(true);
+    }
     }
     return *this;
   }
@@ -116,6 +148,9 @@ public:
     var->setParent(this);
     addChild(var);
     vals_.push_back(var);
+    if (isBlock()) {
+      var->isStatement(true);
+    }
     return;
   }
   void push_back(const shared_ptr<Node> &var) {
@@ -125,6 +160,9 @@ public:
     var->setParent(this);
     addChild(var);
     vals_.push_back(var);
+    if (isBlock()) {
+      var->isStatement(true);
+    }
     return;
   }
   void push_back(const vector<shared_ptr<Node>> &var) {
@@ -132,6 +170,9 @@ public:
       iter->setParent(this);
       addChild(iter);
       push_back(iter);
+    if (isBlock()) {
+      iter->isStatement(true);
+    }
     }
     return;
   }
