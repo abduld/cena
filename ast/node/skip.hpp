@@ -8,8 +8,8 @@ public:
   SkipStmtNode(const int &row, const int &col, const int &endrow,
                const int &endcol, const string &raw)
       : Node(row, col, endrow, endcol, raw) {
-        isSkip(true);
-      }
+    isSkip(true);
+  }
   string getHead() const override { return head_; }
 
   void toCCode_(ostringstream &o) override {}

@@ -7,12 +7,12 @@ public:
   BlockNode(const int &row, const int &col, const int &endrow,
             const int &endcol, const string &raw)
       : CompoundNode(row, col, endrow, endcol, raw) {
-        isBlock(true);
-      }
+    isBlock(true);
+  }
   BlockNode(const int &row, const int &col, const int &endrow,
             const int &endcol, const string &raw, const shared_ptr<Node> &nd)
       : CompoundNode(row, col, endrow, endcol, raw) {
-        isBlock(true);
+    isBlock(true);
     push_back(nd);
   }
   ~BlockNode() {}

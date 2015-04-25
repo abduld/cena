@@ -6,9 +6,10 @@ class DefaultNode : public Node {
 public:
   DefaultNode(const int &row, const int &col, const int &endrow,
               const int &endcol, const string &raw)
-      : Node(row, col, endrow, endcol, raw) {isStatement(true);}
+      : Node(row, col, endrow, endcol, raw) {
+    isStatement(true);
+  }
   ~DefaultNode() {}
-
 
   void setBody(const shared_ptr<Node> &nd) {
     body_ = nd;

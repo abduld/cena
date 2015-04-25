@@ -7,11 +7,12 @@ public:
   ReturnNode(const int &row, const int &col, const int &endrow,
              const int &endcol, const string &raw)
       : Node(row, col, endrow, endcol, raw) {
-        isStatement(true);}
+    isStatement(true);
+  }
   ReturnNode(const int &row, const int &col, const int &endrow,
              const int &endcol, const string &raw, const shared_ptr<Node> &nd)
       : Node(row, col, endrow, endcol, raw) {
-        isStatement(true);
+    isStatement(true);
     setReturnValue(nd);
   }
   ~ReturnNode() {}

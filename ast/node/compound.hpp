@@ -17,8 +17,8 @@ public:
                const int &endcol, const string &raw,
                const vector<shared_ptr<Node>> &vals)
       : Node(row, col, endrow, endcol, raw), vals_(vals) {
-        isCompound(true);
-      }
+    isCompound(true);
+  }
   virtual ~CompoundNode() { vals_.clear(); }
   virtual bool isEmpty() const { return getArgCount() == 0; }
   CompoundNode *operator<<=(const bool &val) override {
@@ -27,7 +27,7 @@ public:
     var->setParent(this);
     addChild(var);
     vals_.push_back(var);
-    if (isBlock()|| isProgram()) {
+    if (isBlock() || isProgram()) {
       var->isStatement(true);
     }
     return this;
@@ -38,7 +38,7 @@ public:
     var->setParent(this);
     addChild(var);
     vals_.push_back(var);
-    if (isBlock()|| isProgram()) {
+    if (isBlock() || isProgram()) {
       var->isStatement(true);
     }
     return *this;
@@ -49,7 +49,7 @@ public:
     var->setParent(this);
     addChild(var);
     vals_.push_back(var);
-    if (isBlock()|| isProgram()) {
+    if (isBlock() || isProgram()) {
       var->isStatement(true);
     }
     return *this;
@@ -60,7 +60,7 @@ public:
     var->setParent(this);
     addChild(var);
     vals_.push_back(var);
-    if (isBlock()|| isProgram()) {
+    if (isBlock() || isProgram()) {
       var->isStatement(true);
     }
     return *this;
@@ -71,7 +71,7 @@ public:
     var->setParent(this);
     addChild(var);
     vals_.push_back(var);
-    if (isBlock()|| isProgram()) {
+    if (isBlock() || isProgram()) {
       var->isStatement(true);
     }
     return *this;
@@ -82,7 +82,7 @@ public:
     var->setParent(this);
     addChild(var);
     vals_.push_back(var);
-    if (isBlock()|| isProgram()) {
+    if (isBlock() || isProgram()) {
       var->isStatement(true);
     }
     return *this;
@@ -93,7 +93,7 @@ public:
     var->setParent(this);
     addChild(var);
     vals_.push_back(var);
-    if (isBlock()|| isProgram()) {
+    if (isBlock() || isProgram()) {
       var->isStatement(true);
     }
     return *this;
@@ -108,9 +108,9 @@ public:
       c->setParent(this);
       addChild(c);
       vals_.push_back(c);
-    if (isBlock()|| isProgram()) {
-      c->isStatement(true);
-    }
+      if (isBlock() || isProgram()) {
+        c->isStatement(true);
+      }
     }
     return *this;
   }
@@ -119,9 +119,9 @@ public:
     vector<shared_ptr<Node>> vals = c->getValues();
     for (auto iter = vals.begin(); iter != vals.end(); iter++) {
       vals_.push_back(*iter);
-    if (isBlock() || isProgram()) {
-      (*iter)->isStatement(true);
-    }
+      if (isBlock() || isProgram()) {
+        (*iter)->isStatement(true);
+      }
     }
     return *this;
   }
@@ -132,9 +132,9 @@ public:
     vector<shared_ptr<Node>> vals = c->getValues();
     for (auto iter = vals.begin(); iter != vals.end(); iter++) {
       vals_.push_back(*iter);
-    if (isBlock()|| isProgram()) {
-      (*iter)->isStatement(true);
-    }
+      if (isBlock() || isProgram()) {
+        (*iter)->isStatement(true);
+      }
     }
     return *this;
   }
@@ -170,9 +170,9 @@ public:
       iter->setParent(this);
       addChild(iter);
       push_back(iter);
-    if (isBlock()) {
-      iter->isStatement(true);
-    }
+      if (isBlock()) {
+        iter->isStatement(true);
+      }
     }
     return;
   }
@@ -185,9 +185,7 @@ public:
     vals_[idx] = var;
     return;
   }
-  bool isArgumentList() const {
-    return isArgumentList_;
-  }
+  bool isArgumentList() const { return isArgumentList_; }
   bool isArgumentList(bool val) {
     isArgumentList_ = val;
     return val;
@@ -211,7 +209,8 @@ public:
         if (v->isBlock() || v->isSkip()) {
           continue;
         }
-        if (v->isStatement() || isBlock() || (!isProgram() && !isArgumentList() && len > 0)) {
+        if (v->isStatement() || isBlock() ||
+            (!isProgram() && !isArgumentList() && len > 0)) {
           o << ";";
           o << " /* " << v->getHead() << "*/";
           o << "\n";

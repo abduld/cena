@@ -7,8 +7,8 @@ public:
   ParameterNode(const int &row, const int &col, const int &endrow,
                 const int &endcol, const string &raw)
       : Node(row, col, endrow, endcol, raw) {
-        isArgument(true);
-      }
+    isArgument(true);
+  }
   void setIdentifier(const shared_ptr<IdentifierNode> &id) { id_ = id; }
   void setType(const shared_ptr<TypeNode> &typ) { typ_ = typ; }
   shared_ptr<Node> getIdentifier() const { return id_; }

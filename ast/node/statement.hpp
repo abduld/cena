@@ -8,10 +8,9 @@ public:
   Statement(const int &row, const int &col, const int &endrow,
             const int &endcol, const string &raw)
       : CompoundNode(row, col, endrow, endcol, raw) {
-    isStatement(true);}
-  ~Statement() {
     isStatement(true);
   }
+  ~Statement() { isStatement(true); }
   string getHead() const override { return head_; }
 
 private:

@@ -5,9 +5,7 @@
 
 class ProgramNode : public CompoundNode {
 public:
-  ProgramNode() : CompoundNode(0, 0, 0, 0, "") {
-    isProgram(true);
-  }
+  ProgramNode() : CompoundNode(0, 0, 0, 0, "") { isProgram(true); }
   ~ProgramNode() {}
   string getHead() { return head_; }
   Json toEsprima_() override {

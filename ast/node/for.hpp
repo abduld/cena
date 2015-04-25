@@ -8,10 +8,10 @@ public:
   ForNode(const int &row, const int &col, const int &endrow, const int &endcol,
           const string &raw)
       : Node(row, col, endrow, endcol, raw) {
-        isCompound(true);
+    isCompound(true);
 
     isBlock(true);
-      }
+  }
   string getHead() const override { return head_; }
   void setInit(const shared_ptr<Node> &nd) {
     init_ = nd;

@@ -8,12 +8,12 @@ public:
   AtomNode(const int &row, const int &col, const int &endrow, const int &endcol,
            const string &raw)
       : Node(row, col, endrow, endcol, raw), init_(true) {
-        isAtom(true);
-      }
+    isAtom(true);
+  }
   AtomNode(const int &row, const int &col, const int &endrow, const int &endcol,
            const string &raw, const T &v)
       : Node(row, col, endrow, endcol, raw), init_(true) {
-        isAtom(true);
+    isAtom(true);
     val_ = v;
   }
   vector<shared_ptr<Node>> getValues() override {

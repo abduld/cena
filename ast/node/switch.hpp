@@ -8,8 +8,8 @@ public:
   SwitchNode(const int &row, const int &col, const int &endrow,
              const int &endcol, const string &raw)
       : Node(row, col, endrow, endcol, raw) {
-        isBlock(true);
-      }
+    isBlock(true);
+  }
   string getHead() const override { return head_; }
   void setCondition(const shared_ptr<Node> &cond) {
     cond_ = cond;

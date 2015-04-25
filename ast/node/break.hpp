@@ -7,7 +7,8 @@ public:
   BreakNode(const int &row, const int &col, const int &endrow,
             const int &endcol, const string &raw)
       : Node(row, col, endrow, endcol, raw) {
-    isStatement(true);}
+    isStatement(true);
+  }
   ~BreakNode() {}
   string getHead() const override { return head_; }
 
