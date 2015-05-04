@@ -27,6 +27,7 @@
 #include <string>
 #include <vector>
 #include <memory>
+#include <unordered_map>
 
 using namespace std;
 using namespace llvm;
@@ -128,6 +129,10 @@ private:
   bool handleUnaryOperator(UnaryOperator *E);
   bool handleBinaryOperator(BinaryOperator *E);
   bool canIgnoreCurrentASTNode() const;
+
+  std::unordered_map<std::string, shared_ptr<Node>> FunctionMap{};
+  std::unordered_map<std::string, shared_ptr<Node>> LabelMap{};
+
 };
 
 #endif /* __CLANG_VISITOR_H__ */

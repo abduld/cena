@@ -388,6 +388,7 @@ bool SVisitor::TraverseFunctionDecl(FunctionDecl *decl) {
     func->addAttribute("__host__");
   }
   current_node = func;
+  FunctionMap[string(func->getName()->toCCode())] = func;
   return true;
 }
 bool SVisitor::TraverseParmVarDecl(ParmVarDecl *decl) {
@@ -1069,6 +1070,7 @@ bool SVisitor::TraverseLabelStmt(LabelStmt *stmt) {
   node->setBody(current_node);
 
   current_node = node;
+  LabelMap[string(node->getLabel()->toCCode())] = node;
   return true;
 }
 
