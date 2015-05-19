@@ -487,12 +487,13 @@ bool SVisitor::TraverseWhileStmt(WhileStmt *stmt) {
 
   current_node = nd;
   SVisitor::TraverseStmt(stmt->getCond());
+  nd->setCondition(current_node);
 
   current_node = shared_ptr<BlockNode>(
       new BlockNode(loc.getLine(), loc.getColumn(), locend.getLine(),
                     locend.getColumn(), raw));
   SVisitor::TraverseStmt(stmt->getBody());
-  *nd <<= current_node;
+  nd->setBody(current_node);
 
   current_node = nd;
   return true;
